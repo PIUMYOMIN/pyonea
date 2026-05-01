@@ -302,7 +302,9 @@ export default function Checkout() {
     items: cartItems.map(item => ({
       product_id: item.product_id,
       quantity: item.quantity,
-      price: item.price,
+      price: (item.is_currently_on_sale && item.selling_price && item.selling_price < item.price)
+        ? item.selling_price
+        : item.price,
     })),
     shipping_address: shippingAddress,
     payment_method: paymentMethod,
@@ -903,8 +905,18 @@ export default function Checkout() {
                         </div>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <p className="font-medium text-gray-900 dark:text-slate-100">{formatMMK(item.price * item.quantity)}</p>
-                        <p className="text-gray-500 dark:text-slate-500 text-sm">{formatMMK(item.price)} each</p>
+                        {item.is_currently_on_sale && item.selling_price && item.selling_price < item.price ? (
+                          <>
+                            <p className="font-medium text-red-600 dark:text-red-400">{formatMMK(item.selling_price * item.quantity)}</p>
+                            <p className="text-gray-400 dark:text-slate-600 line-through text-sm">{formatMMK(item.price)} each</p>
+                            <p className="text-gray-500 dark:text-slate-500 text-xs">{formatMMK(item.selling_price)} each</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="font-medium text-gray-900 dark:text-slate-100">{formatMMK(item.price * item.quantity)}</p>
+                            <p className="text-gray-500 dark:text-slate-500 text-sm">{formatMMK(item.price)} each</p>
+                          </>
+                        )}
                       </div>
                     </div>
                   ))}

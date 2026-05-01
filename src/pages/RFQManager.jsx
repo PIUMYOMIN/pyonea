@@ -24,6 +24,7 @@ import {
   BellIcon,
   CheckIcon,
   ArrowDownTrayIcon,
+  ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon } from "@heroicons/react/24/solid";
 import api from "../utils/api";
@@ -580,6 +581,30 @@ const RFQDetailModal = ({ rfq, onClose, onRefresh, canManageQuotes = true }) => 
                     <p className="text-sm font-bold text-green-900 dark:text-green-200">{fmtPrice(data.accepted_quote.total_price)} {data.accepted_quote.currency}</p>
                   </div>
                 </div>
+ 
+                {/* ── Order link — shown once the backend creates the order ── */}
+                {data.order && (
+                  <div className="mt-4 pt-4 border-t border-green-200 dark:border-green-700 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-green-600 dark:text-green-400 font-semibold uppercase tracking-wide">
+                        Order Created
+                      </p>
+                      <p className="text-sm font-bold text-green-900 dark:text-green-200 font-mono">
+                        {data.order.order_number}
+                      </p>
+                      <p className="text-xs text-green-600 dark:text-green-400 capitalize mt-0.5">
+                        Status: {data.order.status}
+                      </p>
+                    </div>
+                    <a
+                      href={`/orders/${data.order.order_number}`}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white text-sm font-semibold transition-colors"
+                    >
+                      <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                      View Order
+                    </a>
+                  </div>
+                )}
               </div>
             )}
 
