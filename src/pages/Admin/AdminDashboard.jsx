@@ -21,7 +21,7 @@ import {
   UserCircleIcon,
 } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../utils/api";
 import Sidebar from "../../components/layout/Sidebar";
@@ -40,6 +40,7 @@ import ReportManagement from "../../components/admin/ReportManagement";
 import CategoryManagement from "../../components/admin/CategoryManagement";        // self‑contained
 import SellerVerificationManagement from "../../components/admin/SellerVerificationManagement";
 import NotificationsPanel from "../../components/Shared/NotificationsPanel";
+import { NotificationBell } from "../../components/Shared/NotificationsPanel";
 import AnnouncementManagement from "../../components/admin/AnnouncementManagement";
 import Settings from "../../components/admin/Settings";
 import ChangePasswordForm from "../../components/Shared/ChangePasswordForm";
@@ -253,6 +254,7 @@ const DeliveryFeeReview = () => {
 const AdminDashboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
 
@@ -453,6 +455,17 @@ const AdminDashboard = () => {
       component: <AdminProfileTab />,
     }
   ];
+  const notificationsTabIndex = React.useMemo(
+    () => navigation.findIndex((item) => item.name === "Notifications"),
+    [navigation]
+  );
+
+  useEffect(() => {
+    const tab = new URLSearchParams(location.search).get("tab");
+    if (tab?.toLowerCase() === "notifications" && notificationsTabIndex !== -1) {
+      setActiveTab(notificationsTabIndex);
+    }
+  }, [location.search, notificationsTabIndex]);
 
   return (
     <>
@@ -555,6 +568,9 @@ const AdminDashboard = () => {
                 />
               </div>
               <div className="ml-3 flex items-center gap-2 flex-shrink-0">
+                <NotificationBell onClick={() => {
+                  if (notificationsTabIndex !== -1) setActiveTab(notificationsTabIndex);
+                }} />
                 {activeTab === 0 && lastUpdated && (
                   <span className="hidden sm:block text-xs text-gray-400 dark:text-slate-500 whitespace-nowrap">
                     Updated {lastUpdated.toLocaleTimeString()}

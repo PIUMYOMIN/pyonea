@@ -41,6 +41,7 @@ import CouponManagement from "../../components/seller/CouponManagement";
 import EditStore from "../../components/seller/EditStore";
 import StoreProfileEditor from "../../components/seller/StoreProfileEditor";
 import NotificationsPanel from "../../components/Shared/NotificationsPanel";
+import { NotificationBell } from "../../components/Shared/NotificationsPanel";
 import ReferralPanel from "../../components/Shared/ReferralPanel";
 import ChangePasswordForm from "../../components/Shared/ChangePasswordForm";
 import SellerWallet from "../../components/seller/SellerWallet";
@@ -274,18 +275,27 @@ const SellerDashboard = () => {
   // ---------- Handle URL parameters (tab selection) ----------
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-    const initialTab = searchParams.get('tab');
-    const editMode = searchParams.get('edit');
-    const setupParam = searchParams.get('setup');
+    const initialTab = searchParams.get("tab");
+    const editMode = searchParams.get("edit");
+    const setupParam = searchParams.get("setup");
 
-    if (editMode === 'true' || initialTab === 'edit-store') {
-      const editStoreIndex = navigation.findIndex(item => item.name === "Edit Store");
+    if (editMode === "true" || initialTab === "edit-store") {
+      const editStoreIndex = navigation.findIndex((item) => item.key === "edit_store");
       if (editStoreIndex !== -1) setSelectedTab(editStoreIndex);
-    } else if (initialTab === 'my-store' || setupParam === 'true') {
-      const myStoreIndex = navigation.findIndex(item => item.name === t("seller.my_store"));
-      if (myStoreIndex !== -1) setSelectedTab(myStoreIndex);
+      return;
     }
-  }, [location.search, t, navigation]);
+
+    if (setupParam === "true") {
+      const myStoreIndex = navigation.findIndex((item) => item.key === "my_store");
+      if (myStoreIndex !== -1) setSelectedTab(myStoreIndex);
+      return;
+    }
+
+    if (initialTab) {
+      const tabIndex = navigation.findIndex((item) => item.key === initialTab.replaceAll("-", "_"));
+      if (tabIndex !== -1) setSelectedTab(tabIndex);
+    }
+  }, [location.search, navigation]);
 
   // ---------- Check seller access and onboarding ----------
   useEffect(() => {
@@ -619,6 +629,10 @@ const SellerDashboard = () => {
               <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">Manage your store and grow your business</p>
             </div>
             <div className="flex items-center space-x-4">
+              <NotificationBell onClick={() => {
+                const idx = navigation.findIndex((item) => item.key === "notifications");
+                if (idx !== -1) setSelectedTab(idx);
+              }} />
               <div className="hidden md:flex items-center space-x-2 text-sm text-gray-600 dark:text-slate-400">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                 <span>Store Active</span>

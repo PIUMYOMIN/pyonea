@@ -353,7 +353,6 @@ const DeliveryManagement = ({ refreshData }) => {
           isOpen={isModalOpen}
           actionLoading={actionLoading}
           onClose={() => { setIsModalOpen(false); setSelectedDelivery(null); }}
-          onStatusUpdate={updateDeliveryStatus}
           onProofUpload={uploadDeliveryProof}
         />
       )}
@@ -507,7 +506,7 @@ const DeliveryMethodModal = ({ order, loading, onClose, onMethodSelect, calculat
 // Delivery Details Modal
 // FIX: reset proof form state after successful upload; use deliveryUpdates (camelCase)
 // ─────────────────────────────────────────────────────────────────────────────
-const DeliveryDetailsModal = ({ delivery, isOpen, actionLoading, onClose, onStatusUpdate, onProofUpload }) => {
+const DeliveryDetailsModal = ({ delivery, isOpen, actionLoading, onClose, onProofUpload }) => {
   const [showProofUpload, setShowProofUpload] = useState(false);
   const [proofFile, setProofFile]             = useState(null);
   const [recipientName, setRecipientName]     = useState("");

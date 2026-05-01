@@ -252,11 +252,6 @@ const ProductManagement = () => {
     return img.url || img.full_url || img.path || "/placeholder-product.jpg";
   };
 
-  const getProductImage = (product) => {
-    const imgs = resolveImages(product);
-    return resolveUrl(imgs[0]);
-  };
-
   const getPrimaryImage = (product) => {
     const imgs = resolveImages(product);
     const primary = imgs.find(img => img.is_primary);
@@ -609,7 +604,7 @@ const ProductManagement = () => {
                           : "You haven't added any products yet. Start by creating your first product listing."}
                       </p>
                       {!searchTerm && statusFilter === "all" && categoryFilter === "all" && (
-                        <button onClick={() => navigate("/products/create")} className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700">
+                        <button onClick={() => navigate("/seller/products/create")} className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700">
                           Add Your First Product
                         </button>
                       )}

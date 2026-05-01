@@ -1,6 +1,6 @@
 // src/pages/Client/BuyerDashboard.jsx
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
@@ -16,6 +16,7 @@ import api from "../../utils/api";
 import { getImageUrl } from "../../utils/imageHelpers";
 import NotificationPreferences from "../../components/Shared/NotificationPreferences";
 import NotificationsPanel from "../../components/Shared/NotificationsPanel";
+import { NotificationBell } from "../../components/Shared/NotificationsPanel";
 import ReferralPanel from "../../components/Shared/ReferralPanel";
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
@@ -1208,6 +1209,7 @@ const BuyerDashboard = () => {
   const [cancelling, setCancelling]     = useState(false);
   const [cancelError, setCancelError]   = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { isEmailVerified, updateUser } = useAuth();
 
   const TABS = useMemo(() => [
@@ -1237,6 +1239,13 @@ const BuyerDashboard = () => {
   }, [fetchOrders]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  useEffect(() => {
+    const tab = new URLSearchParams(location.search).get("tab");
+    if (!tab) return;
+    const idx = TABS.findIndex((item) => item.id === tab);
+    if (idx !== -1) setActiveTab(idx);
+  }, [location.search, TABS]);
 
   // Refresh orders every 30s when on dashboard or orders tab
   useEffect(() => {
@@ -1406,6 +1415,10 @@ const BuyerDashboard = () => {
               </h1>
               <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-500 mt-0.5">Manage your orders and account</p>
             </div>
+            <NotificationBell onClick={() => {
+              const idx = TABS.findIndex((item) => item.id === "notifications");
+              if (idx !== -1) setActiveTab(idx);
+            }} />
           </div>
         </div>
 

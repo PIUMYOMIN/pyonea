@@ -9,6 +9,7 @@ import {
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useCart } from '../../context/CartContext.jsx';
+import { NotificationBell } from '../Shared/NotificationsPanel';
 import Logo from '../../assets/images/logo.png';
 
 const Header = () => {
@@ -96,6 +97,19 @@ const Header = () => {
     if (hasRole('admin'))        navigate('/admin/dashboard');
     else if (hasRole('seller'))  navigate('/seller/dashboard');
     else                         navigate('/buyer/dashboard');
+    setUserMenuOpen(false);
+    setMobileOpen(false);
+  };
+
+  const goToNotifications = () => {
+    if (!user) return;
+    if (hasRole('admin')) {
+      navigate('/admin/dashboard?tab=notifications');
+    } else if (hasRole('seller')) {
+      navigate('/seller/dashboard?tab=notifications');
+    } else {
+      navigate('/buyer/dashboard?tab=notifications');
+    }
     setUserMenuOpen(false);
     setMobileOpen(false);
   };
@@ -231,6 +245,9 @@ const Header = () => {
                 )}
               </Link>
             )}
+
+            {/* Notifications — authenticated users */}
+            {user && <NotificationBell onClick={goToNotifications} />}
 
             {/* User dropdown */}
             {user ? (

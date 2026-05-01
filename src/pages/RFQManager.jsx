@@ -375,7 +375,7 @@ const CreateRFQForm = ({ onSuccess, onCancel }) => {
 };
 
 // ── Quotation card (buyer view) ────────────────────────────────────────────────
-const QuoteCard = ({ quote, rfqId, onAccepted, onRejected }) => {
+const QuoteCard = ({ quote, rfqId, onAccepted, onRejected, canRespond = true }) => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
@@ -448,7 +448,7 @@ const QuoteCard = ({ quote, rfqId, onAccepted, onRejected }) => {
       {error && <p className="text-xs text-red-600 dark:text-red-400 mb-2">{error}</p>}
 
       {/* Actions — only for pending quotes */}
-      {quote.status === "pending" && (
+      {quote.status === "pending" && canRespond && (
         <div className="flex gap-2">
           <button
             onClick={() => act("reject")}
@@ -477,7 +477,7 @@ const QuoteCard = ({ quote, rfqId, onAccepted, onRejected }) => {
 };
 
 // ── RFQ Detail Modal (sent RFQs) ───────────────────────────────────────────────
-const RFQDetailModal = ({ rfq, onClose, onRefresh }) => {
+const RFQDetailModal = ({ rfq, onClose, onRefresh, canManageQuotes = true }) => {
   const { t } = useTranslation();
   const [data, setData]       = useState(rfq);
   const [loading, setLoading] = useState(false);
@@ -597,6 +597,7 @@ const RFQDetailModal = ({ rfq, onClose, onRefresh }) => {
                       key={q.id}
                       quote={q}
                       rfqId={data.id}
+                      canRespond={canManageQuotes}
                       onAccepted={() => { refresh(); onRefresh?.(); }}
                       onRejected={refresh}
                     />
@@ -617,7 +618,7 @@ const RFQDetailModal = ({ rfq, onClose, onRefresh }) => {
           {/* Footer actions */}
           <div className="flex items-center justify-between px-6 py-4 bg-gray-50 dark:bg-slate-900/50 border-t border-gray-200 dark:border-slate-700">
             <div className="flex gap-2">
-              {["open", "draft"].includes(data.status) && (
+              {canManageQuotes && ["open", "draft"].includes(data.status) && (
                 <button
                   onClick={handleCancel}
                   disabled={closing}
@@ -626,7 +627,7 @@ const RFQDetailModal = ({ rfq, onClose, onRefresh }) => {
                   <XCircleIcon className="h-4 w-4" /> {t("rfq.actions.cancel_rfq")}
                 </button>
               )}
-              {data.status === "quoted" && (
+              {canManageQuotes && data.status === "quoted" && (
                 <button
                   onClick={handleClose}
                   disabled={closing}
@@ -844,7 +845,7 @@ const RFQCard = ({ rfq, onClick, role = "buyer" }) => {
 // ══════════════════════════════════════════════════════════════════════════════
 const RFQManager = () => {
   const { t } = useTranslation();
-  const { user, isBuyer, isSeller, isAdmin } = useAuth();
+  const { isSeller, isAdmin } = useAuth();
 
   // Derive a stable role string for this session.
   // Admins can see everything (both sent and received).
@@ -936,7 +937,7 @@ const RFQManager = () => {
   const ALL_TABS = [
     { id: "sent",     roles: ["buyer", "admin"],          label: t('rfq.tabs.sent'),     icon: DocumentTextIcon,   badge: sentStats.quoted > 0 ? sentStats.quoted : null },
     { id: "received", roles: ["seller", "admin"],         label: t('rfq.tabs.received'), icon: InboxIcon,           badge: receivedStats.open > 0 ? receivedStats.open : null },
-    { id: "create",   roles: ["buyer", "admin"],          label: t('rfq.tabs.create'),   icon: PlusIcon,            badge: null },
+    { id: "create",   roles: ["buyer"],                   label: t('rfq.tabs.create'),   icon: PlusIcon,            badge: null },
   ];
 
   // Filter tabs down to those the current user is allowed to see
@@ -1050,12 +1051,14 @@ const RFQManager = () => {
                 >
                   <ArrowPathIcon className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> {t("rfq.toolbar.refresh")}
                 </button>
-          <button
-            onClick={() => setActiveTab("create")}
-            className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 ml-auto"
-          >
-            <PlusIcon className="h-4 w-4" /> {t('rfq.toolbar.new_rfq')}
-          </button>
+          {userRole === "buyer" && (
+            <button
+              onClick={() => setActiveTab("create")}
+              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 ml-auto"
+            >
+              <PlusIcon className="h-4 w-4" /> {t('rfq.toolbar.new_rfq')}
+            </button>
+          )}
               </div>
 
               {/* List */}
@@ -1087,7 +1090,7 @@ const RFQManager = () => {
                         <RFQCard
                           key={rfq.id}
                           rfq={rfq}
-                          role={userRole}
+                          role={activeTab === "received" ? "seller" : "buyer"}
                           onClick={() => setSelectedRFQ(rfq)}
                         />
                       ))}
@@ -1109,11 +1112,11 @@ const RFQManager = () => {
                         <div key={rfq.id} className="space-y-2">
                           <RFQCard
                             rfq={rfq}
-                            role={userRole}
+                            role={activeTab === "received" ? "seller" : "buyer"}
                             onClick={() => setSelectedRFQ(rfq)}
                           />
                           {/* Quick respond button for open RFQs without a quote */}
-                          {rfq.status === "open" && !rfq.my_quote && (
+                          {userRole === "seller" && rfq.status === "open" && !rfq.my_quote && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setQuoteTarget(rfq); }}
                                 className="w-full py-2 text-xs font-bold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 flex items-center justify-center gap-2 transition-colors"
@@ -1121,7 +1124,7 @@ const RFQManager = () => {
                                 <PaperAirplaneIcon className="h-4 w-4" /> {t('rfq.actions.submit_quotation')}
                               </button>
                           )}
-                            {rfq.my_quote && (
+                            {userRole === "seller" && rfq.my_quote && (
                               <div className="flex items-center gap-2 px-3 py-2 bg-green-50 dark:bg-green-900/20 rounded-xl text-xs font-bold text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800">
                                 <CheckIcon className="h-4 w-4" /> {t('rfq.submitted')}
                               </div>
@@ -1142,6 +1145,7 @@ const RFQManager = () => {
         <RFQDetailModal
           rfq={selectedRFQ}
           onClose={() => setSelectedRFQ(null)}
+          canManageQuotes={userRole === "buyer" && activeTab === "sent"}
           onRefresh={activeTab === "sent" ? fetchSent : fetchReceived}
         />
       )}

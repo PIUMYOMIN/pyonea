@@ -49,6 +49,17 @@ const DELIVERY_STATUS_COLOR = {
 const formatStatus = (s) => (s || "").replaceAll("_", " ");
 
 const calculatePlatformFee = (weight = 5) => 5000 + weight * 100;
+const parseShippingAddress = (shippingAddress) => {
+  if (!shippingAddress) return {};
+  if (typeof shippingAddress === "string") {
+    try {
+      return JSON.parse(shippingAddress);
+    } catch {
+      return {};
+    }
+  }
+  return shippingAddress;
+};
 
 // ─── Delivery Method Modal ─────────────────────────────────────────────────────
 // Shown inline inside the Order Details modal when the order is confirmed
@@ -68,168 +79,6 @@ const DeliveryMethodPanel = ({ order, onConfirm, loading }) => {
       return;
     }
     onConfirm(method, pickupAddress.trim());
-  };
-
-  // ── Order Slip Download ────────────────────────────────────────────────────
-  const downloadOrderSlip = async (order) => {
-    setDownloadingSlip(order.id);
-    try {
-      // Build the slip HTML as a string so it renders independently
-      // without needing a visible DOM element — same approach as PaymentSuccess
-      const address = typeof order.shipping_address === 'string'
-        ? JSON.parse(order.shipping_address)
-        : (order.shipping_address ?? {});
-
-      const items = (order.items ?? []).map(item => `
-        <tr style="border-bottom:1px solid #f3f4f6;">
-          <td style="padding:10px 8px;">
-            <div style="font-weight:500;">${item.product_name ?? 'Product'}</div>
-            <div style="font-size:11px;color:#6b7280;">SKU: ${item.product_sku ?? item.sku ?? 'N/A'}</div>
-          </td>
-          <td style="padding:10px 8px;text-align:center;">${item.quantity ?? 0}</td>
-          <td style="padding:10px 8px;text-align:right;">${formatMMK(item.unit_price ?? item.price ?? 0)}</td>
-          <td style="padding:10px 8px;text-align:right;font-weight:500;">${formatMMK(item.subtotal ?? ((item.unit_price ?? item.price ?? 0) * (item.quantity ?? 1)))}</td>
-        </tr>
-      `).join('');
-
-      const subtotal = order.subtotal_amount ?? 0;
-      const shipping = order.shipping_fee ?? 0;
-      const tax      = order.tax_amount ?? 0;
-      const discount = order.coupon_discount_amount ?? 0;
-      const total    = order.total_amount ?? 0;
-
-      const statusColor = {
-        delivered: '#16a34a', confirmed: '#2563eb', processing: '#7c3aed',
-        shipped: '#0891b2', pending: '#d97706', cancelled: '#dc2626',
-      }[order.status] ?? '#374151';
-
-      const html = `
-        <div id="order-slip-content" style="
-          font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-          font-size:13px; color:#1f2937; background:#fff;
-          width:700px; padding:40px; box-sizing:border-box;
-        ">
-          <!-- Header -->
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #16a34a;padding-bottom:20px;margin-bottom:24px;">
-            <div>
-              <div style="font-size:26px;font-weight:700;color:#16a34a;letter-spacing:-0.5px;font-family:'Torus',sans-serif;">Pyonea</div>
-              <div style="font-size:11px;color:#6b7280;margin-top:2px;">Myanmar B2B Marketplace</div>
-              <div style="font-size:11px;color:#6b7280;">support@pyonea.com · +95 9 792 115 547</div>
-            </div>
-            <div style="text-align:right;">
-              <div style="font-size:16px;font-weight:700;color:#111827;">ORDER SLIP</div>
-              <div style="font-size:20px;font-weight:800;font-family:monospace;color:#16a34a;margin-top:4px;">${order.order_number}</div>
-              <div style="margin-top:6px;display:inline-block;background:${statusColor}20;color:${statusColor};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;">
-                ${order.status}
-              </div>
-            </div>
-          </div>
-
-          <!-- Meta row -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
-            <div>
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#9ca3af;margin-bottom:8px;">Customer</div>
-              <div style="font-weight:600;">${address.full_name ?? 'N/A'}</div>
-              <div style="color:#6b7280;">${address.phone ?? ''}</div>
-              <div style="color:#6b7280;font-size:12px;">${address.email ?? ''}</div>
-            </div>
-            <div>
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#9ca3af;margin-bottom:8px;">Shipping Address</div>
-              <div>${address.address ?? 'N/A'}</div>
-              <div style="color:#6b7280;">${[address.city, address.state].filter(Boolean).join(', ')}</div>
-              <div style="color:#6b7280;">${address.country ?? 'Myanmar'}</div>
-            </div>
-          </div>
-
-          <!-- Order dates -->
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;background:#f9fafb;border-radius:8px;padding:12px 16px;margin-bottom:24px;font-size:12px;">
-            <div><span style="color:#9ca3af;">Order Date</span><br/><strong>${new Date(order.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}</strong></div>
-            <div><span style="color:#9ca3af;">Payment</span><br/><strong>${(order.payment_method ?? '').replace(/_/g,' ').toUpperCase() || 'N/A'}</strong></div>
-            <div><span style="color:#9ca3af;">Payment Status</span><br/><strong style="color:${order.payment_status==='paid'?'#16a34a':'#d97706'}">${(order.payment_status ?? 'pending').toUpperCase()}</strong></div>
-          </div>
-
-          <!-- Items table -->
-          <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
-            <thead>
-              <tr style="border-bottom:2px solid #e5e7eb;">
-                <th style="text-align:left;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600;">Item</th>
-                <th style="text-align:center;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600;">Qty</th>
-                <th style="text-align:right;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600;">Unit Price</th>
-                <th style="text-align:right;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600;">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>${items}</tbody>
-          </table>
-
-          <!-- Totals -->
-          <div style="margin-left:auto;max-width:260px;font-size:13px;">
-            <div style="display:flex;justify-content:space-between;padding:6px 0;color:#6b7280;">
-              <span>Subtotal</span><span>${formatMMK(subtotal)}</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;padding:6px 0;color:#6b7280;">
-              <span>Shipping</span><span>${formatMMK(shipping)}</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;padding:6px 0;color:#6b7280;">
-              <span>Tax</span><span>${formatMMK(tax)}</span>
-            </div>
-            ${discount > 0 ? `<div style="display:flex;justify-content:space-between;padding:6px 0;color:#16a34a;">
-              <span>Discount</span><span>-${formatMMK(discount)}</span>
-            </div>` : ''}
-            <div style="display:flex;justify-content:space-between;padding:10px 0;border-top:2px solid #e5e7eb;font-weight:700;font-size:15px;">
-              <span>Total</span><span style="color:#16a34a;">${formatMMK(total)}</span>
-            </div>
-          </div>
-
-          <!-- Footer -->
-          <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb;text-align:center;color:#9ca3af;font-size:11px;">
-            <div>Generated by Pyonea Marketplace · ${new Date().toLocaleString('en-GB')}</div>
-            <div style="margin-top:4px;">This is a computer-generated document. No signature required.</div>
-          </div>
-        </div>
-      `;
-
-      // Render off-screen
-      const container = document.createElement('div');
-      container.style.cssText = 'position:fixed;left:-9999px;top:0;z-index:-1;background:#fff;';
-      container.innerHTML = html;
-      document.body.appendChild(container);
-
-      const el = container.querySelector('#order-slip-content');
-
-      // Ensure Torus font is loaded before rendering (it's declared in index.css)
-      await document.fonts.load('700 1em Torus');
-      await document.fonts.ready;
-
-      const canvas = await html2canvas(el, {
-        scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff',
-        width: el.scrollWidth, height: el.scrollHeight,
-      });
-      document.body.removeChild(container);
-
-      const imgData  = canvas.toDataURL('image/png');
-      const pdf      = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 190;
-      const pageH    = 277;
-      const imgH     = (canvas.height * imgWidth) / canvas.width;
-      let left       = imgH;
-      let pos        = 10;
-
-      pdf.addImage(imgData, 'PNG', 10, pos, imgWidth, imgH);
-      left -= pageH;
-      while (left >= 0) {
-        pos = left - imgH + 10;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 10, pos, imgWidth, imgH);
-        left -= pageH;
-      }
-      pdf.save(`Order_Slip_${order.order_number}.pdf`);
-
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('Slip download failed:', err);
-    } finally {
-      setDownloadingSlip(null);
-    }
   };
 
   return (
@@ -364,168 +213,6 @@ const DeliveryTracking = ({ delivery, onRefresh, refreshing }) => {
 
   const currentIdx = TIMELINE.findIndex((t) => t.status === delivery.status);
 
-  // ── Order Slip Download ────────────────────────────────────────────────────
-  const downloadOrderSlip = async (order) => {
-    setDownloadingSlip(order.id);
-    try {
-      // Build the slip HTML as a string so it renders independently
-      // without needing a visible DOM element — same approach as PaymentSuccess
-      const address = typeof order.shipping_address === 'string'
-        ? JSON.parse(order.shipping_address)
-        : (order.shipping_address ?? {});
-
-      const items = (order.items ?? []).map(item => `
-        <tr style="border-bottom:1px solid #f3f4f6;">
-          <td style="padding:10px 8px;">
-            <div style="font-weight:500;">${item.product_name ?? 'Product'}</div>
-            <div style="font-size:11px;color:#6b7280;">SKU: ${item.product_sku ?? item.sku ?? 'N/A'}</div>
-          </td>
-          <td style="padding:10px 8px;text-align:center;">${item.quantity ?? 0}</td>
-          <td style="padding:10px 8px;text-align:right;">${formatMMK(item.unit_price ?? item.price ?? 0)}</td>
-          <td style="padding:10px 8px;text-align:right;font-weight:500;">${formatMMK(item.subtotal ?? ((item.unit_price ?? item.price ?? 0) * (item.quantity ?? 1)))}</td>
-        </tr>
-      `).join('');
-
-      const subtotal = order.subtotal_amount ?? 0;
-      const shipping = order.shipping_fee ?? 0;
-      const tax      = order.tax_amount ?? 0;
-      const discount = order.coupon_discount_amount ?? 0;
-      const total    = order.total_amount ?? 0;
-
-      const statusColor = {
-        delivered: '#16a34a', confirmed: '#2563eb', processing: '#7c3aed',
-        shipped: '#0891b2', pending: '#d97706', cancelled: '#dc2626',
-      }[order.status] ?? '#374151';
-
-      const html = `
-        <div id="order-slip-content" style="
-          font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-          font-size:13px; color:#1f2937; background:#fff;
-          width:700px; padding:40px; box-sizing:border-box;
-        ">
-          <!-- Header -->
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #16a34a;padding-bottom:20px;margin-bottom:24px;">
-            <div>
-              <div style="font-size:26px;font-weight:700;color:#16a34a;letter-spacing:-0.5px;font-family:'Torus',sans-serif;">Pyonea</div>
-              <div style="font-size:11px;color:#6b7280;margin-top:2px;">Myanmar B2B Marketplace</div>
-              <div style="font-size:11px;color:#6b7280;">support@pyonea.com · +95 9 792 115 547</div>
-            </div>
-            <div style="text-align:right;">
-              <div style="font-size:16px;font-weight:700;color:#111827;">ORDER SLIP</div>
-              <div style="font-size:20px;font-weight:800;font-family:monospace;color:#16a34a;margin-top:4px;">${order.order_number}</div>
-              <div style="margin-top:6px;display:inline-block;background:${statusColor}20;color:${statusColor};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;">
-                ${order.status}
-              </div>
-            </div>
-          </div>
-
-          <!-- Meta row -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
-            <div>
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#9ca3af;margin-bottom:8px;">Customer</div>
-              <div style="font-weight:600;">${address.full_name ?? 'N/A'}</div>
-              <div style="color:#6b7280;">${address.phone ?? ''}</div>
-              <div style="color:#6b7280;font-size:12px;">${address.email ?? ''}</div>
-            </div>
-            <div>
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#9ca3af;margin-bottom:8px;">Shipping Address</div>
-              <div>${address.address ?? 'N/A'}</div>
-              <div style="color:#6b7280;">${[address.city, address.state].filter(Boolean).join(', ')}</div>
-              <div style="color:#6b7280;">${address.country ?? 'Myanmar'}</div>
-            </div>
-          </div>
-
-          <!-- Order dates -->
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;background:#f9fafb;border-radius:8px;padding:12px 16px;margin-bottom:24px;font-size:12px;">
-            <div><span style="color:#9ca3af;">Order Date</span><br/><strong>${new Date(order.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}</strong></div>
-            <div><span style="color:#9ca3af;">Payment</span><br/><strong>${(order.payment_method ?? '').replace(/_/g,' ').toUpperCase() || 'N/A'}</strong></div>
-            <div><span style="color:#9ca3af;">Payment Status</span><br/><strong style="color:${order.payment_status==='paid'?'#16a34a':'#d97706'}">${(order.payment_status ?? 'pending').toUpperCase()}</strong></div>
-          </div>
-
-          <!-- Items table -->
-          <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
-            <thead>
-              <tr style="border-bottom:2px solid #e5e7eb;">
-                <th style="text-align:left;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600;">Item</th>
-                <th style="text-align:center;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600;">Qty</th>
-                <th style="text-align:right;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600;">Unit Price</th>
-                <th style="text-align:right;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600;">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>${items}</tbody>
-          </table>
-
-          <!-- Totals -->
-          <div style="margin-left:auto;max-width:260px;font-size:13px;">
-            <div style="display:flex;justify-content:space-between;padding:6px 0;color:#6b7280;">
-              <span>Subtotal</span><span>${formatMMK(subtotal)}</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;padding:6px 0;color:#6b7280;">
-              <span>Shipping</span><span>${formatMMK(shipping)}</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;padding:6px 0;color:#6b7280;">
-              <span>Tax</span><span>${formatMMK(tax)}</span>
-            </div>
-            ${discount > 0 ? `<div style="display:flex;justify-content:space-between;padding:6px 0;color:#16a34a;">
-              <span>Discount</span><span>-${formatMMK(discount)}</span>
-            </div>` : ''}
-            <div style="display:flex;justify-content:space-between;padding:10px 0;border-top:2px solid #e5e7eb;font-weight:700;font-size:15px;">
-              <span>Total</span><span style="color:#16a34a;">${formatMMK(total)}</span>
-            </div>
-          </div>
-
-          <!-- Footer -->
-          <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb;text-align:center;color:#9ca3af;font-size:11px;">
-            <div>Generated by Pyonea Marketplace · ${new Date().toLocaleString('en-GB')}</div>
-            <div style="margin-top:4px;">This is a computer-generated document. No signature required.</div>
-          </div>
-        </div>
-      `;
-
-      // Render off-screen
-      const container = document.createElement('div');
-      container.style.cssText = 'position:fixed;left:-9999px;top:0;z-index:-1;background:#fff;';
-      container.innerHTML = html;
-      document.body.appendChild(container);
-
-      const el = container.querySelector('#order-slip-content');
-
-      // Ensure Torus font is loaded before rendering (it's declared in index.css)
-      await document.fonts.load('700 1em Torus');
-      await document.fonts.ready;
-
-      const canvas = await html2canvas(el, {
-        scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff',
-        width: el.scrollWidth, height: el.scrollHeight,
-      });
-      document.body.removeChild(container);
-
-      const imgData  = canvas.toDataURL('image/png');
-      const pdf      = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 190;
-      const pageH    = 277;
-      const imgH     = (canvas.height * imgWidth) / canvas.width;
-      let left       = imgH;
-      let pos        = 10;
-
-      pdf.addImage(imgData, 'PNG', 10, pos, imgWidth, imgH);
-      left -= pageH;
-      while (left >= 0) {
-        pos = left - imgH + 10;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 10, pos, imgWidth, imgH);
-        left -= pageH;
-      }
-      pdf.save(`Order_Slip_${order.order_number}.pdf`);
-
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('Slip download failed:', err);
-    } finally {
-      setDownloadingSlip(null);
-    }
-  };
-
   return (
     <div className="border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
       <div className="flex items-center justify-between mb-3">
@@ -611,17 +298,13 @@ const OrderDetailsModal = ({
   onDeliveryMethodSet,
   actionLoading,
 }) => {
-  const { t } = useTranslation();
   const [delivery, setDelivery]         = useState(order.delivery || null);
   const [refreshing, setRefreshing]     = useState(false);
   const [error, setError]               = useState(null);
 
   if (!isOpen) return null;
 
-  const shippingAddress =
-    typeof order.shipping_address === "string"
-      ? JSON.parse(order.shipping_address)
-      : order.shipping_address;
+  const shippingAddress = parseShippingAddress(order.shipping_address);
 
   const needsDeliveryMethod =
     order.status === "confirmed" &&
@@ -639,7 +322,7 @@ const OrderDetailsModal = ({
         const res = await api.get(`/deliveries?order_id=${order.id}`);
         const d = res.data.data?.data?.[0] ?? res.data.data?.[0] ?? null;
         setDelivery(d);
-      } catch (e) { /* best-effort */ }
+      } catch { /* best-effort */ }
     }
   };
 
@@ -649,172 +332,10 @@ const OrderDetailsModal = ({
       const res = await api.get(`/deliveries?order_id=${order.id}`);
       const d = res.data.data?.data?.[0] ?? res.data.data?.[0] ?? null;
       setDelivery(d);
-    } catch (e) {
-      console.error("Failed to refresh delivery:", e);
+    } catch (err) {
+      console.error("Failed to refresh delivery:", err);
     } finally {
       setRefreshing(false);
-    }
-  };
-
-  // ── Order Slip Download ────────────────────────────────────────────────────
-  const downloadOrderSlip = async (order) => {
-    setDownloadingSlip(order.id);
-    try {
-      // Build the slip HTML as a string so it renders independently
-      // without needing a visible DOM element — same approach as PaymentSuccess
-      const address = typeof order.shipping_address === 'string'
-        ? JSON.parse(order.shipping_address)
-        : (order.shipping_address ?? {});
-
-      const items = (order.items ?? []).map(item => `
-        <tr style="border-bottom:1px solid #f3f4f6;">
-          <td style="padding:10px 8px;">
-            <div style="font-weight:500;">${item.product_name ?? 'Product'}</div>
-            <div style="font-size:11px;color:#6b7280;">SKU: ${item.product_sku ?? item.sku ?? 'N/A'}</div>
-          </td>
-          <td style="padding:10px 8px;text-align:center;">${item.quantity ?? 0}</td>
-          <td style="padding:10px 8px;text-align:right;">${formatMMK(item.unit_price ?? item.price ?? 0)}</td>
-          <td style="padding:10px 8px;text-align:right;font-weight:500;">${formatMMK(item.subtotal ?? ((item.unit_price ?? item.price ?? 0) * (item.quantity ?? 1)))}</td>
-        </tr>
-      `).join('');
-
-      const subtotal = order.subtotal_amount ?? 0;
-      const shipping = order.shipping_fee ?? 0;
-      const tax      = order.tax_amount ?? 0;
-      const discount = order.coupon_discount_amount ?? 0;
-      const total    = order.total_amount ?? 0;
-
-      const statusColor = {
-        delivered: '#16a34a', confirmed: '#2563eb', processing: '#7c3aed',
-        shipped: '#0891b2', pending: '#d97706', cancelled: '#dc2626',
-      }[order.status] ?? '#374151';
-
-      const html = `
-        <div id="order-slip-content" style="
-          font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-          font-size:13px; color:#1f2937; background:#fff;
-          width:700px; padding:40px; box-sizing:border-box;
-        ">
-          <!-- Header -->
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #16a34a;padding-bottom:20px;margin-bottom:24px;">
-            <div>
-              <div style="font-size:26px;font-weight:700;color:#16a34a;letter-spacing:-0.5px;font-family:'Torus',sans-serif;">Pyonea</div>
-              <div style="font-size:11px;color:#6b7280;margin-top:2px;">Myanmar B2B Marketplace</div>
-              <div style="font-size:11px;color:#6b7280;">support@pyonea.com · +95 9 792 115 547</div>
-            </div>
-            <div style="text-align:right;">
-              <div style="font-size:16px;font-weight:700;color:#111827;">ORDER SLIP</div>
-              <div style="font-size:20px;font-weight:800;font-family:monospace;color:#16a34a;margin-top:4px;">${order.order_number}</div>
-              <div style="margin-top:6px;display:inline-block;background:${statusColor}20;color:${statusColor};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;">
-                ${order.status}
-              </div>
-            </div>
-          </div>
-
-          <!-- Meta row -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
-            <div>
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#9ca3af;margin-bottom:8px;">Customer</div>
-              <div style="font-weight:600;">${address.full_name ?? 'N/A'}</div>
-              <div style="color:#6b7280;">${address.phone ?? ''}</div>
-              <div style="color:#6b7280;font-size:12px;">${address.email ?? ''}</div>
-            </div>
-            <div>
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#9ca3af;margin-bottom:8px;">Shipping Address</div>
-              <div>${address.address ?? 'N/A'}</div>
-              <div style="color:#6b7280;">${[address.city, address.state].filter(Boolean).join(', ')}</div>
-              <div style="color:#6b7280;">${address.country ?? 'Myanmar'}</div>
-            </div>
-          </div>
-
-          <!-- Order dates -->
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;background:#f9fafb;border-radius:8px;padding:12px 16px;margin-bottom:24px;font-size:12px;">
-            <div><span style="color:#9ca3af;">Order Date</span><br/><strong>${new Date(order.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}</strong></div>
-            <div><span style="color:#9ca3af;">Payment</span><br/><strong>${(order.payment_method ?? '').replace(/_/g,' ').toUpperCase() || 'N/A'}</strong></div>
-            <div><span style="color:#9ca3af;">Payment Status</span><br/><strong style="color:${order.payment_status==='paid'?'#16a34a':'#d97706'}">${(order.payment_status ?? 'pending').toUpperCase()}</strong></div>
-          </div>
-
-          <!-- Items table -->
-          <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
-            <thead>
-              <tr style="border-bottom:2px solid #e5e7eb;">
-                <th style="text-align:left;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600;">Item</th>
-                <th style="text-align:center;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600;">Qty</th>
-                <th style="text-align:right;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600;">Unit Price</th>
-                <th style="text-align:right;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600;">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>${items}</tbody>
-          </table>
-
-          <!-- Totals -->
-          <div style="margin-left:auto;max-width:260px;font-size:13px;">
-            <div style="display:flex;justify-content:space-between;padding:6px 0;color:#6b7280;">
-              <span>Subtotal</span><span>${formatMMK(subtotal)}</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;padding:6px 0;color:#6b7280;">
-              <span>Shipping</span><span>${formatMMK(shipping)}</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;padding:6px 0;color:#6b7280;">
-              <span>Tax</span><span>${formatMMK(tax)}</span>
-            </div>
-            ${discount > 0 ? `<div style="display:flex;justify-content:space-between;padding:6px 0;color:#16a34a;">
-              <span>Discount</span><span>-${formatMMK(discount)}</span>
-            </div>` : ''}
-            <div style="display:flex;justify-content:space-between;padding:10px 0;border-top:2px solid #e5e7eb;font-weight:700;font-size:15px;">
-              <span>Total</span><span style="color:#16a34a;">${formatMMK(total)}</span>
-            </div>
-          </div>
-
-          <!-- Footer -->
-          <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb;text-align:center;color:#9ca3af;font-size:11px;">
-            <div>Generated by Pyonea Marketplace · ${new Date().toLocaleString('en-GB')}</div>
-            <div style="margin-top:4px;">This is a computer-generated document. No signature required.</div>
-          </div>
-        </div>
-      `;
-
-      // Render off-screen
-      const container = document.createElement('div');
-      container.style.cssText = 'position:fixed;left:-9999px;top:0;z-index:-1;background:#fff;';
-      container.innerHTML = html;
-      document.body.appendChild(container);
-
-      const el = container.querySelector('#order-slip-content');
-
-      // Ensure Torus font is loaded before rendering (it's declared in index.css)
-      await document.fonts.load('700 1em Torus');
-      await document.fonts.ready;
-
-      const canvas = await html2canvas(el, {
-        scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff',
-        width: el.scrollWidth, height: el.scrollHeight,
-      });
-      document.body.removeChild(container);
-
-      const imgData  = canvas.toDataURL('image/png');
-      const pdf      = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 190;
-      const pageH    = 277;
-      const imgH     = (canvas.height * imgWidth) / canvas.width;
-      let left       = imgH;
-      let pos        = 10;
-
-      pdf.addImage(imgData, 'PNG', 10, pos, imgWidth, imgH);
-      left -= pageH;
-      while (left >= 0) {
-        pos = left - imgH + 10;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 10, pos, imgWidth, imgH);
-        left -= pageH;
-      }
-      pdf.save(`Order_Slip_${order.order_number}.pdf`);
-
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('Slip download failed:', err);
-    } finally {
-      setDownloadingSlip(null);
     }
   };
 
@@ -1282,7 +803,6 @@ const OrderManagement = () => {
       pdf.save(`Order_Slip_${order.order_number}.pdf`);
 
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error('Slip download failed:', err);
     } finally {
       setDownloadingSlip(null);
@@ -1348,10 +868,7 @@ const OrderManagement = () => {
             </thead>
             <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">
               {filteredOrders.map((order) => {
-                const shippingAddress =
-                  typeof order.shipping_address === "string"
-                    ? JSON.parse(order.shipping_address)
-                    : order.shipping_address;
+                const shippingAddress = parseShippingAddress(order.shipping_address);
 
                 const deliveryMethod = order.delivery?.delivery_method;
                 const deliveryStatus = order.delivery?.status;
