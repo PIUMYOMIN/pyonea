@@ -85,15 +85,30 @@ const ProductCard = ({ product, className = "" }) => {
     : DEFAULT_PLACEHOLDER;
   const isInWishlist = !!wishlist?.some((w) => w.id === productId);
 
-  const isOnSale = product.is_currently_on_sale
-    ?? (product.is_on_sale && (product.discount_price > 0 || product.discount_percentage > 0));
+  const toNum = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const basePrice = toNum(product.price);
+  const computedSalePrice = toNum(product.selling_price || product.discount_price);
+  const rawDiscountPct = toNum(product.discount_percentage);
+  const hasDiscountedPrice = computedSalePrice > 0 && computedSalePrice < basePrice;
+  const hasPctDiscount = rawDiscountPct > 0 && basePrice > 0;
+
+  const isOnSale = Boolean(
+    product.is_currently_on_sale
+      ?? (product.is_on_sale && (hasDiscountedPrice || hasPctDiscount))
+  );
+
   const effectivePrice = isOnSale
-    ? (product.selling_price ?? product.discount_price ?? product.price)
-    : product.price;
-  const discountPct = isOnSale
-    ? (product.discount_percentage
-        || (product.price > 0 ? Math.round(((product.price - effectivePrice) / product.price) * 100) : 0))
+    ? (hasDiscountedPrice ? computedSalePrice : basePrice * (1 - rawDiscountPct / 100))
+    : basePrice;
+
+  const computedPct = basePrice > 0
+    ? Math.round(((basePrice - effectivePrice) / basePrice) * 100)
     : 0;
+  const discountPct = isOnSale ? Math.max(0, rawDiscountPct || computedPct) : 0;
 
   const isBuyer       = !user || user.type === "buyer";
   const isUnavailable = !product.is_active;

@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 import { useTranslation } from "react-i18next";
-import { DEFAULT_PLACEHOLDER } from "../../config";
 
 // Deterministic gradient from category name — consistent across renders
 const gradientFromName = (name = "") => {
@@ -66,6 +65,11 @@ const CategoryCard = ({ category }) => {
   const displayName = loc(category.name_en, category.name_mm);
   const gradient    = gradientFromName(displayName);
 
+  const toNum = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  };
+
   // Only children that have products
   const activeChildren = (category.children || []).filter(
     (c) => (c.products_count || 0) > 0
@@ -75,6 +79,21 @@ const CategoryCard = ({ category }) => {
   const slidingItems = activeChildren.map(
     (c) => `${c.products_count} ${loc(c.name_en, c.name_mm)}`
   );
+
+  // Best-effort discount percentage from category payload (or its children).
+  const discountKeys = [
+    "max_discount_percentage",
+    "discount_percentage",
+    "discount_percent",
+    "top_discount_percentage",
+    "best_discount_percentage",
+  ];
+  const categoryPct = Math.max(...discountKeys.map((k) => toNum(category?.[k])), 0);
+  const childrenPct = Math.max(
+    ...activeChildren.map((c) => Math.max(...discountKeys.map((k) => toNum(c?.[k])), 0)),
+    0
+  );
+  const maxDiscountPct = Math.round(Math.max(categoryPct, childrenPct));
 
   return (
     <motion.div
@@ -86,7 +105,7 @@ const CategoryCard = ({ category }) => {
       <Link to={`/products?category=${category.id}`} className="block">
 
         {/* ── Image / Gradient placeholder ────────────── */}
-        <div className="aspect-square overflow-hidden">
+        <div className="relative aspect-square overflow-hidden">
           {category.image ? (
             <LazyLoadImage
               src={category.image}
@@ -105,6 +124,13 @@ const CategoryCard = ({ category }) => {
               <span className="text-white text-center font-bold text-sm px-3 leading-snug
                                drop-shadow-sm line-clamp-3">
                 {displayName}
+              </span>
+            </div>
+          )}
+          {maxDiscountPct > 0 && (
+            <div className="absolute top-2 left-2">
+              <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full leading-tight shadow-sm">
+                Up to {maxDiscountPct}% OFF
               </span>
             </div>
           )}
