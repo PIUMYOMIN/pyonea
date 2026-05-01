@@ -1,7 +1,7 @@
 const routes = {
   development: {
     baseUrl: 'http://localhost:5173',
-    apiBaseUrl: process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1'
+    apiBaseUrl: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
   },
   production: {
     baseUrl: 'https://pyonea.com',
@@ -10,7 +10,7 @@ const routes = {
 };
 
 export const getRoutesConfig = () => {
-  const env = process.env.NODE_ENV || 'development';
+  const env = import.meta.env.MODE || 'development';
   return routes[env];
 };
 

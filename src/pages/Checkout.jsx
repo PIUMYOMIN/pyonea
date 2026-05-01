@@ -95,8 +95,12 @@ export default function Checkout() {
     full_name: "", phone: "", address: "",
     city: "", state: "", postal_code: "", country: "Myanmar",
   });
-  const [paymentMethod, setPaymentMethod] = useState("mmqr");
+  const [paymentMethod, setPaymentMethod] = useState("cash_on_delivery");
   const [orderNotes, setOrderNotes] = useState("");
+
+  // ── Enabled payment methods from admin settings ─────────────────────────────
+  const [enabledMethods, setEnabledMethods] = useState([]);
+  const [methodsLoading, setMethodsLoading] = useState(true);
 
   // ── Coupon ───────────────────────────────────────────────────────────────────
   const [couponInput, setCouponInput] = useState("");
@@ -225,6 +229,24 @@ export default function Checkout() {
       setSellerPolicies(policies);
     });
   }, [cartItems]);
+
+  // ── Fetch enabled payment methods from admin settings ─────────────────────────
+  useEffect(() => {
+    api.get('/payment-methods')
+      .then(res => {
+        if (res.data.success && Array.isArray(res.data.data)) {
+          setEnabledMethods(res.data.data);
+        } else {
+          // Fallback: show all methods if endpoint unavailable
+          setEnabledMethods(['cash_on_delivery', 'mmqr', 'kbz_pay', 'wave_pay', 'cb_pay', 'aya_pay']);
+        }
+      })
+      .catch(() => {
+        // Network error — show all methods so checkout is never broken
+        setEnabledMethods(['cash_on_delivery', 'mmqr', 'kbz_pay', 'wave_pay', 'cb_pay', 'aya_pay']);
+      })
+      .finally(() => setMethodsLoading(false));
+  }, []);
 
   // ── Pre-fill shipping from user profile ──────────────────────────────────────
   useEffect(() => {
@@ -790,7 +812,12 @@ export default function Checkout() {
                 </div>
 
                 <div className="space-y-4">
-                  {PAYMENT_METHODS.map(method => (
+                  {methodsLoading ? (
+                    <div className="space-y-3">
+                      {[1,2,3].map(i => <div key={i} className="h-16 rounded-lg bg-gray-100 dark:bg-slate-700 animate-pulse" />)}
+                    </div>
+                  ) : null}
+                  {!methodsLoading && PAYMENT_METHODS.filter(m => enabledMethods.includes(m.id)).map(method => (
                     <div
                       key={method.id}
                       onClick={() => setPaymentMethod(method.id)}

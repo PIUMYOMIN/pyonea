@@ -163,27 +163,27 @@ const ProductDiscountModal = ({ product, onClose, onSuccess }) => {
           onClick={onClose}
         ></div>
 
-        {/* Modal panel */}
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+{/* Modal panel */}
+        <div className="inline-block align-bottom bg-white dark:bg-slate-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
           {/* Header */}
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+          <div className="bg-white dark:bg-slate-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
                   <TagIcon className="h-6 w-6 text-blue-600" />
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-slate-100">
                     Product Discount
                   </h3>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-slate-400">
                     {product.name}
                   </p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
@@ -231,13 +231,13 @@ const ProductDiscountModal = ({ product, onClose, onSuccess }) => {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="px-6 py-4">
-            {/* Toggle Switch */}
+{/* Toggle Switch */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h4 className="text-base font-medium text-gray-900">
+                <h4 className="text-base font-medium text-gray-900 dark:text-slate-100">
                   Enable Discount
                 </h4>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-slate-400">
                   Turn on to apply discount to this product
                 </p>
               </div>
@@ -249,51 +249,51 @@ const ProductDiscountModal = ({ product, onClose, onSuccess }) => {
                   onChange={handleChange}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+<div className="w-11 h-6 bg-gray-200 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-slate-300 after:border-gray-300 dark:after:border-slate-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
 
             {formData.is_on_sale && (
               <div className="space-y-6">
-                {/* Discount Type */}
+{/* Discount Type */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
                     Discount Type
                   </label>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, discount_type: "percentage" }))}
-                      className={`p-3 border-2 rounded-lg text-center ${formData.discount_type === "percentage" ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                      className={`p-3 border-2 rounded-lg text-center ${formData.discount_type === "percentage" ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30' : 'border-gray-200 dark:border-slate-600'}`}
                     >
-                      <div className="text-sm font-medium">Percentage</div>
-                      <div className="text-xs text-gray-500">% off</div>
+                      <div className="text-sm font-medium dark:text-slate-100">Percentage</div>
+                      <div className="text-xs text-gray-500 dark:text-slate-400">% off</div>
                     </button>
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, discount_type: "fixed" }))}
-                      className={`p-3 border-2 rounded-lg text-center ${formData.discount_type === "fixed" ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                      className={`p-3 border-2 rounded-lg text-center ${formData.discount_type === "fixed" ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30' : 'border-gray-200 dark:border-slate-600'}`}
                     >
-                      <div className="text-sm font-medium">Fixed Amount</div>
-                      <div className="text-xs text-gray-500">$ off</div>
+                      <div className="text-sm font-medium dark:text-slate-100">Fixed Amount</div>
+                      <div className="text-xs text-gray-500 dark:text-slate-400">$ off</div>
                     </button>
                   </div>
                 </div>
 
-                {/* Discount Value */}
+{/* Discount Value */}
                 {formData.discount_type !== "none" && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
                       {formData.discount_type === "percentage" ? "Discount Percentage" : "Discount Amount"}
                     </label>
                     <div className="relative">
                       {formData.discount_type === "percentage" ? (
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <span className="text-gray-500 sm:text-sm">%</span>
+                          <span className="text-gray-500 dark:text-slate-400 sm:text-sm">%</span>
                         </div>
                       ) : (
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <span className="text-gray-500 sm:text-sm">$</span>
+                          <span className="text-gray-500 dark:text-slate-400 sm:text-sm">$</span>
                         </div>
                       )}
                       <input
@@ -317,8 +317,8 @@ const ProductDiscountModal = ({ product, onClose, onSuccess }) => {
                     <div className="flex justify-between items-center">
                       <div>
                         <div className="text-sm text-blue-800">Original Price</div>
-                        <div className="text-lg font-semibold text-gray-900">
-                          ${product.price.toFixed(2)}
+<div className="text-lg font-semibold text-gray-900">
+                          ${Number(product.price).toFixed(2)}
                         </div>
                       </div>
                       <div className="text-center">
@@ -340,14 +340,14 @@ const ProductDiscountModal = ({ product, onClose, onSuccess }) => {
                   </div>
                 )}
 
-                {/* Date Range */}
+{/* Date Range */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
                       Start Date
                     </label>
                     <div className="relative">
-                      <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-slate-500" />
                       <input
                         type="date"
                         name="discount_start"
@@ -358,11 +358,11 @@ const ProductDiscountModal = ({ product, onClose, onSuccess }) => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
                       End Date
                     </label>
                     <div className="relative">
-                      <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-slate-500" />
                       <input
                         type="date"
                         name="discount_end"
@@ -374,9 +374,9 @@ const ProductDiscountModal = ({ product, onClose, onSuccess }) => {
                   </div>
                 </div>
 
-                {/* Sale Badge */}
+{/* Sale Badge */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
                     Sale Badge Text
                   </label>
                       <input
@@ -391,12 +391,12 @@ const ProductDiscountModal = ({ product, onClose, onSuccess }) => {
 
                 {/* Compare At Price */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
                     Compare At Price (Optional)
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-gray-500 sm:text-sm">$</span>
+                      <span className="text-gray-500 dark:text-slate-400 sm:text-sm">$</span>
                     </div>
                     <input
                       type="number"
@@ -409,14 +409,14 @@ const ProductDiscountModal = ({ product, onClose, onSuccess }) => {
                       placeholder="e.g., Original price to show as strikethrough"
                     />
                   </div>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
                     Shows as strikethrough price on product page
                   </p>
                 </div>
 
                 {/* Sale Quantity Limit */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
                     Sale Quantity Limit (Optional)
                   </label>
                   <input
@@ -428,21 +428,21 @@ const ProductDiscountModal = ({ product, onClose, onSuccess }) => {
                     className="block w-full border border-gray-300 dark:border-slate-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent sm:text-sm transition-colors"
                     placeholder="e.g., 100 (leave empty for unlimited)"
                   />
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
                     Limit the number of items available at discount price
                   </p>
                 </div>
               </div>
             )}
 
-            {/* Footer Actions */}
+{/* Footer Actions */}
             <div className="mt-6 flex justify-between">
               <div>
                 {product.is_on_sale && (
                   <button
                     type="button"
                     onClick={() => setShowRemoveConfirm(true)}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 dark:text-red-200 dark:bg-red-900/50 dark:hover:bg-red-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                   >
                     <TrashIcon className="h-4 w-4 mr-2" />
                     Remove Discount
@@ -453,7 +453,7 @@ const ProductDiscountModal = ({ product, onClose, onSuccess }) => {
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   Cancel
                 </button>
@@ -475,10 +475,10 @@ const ProductDiscountModal = ({ product, onClose, onSuccess }) => {
             </div>
           </form>
 
-          {/* Current Discount Stats */}
+{/* Current Discount Stats */}
           {discountStats && discountStats.length > 0 && (
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-              <h4 className="text-sm font-medium text-gray-900 mb-3">
+            <div className="px-6 py-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-slate-100 mb-3">
                 Active Discounts
               </h4>
               <div className="space-y-2">
@@ -486,15 +486,15 @@ const ProductDiscountModal = ({ product, onClose, onSuccess }) => {
                   <div key={index} className="flex items-center justify-between text-sm">
                     <div className="flex items-center">
                       <TagIcon className="h-4 w-4 text-gray-400 mr-2" />
-                      <span>{discount.name}</span>
+                      <span className="text-gray-700 dark:text-slate-200">{discount.name}</span>
                     </div>
                     <div className="text-right">
-                      <div className="font-medium">
+                      <div className="font-medium text-gray-900 dark:text-slate-100">
                         {discount.type === "percentage" ? `${discount.value}% off` : 
                          discount.type === "fixed" ? `$${discount.value} off` : 
                          discount.type === "free_shipping" ? "Free Shipping" : ""}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 dark:text-slate-400">
                         Until {formatDate(discount.expires_at)}
                       </div>
                     </div>
@@ -506,13 +506,13 @@ const ProductDiscountModal = ({ product, onClose, onSuccess }) => {
         </div>
       </div>
     </div>
-      {showRemoveConfirm && (
+{showRemoveConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4">
-            <h3 className="font-bold text-gray-900 mb-2">Remove Discount</h3>
-            <p className="text-sm text-gray-600 mb-5">Remove the discount from <strong>{product?.name_en || product?.name}</strong>?</p>
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4">
+            <h3 className="font-bold text-gray-900 dark:text-slate-100 mb-2">Remove Discount</h3>
+            <p className="text-sm text-gray-600 dark:text-slate-400 mb-5">Remove the discount from <strong>{product?.name_en || product?.name}</strong>?</p>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setShowRemoveConfirm(false)} className="px-4 py-2 border border-gray-300 rounded-xl text-sm text-gray-700">Cancel</button>
+              <button onClick={() => setShowRemoveConfirm(false)} className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-xl text-sm text-gray-700 dark:text-slate-200">Cancel</button>
               <button onClick={() => { setShowRemoveConfirm(false); handleRemoveDiscount(); }} className="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-xl">Remove</button>
             </div>
           </div>

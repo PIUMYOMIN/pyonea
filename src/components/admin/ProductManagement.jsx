@@ -246,30 +246,28 @@ const ProductManagement = () => {
     }).format(amount || 0);
   };
 
-  // Get product primary image URL — handles all API response formats
-  const getProductImage = (images) => {
-    if (!images) return DEFAULT_PLACEHOLDER;
-
-    // Parse JSON string if needed (raw DB column)
-    let imgs = images;
-    if (typeof imgs === 'string') {
-      try { imgs = JSON.parse(imgs); } catch { return DEFAULT_PLACEHOLDER; }
+  // Get product primary image URL — handles images (array) or image (single object)
+  const getProductImage = (product) => {
+    // Normalise to an array regardless of API shape
+    let imgs = [];
+    if (Array.isArray(product.images) && product.images.length > 0) {
+      imgs = product.images;
+    } else if (product.image) {
+      imgs = [product.image];
+    } else if (typeof product.images === 'string') {
+      try { imgs = JSON.parse(product.images); } catch { /* ignore */ }
     }
 
-    // Array format: [{url, path, is_primary}, ...]
-    if (Array.isArray(imgs) && imgs.length > 0) {
-      // Prefer primary image, fallback to first
-      const primary = imgs.find(i => i?.is_primary) || imgs[0];
-      if (!primary) return DEFAULT_PLACEHOLDER;
-      if (typeof primary === 'string') {
-        return primary.startsWith('http') ? primary : `${IMAGE_BASE_URL}/${primary.replace('public/', '')}`;
-      }
-      const url = primary.url || primary.path || '';
-      if (!url) return DEFAULT_PLACEHOLDER;
-      return url.startsWith('http') ? url : `${IMAGE_BASE_URL}/${url.replace('public/', '')}`;
-    }
+    if (!imgs.length) return DEFAULT_PLACEHOLDER;
 
-    return DEFAULT_PLACEHOLDER;
+    const primary = imgs.find(i => i?.is_primary) || imgs[0];
+    if (!primary) return DEFAULT_PLACEHOLDER;
+    if (typeof primary === 'string') {
+      return primary.startsWith('http') ? primary : `${IMAGE_BASE_URL}/${primary.replace('public/', '')}`;
+    }
+    const url = primary.url || primary.path || '';
+    if (!url) return DEFAULT_PLACEHOLDER;
+    return url.startsWith('http') ? url : `${IMAGE_BASE_URL}/${url.replace('public/', '')}`;
   };
 
   // Get approval status badge
@@ -476,7 +474,7 @@ const ProductManagement = () => {
       image: (
         <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-700 flex-shrink-0">
           <img
-            src={getProductImage(product.images)}
+            src={getProductImage(product)}
             alt={product.name_en || 'Product'}
             className="w-full h-full object-cover"
             onError={(e) => { e.target.onerror = null; e.target.src = DEFAULT_PLACEHOLDER; }}

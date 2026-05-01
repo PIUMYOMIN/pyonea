@@ -238,29 +238,38 @@ const ProductManagement = () => {
     }
   };
 
-  // --------------------- Helper functions (unchanged) -------------------------
+  // --------------------- Helper functions -------------------------
+  // Normalise: API may return `images` (array) or `image` (single object)
+  const resolveImages = (product) => {
+    if (Array.isArray(product.images) && product.images.length > 0) return product.images;
+    if (product.image) return [product.image];
+    return [];
+  };
+
+  const resolveUrl = (img) => {
+    if (!img) return "/placeholder-product.jpg";
+    if (typeof img === "string") return img;
+    return img.url || img.full_url || img.path || "/placeholder-product.jpg";
+  };
+
   const getProductImage = (product) => {
-    if (!product.images || product.images.length === 0) return "/placeholder-product.jpg";
-    const firstImage = product.images[0];
-    if (typeof firstImage === "string") return firstImage;
-    return firstImage.url || firstImage.full_url || firstImage.path || "/placeholder-product.jpg";
+    const imgs = resolveImages(product);
+    return resolveUrl(imgs[0]);
   };
 
   const getPrimaryImage = (product) => {
-    if (!product.images || product.images.length === 0) return "/placeholder-product.jpg";
-    const primary = product.images.find(img => img.is_primary);
-    if (primary) return primary.url || primary.full_url || primary.path || "/placeholder-product.jpg";
-    return getProductImage(product);
+    const imgs = resolveImages(product);
+    const primary = imgs.find(img => img.is_primary);
+    return resolveUrl(primary || imgs[0]);
   };
 
   const getAllImages = (product) => {
-    if (!product.images) return [];
-    return product.images.map(img => {
+    return resolveImages(product).map(img => {
       if (typeof img === "string") return { url: img, is_primary: false, angle: "default" };
       return {
         url: img.url || img.full_url || img.path || "",
         is_primary: img.is_primary || false,
-        angle: img.angle || "default"
+        angle: img.angle || "default",
       };
     }).filter(img => img.url);
   };
