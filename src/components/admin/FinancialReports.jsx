@@ -3,6 +3,7 @@ import {
   BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
+import * as XLSX from "xlsx";
 import api from "../../utils/api";
 
 // ── Formatters ─────────────────────────────────────────────────────────────────
@@ -23,10 +24,6 @@ const todayStr = () => new Date().toISOString().slice(0, 10);
 
 // ── Excel Export ───────────────────────────────────────────────────────────────
 async function exportToExcel(sheetsData, filename) {
-  const XLSX = await import("https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js")
-    .then(() => window.XLSX)
-    .catch(() => { throw new Error("Failed to load export library."); });
-
   const wb = XLSX.utils.book_new();
 
   sheetsData.forEach(({ name, rows, colWidths }) => {

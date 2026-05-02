@@ -140,43 +140,104 @@ const PolicyEditor = ({ label, name, value, onChange, placeholder }) => {
 };
 
 // ── DocumentRow ───────────────────────────────────────────────────────────────
-const DocumentRow = ({ label, fieldName, value, onUpload, uploading, hint }) => {
+// Responsive: stacks vertically on mobile, inline on sm+
+const DocumentRow = ({ label, fieldName, value, onUpload, uploading, hint, required = false }) => {
   const ref = useRef();
-  const isUrl = value && (value.startsWith('http') || value.startsWith('/storage'));
+  const [thumbErr, setThumbErr] = useState(false);
+  const isUploaded = !!(value && (value.startsWith('http') || value.startsWith('/storage') || value.startsWith('/')));
+  const isUploading = uploading === fieldName;
+  const isImage = isUploaded && /\.(jpe?g|png|webp)(\?|$)/i.test(value);
+  const isPdf   = isUploaded && /\.pdf(\?|$)/i.test(value);
+
   return (
-    <div className="flex items-start gap-4 py-4 border-b border-gray-50 dark:border-slate-700 last:border-0">
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 dark:text-slate-100">{label}</p>
-        {hint && <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{hint}</p>}
-        {isUrl && (
-          <a href={value} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 mt-1">
-            <EyeIcon className="h-3 w-3"/> View uploaded file
+    <div className="p-4 border-b border-gray-100 dark:border-slate-700 last:border-0">
+      <div className="flex gap-4">
+
+        {/* Thumbnail — only for image files that loaded successfully */}
+        {isImage && !thumbErr ? (
+          <a href={value} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+            <img
+              src={value}
+              alt={label}
+              onError={() => setThumbErr(true)}
+              className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700"
+            />
           </a>
-        )}
-      </div>
-      <div className="flex-shrink-0">
-        {uploading === fieldName ? (
-          <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-slate-500">
-            <div className="animate-spin rounded-full h-4 w-4 border-2 border-green-500 border-t-transparent"/>
-            Uploading…
-          </div>
+        ) : isPdf && isUploaded ? (
+          <a href={value} target="_blank" rel="noopener noreferrer"
+            className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 flex flex-col items-center justify-center rounded-lg border border-gray-200 dark:border-slate-600 bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 text-xs font-bold gap-1">
+            <DocumentTextIcon className="h-7 w-7"/>
+            PDF
+          </a>
         ) : (
-          <button onClick={() => ref.current?.click()}
-            className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors
-              ${isUrl ? 'border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700' : 'border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30'}`}>
-            <ArrowUpTrayIcon className="h-3.5 w-3.5"/>
-            {isUrl ? 'Replace' : 'Upload'}
-          </button>
+          <div className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center rounded-lg border-2 border-dashed
+            ${isUploaded
+              ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20'
+              : 'border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800'
+            }`}>
+            {isUploaded
+              ? <CheckCircleIcon className="h-7 w-7 text-green-500 dark:text-green-400"/>
+              : <ArrowUpTrayIcon className="h-6 w-6 text-gray-300 dark:text-slate-600"/>
+            }
+          </div>
         )}
-        <input ref={ref} type="file" accept=".jpg,.jpeg,.png,.pdf,.webp" className="hidden"
-          onChange={e => { if (e.target.files[0]) onUpload(fieldName, e.target.files[0]); e.target.value=''; }}/>
-      </div>
-      {isUrl && (
-        <div className="flex-shrink-0 text-green-500 dark:text-green-400">
-          <CheckCircleIcon className="h-5 w-5"/>
+
+        {/* Right side content */}
+        <div className="flex-1 min-w-0">
+          {/* Top: label + status badge */}
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{label}</p>
+                {required && (
+                  <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-800">
+                    Required
+                  </span>
+                )}
+              </div>
+              {hint && <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{hint}</p>}
+            </div>
+            {/* Status pill */}
+            {isUploaded ? (
+              <span className="flex-shrink-0 inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800">
+                <CheckCircleIcon className="h-3.5 w-3.5"/> Uploaded
+              </span>
+            ) : (
+              <span className="flex-shrink-0 inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-gray-50 dark:bg-slate-700 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-600">
+                <ExclamationCircleIcon className="h-3.5 w-3.5"/> Missing
+              </span>
+            )}
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-2 flex-wrap mt-2">
+            {isUploaded && (
+              <a href={value} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
+                <EyeIcon className="h-3.5 w-3.5"/> View file
+              </a>
+            )}
+            {isUploading ? (
+              <div className="inline-flex items-center gap-2 text-xs text-gray-400 dark:text-slate-500 px-3 py-1.5">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-green-500 border-t-transparent"/>
+                Uploading…
+              </div>
+            ) : (
+              <button onClick={() => ref.current?.click()}
+                className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors
+                  ${isUploaded
+                    ? 'border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700'
+                    : 'border-green-300 dark:border-green-700 text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30'
+                  }`}>
+                <ArrowUpTrayIcon className="h-3.5 w-3.5"/>
+                {isUploaded ? 'Replace' : 'Upload'}
+              </button>
+            )}
+          </div>
         </div>
-      )}
+      </div>
+      <input ref={ref} type="file" accept=".jpg,.jpeg,.png,.pdf" className="hidden"
+        onChange={e => { if (e.target.files[0]) onUpload(fieldName, e.target.files[0]); e.target.value = ''; }}/>
     </div>
   );
 };
@@ -221,9 +282,14 @@ const StoreProfileEditor = ({ storeData, refreshData }) => {
     setTimeout(() => setToast({ msg:'', type:'success' }), 3500);
   };
 
-  // ── Load data ────────────────────────────────────────────────────────────
+  // ── Load data — runs once when storeData first arrives, never again.
+  // This prevents silent background refreshes (triggered by saves/uploads in
+  // other tabs) from wiping the user's unsaved edits in the current tab.
+  // Image URLs (logo, banner) are read directly from the `storeData` prop in
+  // ImageUploadBox, so they always reflect the latest upload without needing
+  // to touch `data` state.
   useEffect(() => {
-    if (!storeData) return;
+    if (!storeData || data !== null) return;   // <-- skip if already initialised
     setData({
       // Basic
       store_name:     storeData.store_name     || '',
@@ -268,7 +334,7 @@ const StoreProfileEditor = ({ storeData, refreshData }) => {
       vacation_start_date: storeData.vacation_start_date || '',
       vacation_end_date:   storeData.vacation_end_date   || '',
     });
-  }, [storeData]);
+  }, [storeData, data]);
 
   useEffect(() => {
     api.get('/business-types').then(r => setBT(r.data?.data || r.data || [])).catch(() => {});
@@ -283,24 +349,48 @@ const StoreProfileEditor = ({ storeData, refreshData }) => {
     setSaving('basic');
     try {
       await api.put('/seller/my-store/update', {
-        store_name: data.store_name, store_description: data.store_description,
-        business_type: data.business_type, business_type_id: data.business_type_id || undefined,
-        contact_email: data.contact_email, contact_phone: data.contact_phone,
-        website: data.website || null, address: data.address, city: data.city,
-        state: data.state, country: data.country, postal_code: data.postal_code || null,
-        year_established: data.year_established || null,
-        employees_count: data.employees_count || null,
-        account_number: data.account_number || null,
-        // NRC
-        nrc_division:      data.nrc_division      || null,
-        nrc_township_code: data.nrc_township_code || null,
-        nrc_township_mm:   data.nrc_township_mm   || null,
-        nrc_type:          data.nrc_type          || null,
-        nrc_number:        data.nrc_number        || null,
+        store_name:        data.store_name,
+        store_description: data.store_description,
+        business_type:     data.business_type,
+        business_type_id:  data.business_type_id || undefined,
+        contact_email:     data.contact_email,
+        contact_phone:     data.contact_phone,
+        website:           data.website    || null,
+        address:           data.address,
+        city:              data.city,
+        state:             data.state,
+        country:           data.country,
+        postal_code:       data.postal_code       || null,
+        year_established:  data.year_established  || null,
+        employees_count:   data.employees_count   || null,
+        account_number:    data.account_number    || null,
       });
       flash('Store information saved.');
       if (refreshData) await refreshData();
     } catch (e) { flash(e.response?.data?.message || 'Failed to save.', 'error'); }
+    finally { setSaving(''); }
+  };
+
+  // ── Save NRC / identity number ────────────────────────────────────────────
+  // Kept separate from saveBasic to avoid sending Myanmar Unicode characters
+  // alongside the full store payload — the backend serialises $seller->fresh()
+  // which can blow up with a UTF-8 500 when json-cast columns contain
+  // previously-malformed bytes.  Sending only the 4 NRC fields (no
+  // nrc_township_mm — it is derived display-only data) keeps the payload safe.
+  const saveNrc = async () => {
+    setSaving('nrc');
+    try {
+      await api.put('/seller/my-store/update', {
+        nrc_division:      data.nrc_division      || null,
+        nrc_township_code: data.nrc_township_code || null,
+        // nrc_township_mm intentionally omitted — it is Myanmar Unicode, derived
+        // from nrc_township_code.  The backend stores & re-derives it safely.
+        nrc_type:          data.nrc_type          || null,
+        nrc_number:        data.nrc_number        || null,
+      });
+      flash('NRC number saved.');
+      if (refreshData) await refreshData();
+    } catch (e) { flash(e.response?.data?.message || 'Failed to save NRC.', 'error'); }
     finally { setSaving(''); }
   };
 
@@ -679,71 +769,174 @@ const StoreProfileEditor = ({ storeData, refreshData }) => {
       )}
 
       {/* ── DOCUMENTS ───────────────────────────────────────────────────── */}
-      {tab === 'documents' && (
-        <div className="space-y-3">
-          <p className="text-sm text-gray-500 dark:text-slate-500 mb-4">
-            Required documents for seller verification. Accepted formats: JPG, PNG, PDF, WebP · max 5MB each.
-          </p>
-          <div className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-600 rounded-xl divide-y divide-gray-50 dark:divide-slate-600">
-            <DocumentRow
-              label="Business Registration Certificate"
-              fieldName="business_registration_document"
-              value={storeData?.business_registration_document}
-              onUpload={uploadDocument}
-              uploading={docUploading}
-              hint="Official company registration document"
-            />
-            <DocumentRow
-              label="Tax Registration Document"
-              fieldName="tax_registration_document"
-              value={storeData?.tax_registration_document}
-              onUpload={uploadDocument}
-              uploading={docUploading}
-              hint="TIN or tax registration certificate"
-            />
-            {/* NRC structured input */}
-            <div className="mb-6 p-4 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50">
-              <NrcInput
-                value={{
-                  nrc_division:      data?.nrc_division      || '',
-                  nrc_township_code: data?.nrc_township_code || '',
-                  nrc_township_mm:   data?.nrc_township_mm   || '',
-                  nrc_type:          data?.nrc_type          || '',
-                  nrc_number:        data?.nrc_number        || '',
-                }}
-                onChange={(nrc) => setData(prev => ({ ...prev, ...nrc }))}
-              />
+      {tab === 'documents' && (() => {
+        // Mirror backend's getAllowedDocumentTypes() using the loaded businessTypes list
+        const currentBT = businessTypes.find(
+          bt => bt.slug_en === data?.business_type || bt.id === data?.business_type_id
+        );
+        const noBusinessType = !data?.business_type && !data?.business_type_id;
+
+        // Build the document slot list — each item drives one DocumentRow
+        const docSlots = [
+          currentBT?.requires_registration && {
+            fieldName: 'business_registration_document',
+            label: 'Business Registration Certificate',
+            hint: 'Official company registration document · PDF, JPG, PNG · max 5MB',
+            required: true,
+            value: storeData?.business_registration_document,
+          },
+          currentBT?.requires_tax_document && {
+            fieldName: 'tax_registration_document',
+            label: 'Tax Registration Document',
+            hint: 'TIN or tax registration certificate · PDF, JPG, PNG · max 5MB',
+            required: true,
+            value: storeData?.tax_registration_document,
+          },
+          currentBT?.requires_business_certificate && {
+            fieldName: 'business_certificate',
+            label: 'Business Certificate',
+            hint: 'Business operating certificate · PDF, JPG, PNG · max 5MB',
+            required: true,
+            value: storeData?.business_certificate,
+          },
+          {
+            fieldName: 'identity_document_front',
+            label: 'Identity Document — Front',
+            hint: 'NRC / Passport front side · JPG, PNG · max 2MB',
+            required: true,
+            value: storeData?.identity_document_front,
+          },
+          {
+            fieldName: 'identity_document_back',
+            label: 'Identity Document — Back',
+            hint: 'NRC / Passport back side · JPG, PNG · max 2MB',
+            required: false,
+            value: storeData?.identity_document_back,
+          },
+        ].filter(Boolean);
+
+        const uploadedCount  = docSlots.filter(d => d.value).length;
+        const requiredSlots  = docSlots.filter(d => d.required);
+        const requiredDone   = requiredSlots.filter(d => d.value).length;
+        const allRequiredDone = requiredDone === requiredSlots.length;
+        const docStatus       = storeData?.document_status;
+        const docSubmitted    = storeData?.documents_submitted;
+
+        return (
+          <div className="space-y-4">
+
+            {/* ── Status overview card ─────────────────────────────────── */}
+            <div className="rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">Document Status</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                    {uploadedCount} of {docSlots.length} uploaded · {requiredDone} of {requiredSlots.length} required
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Submission status pill */}
+                  {docSubmitted ? (
+                    <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border
+                      ${docStatus === 'approved'
+                        ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800'
+                        : docStatus === 'rejected'
+                        ? 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
+                        : 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'
+                      }`}>
+                      <CheckCircleIcon className="h-3.5 w-3.5"/>
+                      {docStatus === 'approved' ? 'Verified'
+                        : docStatus === 'rejected' ? 'Rejected'
+                        : 'Under Review'}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600">
+                      <ExclamationCircleIcon className="h-3.5 w-3.5"/> Not Submitted
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div className="px-4 py-2 bg-white dark:bg-slate-800/50">
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-1.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${allRequiredDone ? 'bg-green-500' : 'bg-amber-400'}`}
+                      style={{ width: `${docSlots.length ? (uploadedCount / docSlots.length) * 100 : 0}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-gray-500 dark:text-slate-400 flex-shrink-0">
+                    {Math.round(docSlots.length ? (uploadedCount / docSlots.length) * 100 : 0)}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Rejection reason */}
+              {docStatus === 'rejected' && storeData?.document_rejection_reason && (
+                <div className="px-4 py-3 bg-red-50 dark:bg-red-900/20 border-t border-red-100 dark:border-red-800 text-xs text-red-700 dark:text-red-400">
+                  <strong>Rejection reason:</strong> {storeData.document_rejection_reason}
+                </div>
+              )}
             </div>
-            <DocumentRow
-              label="Identity Document (Front)"
-              fieldName="identity_document_front"
-              value={storeData?.identity_document_front}
-              onUpload={uploadDocument}
-              uploading={docUploading}
-              hint="NRC front side — photo or scan"
-            />
-            <DocumentRow
-              label="Identity Document (Back)"
-              fieldName="identity_document_back"
-              value={storeData?.identity_document_back}
-              onUpload={uploadDocument}
-              uploading={docUploading}
-              hint="NRC back side — photo or scan"
-            />
+
+            {/* ── Warning: business type not set ────────────────────────── */}
+            {noBusinessType && (
+              <div className="flex items-start gap-2.5 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-sm text-amber-800 dark:text-amber-400">
+                <ExclamationCircleIcon className="h-4 w-4 flex-shrink-0 mt-0.5"/>
+                <span>
+                  Set your <strong>Business Type</strong> in the Basic Info tab first — the required
+                  documents depend on your business type.
+                </span>
+              </div>
+            )}
+
+            {/* ── Document rows ─────────────────────────────────────────── */}
+            <div className="rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
+              {docSlots.map(slot => (
+                <DocumentRow
+                  key={slot.fieldName}
+                  label={slot.label}
+                  fieldName={slot.fieldName}
+                  value={slot.value}
+                  onUpload={uploadDocument}
+                  uploading={docUploading}
+                  hint={slot.hint}
+                  required={slot.required}
+                />
+              ))}
+            </div>
+
+            {/* ── NRC Identity Number ───────────────────────────────────── */}
+            <div className="rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
+              <div className="px-4 py-3 bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
+                <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">NRC / Identity Number</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                  Myanmar National Registration Card number. Click Save below after editing.
+                </p>
+              </div>
+              <div className="p-4">
+                <NrcInput
+                  value={{
+                    nrc_division:      data?.nrc_division      || '',
+                    nrc_township_code: data?.nrc_township_code || '',
+                    nrc_township_mm:   data?.nrc_township_mm   || '',
+                    nrc_type:          data?.nrc_type          || '',
+                    nrc_number:        data?.nrc_number        || '',
+                  }}
+                  onChange={(nrc) => setData(prev => ({ ...prev, ...nrc }))}
+                />
+              </div>
+              {/* Save NRC — always visible inside its own card */}
+              <div className="px-4 py-3 bg-gray-50 dark:bg-slate-800/60 border-t border-gray-200 dark:border-slate-700 flex justify-end">
+                <SaveBtn saving={saving === 'nrc'} onClick={saveNrc} label="Save NRC Number" />
+              </div>
+            </div>
+
           </div>
-          {storeData?.verification_status && (
-            <div className={`mt-4 flex items-center gap-2 px-4 py-3 rounded-xl text-sm
-              ${storeData.verification_status === 'verified' ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-400'
-                : storeData.verification_status === 'rejected' ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-400'
-                : 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-400'}`}>
-              <CheckCircleIcon className="h-4 w-4 flex-shrink-0"/>
-              <span>Verification status: <strong className="capitalize">{storeData.verification_status}</strong>
-                {storeData.verification_notes && ` — ${storeData.verification_notes}`}
-              </span>
-            </div>
-          )}
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── NOTIFICATIONS ─────────────────────────────────────────── */}
       {tab === 'notifications' && (

@@ -120,7 +120,7 @@ function App() {
         <GoogleReCaptchaProvider reCaptchaKey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}>
           <AuthProvider>
             <CartProvider>
-              <Router>
+              <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <NavigationWirer />
                 <GARouteTracker />
                 <WishlistProvider>

@@ -142,7 +142,7 @@ const MyStore = ({ storeData, stats, refreshData }) => {
           <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{t("seller.my_store_summary")}</p>
         </div>
         <button
-          onClick={() => navigate("/seller/dashboard?tab=my-store&edit=true")}
+          onClick={() => navigate("/seller/dashboard?tab=store_profile")}
           className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all duration-200 font-medium"
         >
           <PencilIcon className="h-4 w-4" />
@@ -545,7 +545,7 @@ const MyStore = ({ storeData, stats, refreshData }) => {
             <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
             <div className="space-y-3">
               <button
-                onClick={() => navigate("/seller/dashboard?tab=edit-store")}
+                onClick={() => navigate("/seller/dashboard?tab=store_profile")}
                 className="w-full py-3 bg-white/20 hover:bg-white/30 rounded-xl transition-colors text-sm font-medium"
               >
                 Edit Store Profile
@@ -557,13 +557,13 @@ const MyStore = ({ storeData, stats, refreshData }) => {
                 Store Settings
               </button>
               <button
-                onClick={() => navigate("/seller/dashboard?tab=product")}
+                onClick={() => navigate("/seller/dashboard?tab=products")}
                 className="w-full py-3 bg-white/20 hover:bg-white/30 rounded-xl transition-colors text-sm font-medium"
               >
                 Manage Products
               </button>
               <button
-                onClick={() => navigate("/seller/dashboard?tab=order")}
+                onClick={() => navigate("/seller/dashboard?tab=orders")}
                 className="w-full py-3 bg-white/20 hover:bg-white/30 rounded-xl transition-colors text-sm font-medium"
               >
                 View Orders

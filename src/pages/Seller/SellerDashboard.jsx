@@ -39,7 +39,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import DeliveryManagement from "../../components/seller/DeliveryManagement";
 import DiscountManagement from "../../components/seller/DiscountManagement";
 import CouponManagement from "../../components/seller/CouponManagement";
-import EditStore from "../../components/seller/EditStore";
 import StoreProfileEditor from "../../components/seller/StoreProfileEditor";
 import NotificationsPanel from "../../components/Shared/NotificationsPanel";
 import { NotificationBell } from "../../components/Shared/NotificationsPanel";
@@ -166,39 +165,44 @@ const SellerDashboard = () => {
     ctaLabel: "Complete Setup"
   });
 
-  // ---------- Fetch global store data (store info & summary stats) ----------
+  // ---------- Shared data-fetch logic (no loading state) ----------
+  const doFetchStoreAndStats = useCallback(async () => {
+    const [storeResponse, statsResponse] = await Promise.allSettled([
+      api.get("/seller/my-store"),
+      api.get("/seller/sales-summary")
+    ]);
+
+    if (storeResponse.status === 'fulfilled' && storeResponse.value.data.success) {
+      setStoreData(storeResponse.value.data.data);
+    } else if (storeResponse.status === 'rejected') {
+      console.error("Failed to fetch store data:", storeResponse.reason);
+      if (storeResponse.reason.response?.status === 404) {
+        setShowSetupNotification(true);
+        setSetupNotificationData({
+          title: "Store Profile Required",
+          message: "You need to create your store profile to start selling.",
+          requiredActions: ["Create store profile"],
+          nextStep: "my-store"
+        });
+      }
+    }
+
+    if (statsResponse.status === 'fulfilled' && statsResponse.value.data.success) {
+      const salesData = statsResponse.value.data.data.sales || {};
+      setStats({
+        totalProducts: statsResponse.value.data.data.products?.total || 0,
+        totalOrders: salesData.total_orders || 0,
+        totalRevenue: salesData.total_revenue || 0,
+        pendingOrders: statsResponse.value.data.data.orders_by_status?.pending || 0
+      });
+    }
+  }, []);
+
+  // Initial page load — shows full-screen spinner
   const fetchGlobalData = useCallback(async () => {
     try {
       setLoading(true);
-      const [storeResponse, statsResponse] = await Promise.allSettled([
-        api.get("/seller/my-store"),
-        api.get("/seller/sales-summary")
-      ]);
-
-      if (storeResponse.status === 'fulfilled' && storeResponse.value.data.success) {
-        setStoreData(storeResponse.value.data.data);
-      } else if (storeResponse.status === 'rejected') {
-        console.error("Failed to fetch store data:", storeResponse.reason);
-        if (storeResponse.reason.response?.status === 404) {
-          setShowSetupNotification(true);
-          setSetupNotificationData({
-            title: "Store Profile Required",
-            message: "You need to create your store profile to start selling.",
-            requiredActions: ["Create store profile"],
-            nextStep: "my-store"
-          });
-        }
-      }
-
-      if (statsResponse.status === 'fulfilled' && statsResponse.value.data.success) {
-        const salesData = statsResponse.value.data.data.sales || {};
-        setStats({
-          totalProducts: statsResponse.value.data.data.products?.total || 0,
-          totalOrders: salesData.total_orders || 0,
-          totalRevenue: salesData.total_revenue || 0,
-          pendingOrders: statsResponse.value.data.data.orders_by_status?.pending || 0
-        });
-      }
+      await doFetchStoreAndStats();
     } catch (error) {
       console.error("Failed to fetch global data:", error);
       if (error.response?.status === 403) {
@@ -207,11 +211,18 @@ const SellerDashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, [navigate]);
+  }, [navigate, doFetchStoreAndStats]);
 
+  // Silent background refresh — called by child components after saves/uploads.
+  // Does NOT set loading=true so the UI stays stable and the user's current tab
+  // is never interrupted by a spinner.
   const refreshGlobalData = useCallback(async () => {
-    await fetchGlobalData();
-  }, [fetchGlobalData]);
+    try {
+      await doFetchStoreAndStats();
+    } catch (error) {
+      console.error("Background refresh failed:", error);
+    }
+  }, [doFetchStoreAndStats]);
 
   // ---------- Handle setup click (only for navigation) ----------
   const handleSetupClick = useCallback((step) => {
@@ -253,7 +264,6 @@ const SellerDashboard = () => {
       case "dashboard": return <DashboardSummary storeData={storeData} stats={stats} onSetupClick={handleSetupClick} />;
       case "notifications":  return <NotificationsPanel />;
       case "my_store":    return <MyStore storeData={storeData} stats={stats} refreshData={refreshGlobalData} />;
-      case "edit_store":  return <EditStore storeData={storeData} refreshData={refreshGlobalData} />;
       case "store_profile": return <StoreProfileEditor storeData={storeData} refreshData={refreshGlobalData} />;
       case "orders":      return <OrderManagement />;
       case "delivery":    return <DeliveryManagement />;
@@ -415,7 +425,7 @@ const SellerDashboard = () => {
   // ---------- Start setup ----------
   const handleStartSetup = () => {
     if (setupNotificationData.nextStep === "my-store") {
-      const myStoreIndex = navigation.findIndex(item => item.name === t("seller.my_store"));
+      const myStoreIndex = navigation.findIndex(item => item.key === "my_store");
       if (myStoreIndex !== -1) setSelectedTab(myStoreIndex);
       navigate('/seller/dashboard?tab=my-store&setup=true', { replace: true });
     } else if (onboardingStatus?.needs_onboarding || !onboardingStatus?.onboarding_complete) {
@@ -427,12 +437,12 @@ const SellerDashboard = () => {
     }
   };
 
-  // ---------- Polling for global data (optional, 60s) ----------
+  // ---------- Polling for global data (silent, every 60s) ----------
   useEffect(() => {
     if (!user || !storeData) return;
-    const interval = setInterval(fetchGlobalData, 6000000);
+    const interval = setInterval(refreshGlobalData, 60000);
     return () => clearInterval(interval);
-  }, [user, storeData, fetchGlobalData]);
+  }, [user, storeData, refreshGlobalData]);
 
   if (loading) {
     return (
@@ -446,7 +456,10 @@ const SellerDashboard = () => {
   }
 
   // Onboarding incomplete screen (unchanged)
-  if (onboardingStatus?.needs_onboarding || !onboardingStatus?.onboarding_complete) {
+  // Guard: only show when onboardingStatus has been resolved AND is incomplete.
+  // When onboardingStatus is null (e.g. the status endpoint returned 404 for a
+  // fully-onboarded seller), treat the seller as onboarded and skip this screen.
+  if (onboardingStatus !== null && (onboardingStatus?.needs_onboarding || !onboardingStatus?.onboarding_complete)) {
     return (
       <div className="flex h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 items-center justify-center p-4">
         <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 text-center">
@@ -641,19 +654,6 @@ const SellerDashboard = () => {
             </div>
           </div>
         </div>
-
-        {setupNotificationData.progress > 0 && (
-          <div className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600 dark:text-slate-400">Setup Progress: {setupNotificationData.progress}%</span>
-                <div className="w-64 bg-gray-200 dark:bg-slate-700 rounded-full h-2">
-                  <div className="bg-green-500 h-2 rounded-full transition-all duration-300" style={{ width: `${setupNotificationData.progress}%` }}></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         <div className="flex-1 overflow-y-auto">
           <div className="p-4 sm:p-6">

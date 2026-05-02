@@ -39,6 +39,10 @@ api.interceptors.response.use(
     return response;
   },
   error => {
+    if (axios.isCancel(error) || error.code === "ERR_CANCELED") {
+      return Promise.reject(error);
+    }
+
     if (import.meta.env.DEV) {
       console.error(
         `API Error [${error.config?.method?.toUpperCase() ?? "GET"}] ${error.config?.url ?? "unknown"}:`,

@@ -1,6 +1,7 @@
 // utils/exportExcel.js
 // Pure-JS Excel export — no server roundtrip, no extra npm package.
 // Uses SheetJS (xlsx) loaded from CDN via dynamic import when needed.
+import * as XLSX from "xlsx";
 
 /**
  * Export data to .xlsx file.
@@ -9,13 +10,6 @@
  * @param {string} filename   - e.g. "sales-report-2026-03.xlsx"
  */
 export const exportToExcel = async (rows, sheetName = "Report", filename = "report.xlsx") => {
-  // Dynamically load SheetJS so it doesn't add to initial bundle
-  const XLSX = await import("https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js")
-    .then(() => window.XLSX)
-    .catch(() => {
-      throw new Error("Failed to load export library. Check your connection.");
-    });
-
   const ws = XLSX.utils.aoa_to_sheet(rows);
 
   // Auto-column widths based on max content length in each column
