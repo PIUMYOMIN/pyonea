@@ -2141,6 +2141,8 @@
       "product_name_placeholder": "ဥပမာ - သံပြွန်များ၊ ဆန်၊ အီလက်ထရောနစ်",
       "category": "အမျိုးအစား",
       "category_placeholder": "ဥပမာ - ဆောက်လုပ်ရေး ပစ္စည်းများ",
+      "category_select_placeholder": "အမျိုးအစားကို ရွေးချယ်ပါ",
+      "category_loading": "အမျိုးအစားများ တင်နေသည်...",
       "quantity": "အရေအတွက်",
       "unit": "ယူနစ်",
       "specifications": "သတ်မှတ်ချက်များ",
@@ -2156,6 +2158,7 @@
       "broadcast_desc": "Pyonea ပေါ်ရှိ အတည်ပြုထားသော ရောင်းချသူအားလုံးထံ ပို့မည်",
       "seller_search_placeholder": "ရောင်းချသူအမည်ဖြင့် ရှာဖွေပါ...",
       "searching": "ရောင်းချသူများကို ရှာဖွေနေသည်...",
+      "no_sub_categories": "အုပ်စုခွဲ မရှိပါ",
       "sellers_selected": "ရောင်းချသူ {{count}} ဦး ရွေးချယ်ထားသည်"
     },
     "status": {
@@ -2202,6 +2205,7 @@
     },
     "fields": {
       "product_name": "ကုန်ပစ္စည်း အမည်",
+      "category_id": "အမျိုးအစား",
       "quantity": "အရေအတွက်",
       "unit": "ယူနစ်",
       "deadline": "နောက်ဆုံးရက်"

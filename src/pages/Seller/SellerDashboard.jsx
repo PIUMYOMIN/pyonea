@@ -21,6 +21,7 @@ import {
   GiftIcon,
   WalletIcon,
   TagIcon,
+  DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 import Sidebar from "../../components/layout/Sidebar";
 import DashboardSummary from "../../components/seller/DashboardSummary";
@@ -157,6 +158,7 @@ const SellerDashboard = () => {
   });
 
   const [showSetupNotification, setShowSetupNotification] = useState(false);
+  const [rfqBadgeCount, setRfqBadgeCount] = useState(0);
   const [setupNotificationData, setSetupNotificationData] = useState({
     title: "",
     message: "",
@@ -236,12 +238,24 @@ const SellerDashboard = () => {
     }
   }, [navigate]);
 
+  const fetchRfqBadgeCount = useCallback(async () => {
+    try {
+      const res = await api.get("/rfq/received");
+      const list = res.data?.data?.data ?? res.data?.data ?? [];
+      const pending = list.filter((rfq) => rfq.status === "open" && !rfq.my_quote).length;
+      setRfqBadgeCount(pending);
+    } catch {
+      setRfqBadgeCount(0);
+    }
+  }, []);
+
   const navigation = useMemo(() => [
     { name: t("seller.dashboard"), icon: ChartBarIcon, key: "dashboard" },
     { name: "Notifications",              icon: BellIcon,               key: "notifications" },
     { name: t("seller.my_store"),       icon: BuildingStorefrontIcon, key: "my_store" },
     { name: "Store Profile",            icon: PencilIcon,             key: "store_profile" },
     { name: t("seller.order.title"),    icon: ShoppingBagIcon,        key: "orders" },
+    { name: "RFQ",                      icon: DocumentTextIcon,       key: "rfq" },
     { name: t("seller.delivery_zones.title"), icon: TruckIcon,        key: "delivery_zones" },
     { name: t("seller.product.title"),  icon: CubeIcon,               key: "products" },
     { name: t("seller.discount.title"), icon: TagIcon,               key: "discounts" },
@@ -307,6 +321,13 @@ const SellerDashboard = () => {
       if (tabIndex !== -1) setSelectedTab(tabIndex);
     }
   }, [location.search, navigation]);
+
+  useEffect(() => {
+    if (!user) return;
+    fetchRfqBadgeCount();
+    const timer = setInterval(fetchRfqBadgeCount, 60000);
+    return () => clearInterval(timer);
+  }, [user, fetchRfqBadgeCount]);
 
   // ---------- Check seller access and onboarding ----------
   useEffect(() => {
@@ -512,7 +533,15 @@ const SellerDashboard = () => {
               {navigation.map((item, idx) => (
                 <button
                   key={item.name}
-                  onClick={() => { setSelectedTab(idx); setSidebarOpen(false); }}
+                  onClick={() => {
+                    if (item.key === "rfq") {
+                      navigate("/rfq");
+                      setSidebarOpen(false);
+                      return;
+                    }
+                    setSelectedTab(idx);
+                    setSidebarOpen(false);
+                  }}
                   className={classNames(
                     "group flex items-center px-4 py-3 text-sm font-medium rounded-2xl w-full text-left transition-all duration-200 mb-1",
                     selectedTab === idx
@@ -522,6 +551,11 @@ const SellerDashboard = () => {
                 >
                   <item.icon className="mr-3 h-5 w-5" />
                   {item.name}
+                  {item.key === "rfq" && rfqBadgeCount > 0 && (
+                    <span className="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-[10px] font-bold rounded-full bg-red-500 text-white">
+                      {rfqBadgeCount}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -588,7 +622,13 @@ const SellerDashboard = () => {
               {navigation.map((item, idx) => (
                 <button
                   key={item.name}
-                  onClick={() => setSelectedTab(idx)}
+                  onClick={() => {
+                    if (item.key === "rfq") {
+                      navigate("/rfq");
+                      return;
+                    }
+                    setSelectedTab(idx);
+                  }}
                   className={classNames(
                     "group flex items-center px-4 py-3 text-sm font-medium rounded-2xl w-full text-left transition-all duration-200",
                     selectedTab === idx
@@ -598,6 +638,11 @@ const SellerDashboard = () => {
                 >
                   <item.icon className="mr-3 h-5 w-5 transition-all duration-200 group-hover:scale-110" />
                   {item.name}
+                  {item.key === "rfq" && rfqBadgeCount > 0 && (
+                    <span className="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-[10px] font-bold rounded-full bg-red-500 text-white">
+                      {rfqBadgeCount}
+                    </span>
+                  )}
                 </button>
               ))}
             </nav>
@@ -663,7 +708,13 @@ const SellerDashboard = () => {
                 {navigation.map((item, idx) => (
                   <button
                     key={item.name}
-                    onClick={() => setSelectedTab(idx)}
+                    onClick={() => {
+                      if (item.key === "rfq") {
+                        navigate("/rfq");
+                        return;
+                      }
+                      setSelectedTab(idx);
+                    }}
                     className={classNames(
                       "flex-shrink-0 min-w-[100px] rounded-xl py-3 px-2 text-sm font-medium leading-5 transition-all duration-200 focus:outline-none",
                       selectedTab === idx
@@ -672,7 +723,14 @@ const SellerDashboard = () => {
                     )}
                   >
                     <div className="flex flex-col items-center justify-center space-y-1">
-                      <item.icon className="h-5 w-5" />
+                      <div className="relative">
+                        <item.icon className="h-5 w-5" />
+                        {item.key === "rfq" && rfqBadgeCount > 0 && (
+                          <span className="absolute -top-2 -right-2 inline-flex items-center justify-center min-w-4 h-4 px-1 text-[9px] font-bold rounded-full bg-red-500 text-white">
+                            {rfqBadgeCount}
+                          </span>
+                        )}
+                      </div>
                       <span className="text-xs">{item.name}</span>
                     </div>
                   </button>

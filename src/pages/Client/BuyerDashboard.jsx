@@ -1267,6 +1267,7 @@ const BuyerDashboard = () => {
   const [cancelModal, setCancelModal]   = useState(null);
   const [cancelling, setCancelling]     = useState(false);
   const [cancelError, setCancelError]   = useState(null);
+  const [rfqBadgeCount, setRfqBadgeCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
   const { isEmailVerified, updateUser } = useAuth();
@@ -1277,6 +1278,7 @@ const BuyerDashboard = () => {
     { id: "history",    label: t("buyer_dashboard.purchase_history"), Icon: ReceiptRefundIcon },
     { id: "cart",       label: t("buyer_dashboard.my_cart"),       Icon: ShoppingCartIcon  },
     { id: "wishlist",   label: t("buyer_dashboard.wishlist"),      Icon: HeartIcon         },
+    { id: "rfq",        label: "RFQ",                               Icon: DocumentTextIcon  },
     { id: "profile",    label: t("buyer_dashboard.profile"),       Icon: UserIcon          },
     { id: "settings",   label: t("buyer_dashboard.settings"),      Icon: CogIcon           },
     { id: "notifications", label: "Notifications",                     Icon: BellIcon          },
@@ -1286,6 +1288,17 @@ const BuyerDashboard = () => {
   const fetchOrders = useCallback(async () => {
     try { setOrders((await api.get("/orders")).data.data || []); }
     catch (e) { console.error("Failed to fetch orders:", e); }
+  }, []);
+
+  const fetchRfqBadgeCount = useCallback(async () => {
+    try {
+      const res = await api.get("/rfq/sent");
+      const list = res.data?.data?.data ?? res.data?.data ?? [];
+      const pending = list.filter((rfq) => rfq.status === "quoted").length;
+      setRfqBadgeCount(pending);
+    } catch {
+      setRfqBadgeCount(0);
+    }
   }, []);
 
   const fetchData = useCallback(async () => {
@@ -1298,6 +1311,12 @@ const BuyerDashboard = () => {
   }, [fetchOrders]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  useEffect(() => {
+    fetchRfqBadgeCount();
+    const timer = setInterval(fetchRfqBadgeCount, 60000);
+    return () => clearInterval(timer);
+  }, [fetchRfqBadgeCount]);
 
   useEffect(() => {
     const tab = new URLSearchParams(location.search).get("tab");
@@ -1393,10 +1412,24 @@ const BuyerDashboard = () => {
                 <button onClick={() => setSidebarOpen(false)} className="text-gray-400 dark:text-slate-600 hover:text-gray-600 dark:text-slate-400"><XMarkIcon className="h-5 w-5" /></button>
               </div>
               {TABS.map((tab, idx) => (
-                <button key={tab.id} onClick={() => { setActiveTab(idx); setSidebarOpen(false); }}
+                <button key={tab.id} onClick={() => {
+                    if (tab.id === "rfq") {
+                      navigate("/rfq");
+                      setSidebarOpen(false);
+                      return;
+                    }
+                    setActiveTab(idx);
+                    setSidebarOpen(false);
+                  }}
                   className={classNames("flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-left text-sm font-medium mb-1 transition-all",
                     activeTab === idx ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md" : "text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700")}>
-                  <tab.Icon className="h-5 w-5 flex-shrink-0" />{tab.label}
+                  <tab.Icon className="h-5 w-5 flex-shrink-0" />
+                  {tab.label}
+                  {tab.id === "rfq" && rfqBadgeCount > 0 && (
+                    <span className="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-[10px] font-bold rounded-full bg-red-500 text-white">
+                      {rfqBadgeCount}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -1431,13 +1464,24 @@ const BuyerDashboard = () => {
             {/* Nav */}
             <nav className="flex-1 px-4 space-y-1">
               {TABS.map((tab, idx) => (
-                <button key={tab.id} onClick={() => setActiveTab(idx)}
+                <button key={tab.id} onClick={() => {
+                    if (tab.id === "rfq") {
+                      navigate("/rfq");
+                      return;
+                    }
+                    setActiveTab(idx);
+                  }}
                   className={classNames("group flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-left text-sm font-medium transition-all",
                     activeTab === idx
                       ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
                       : "text-gray-600 dark:text-slate-300 hover:text-green-700 dark:hover:text-green-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md")}>
                   <tab.Icon className="h-5 w-5 group-hover:scale-110 transition-transform flex-shrink-0" />
                   {tab.label}
+                  {tab.id === "rfq" && rfqBadgeCount > 0 && (
+                    <span className="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-[10px] font-bold rounded-full bg-red-500 text-white">
+                      {rfqBadgeCount}
+                    </span>
+                  )}
                 </button>
               ))}
             </nav>
@@ -1498,13 +1542,26 @@ const BuyerDashboard = () => {
             <div className="md:hidden mb-5">
               <div className="flex gap-1.5 rounded-2xl bg-white/80 dark:bg-slate-800/90 backdrop-blur-lg p-1.5 shadow-lg overflow-x-auto no-scrollbar">
                 {TABS.map((tab, idx) => (
-                  <button key={tab.id} onClick={() => setActiveTab(idx)}
+                  <button key={tab.id} onClick={() => {
+                      if (tab.id === "rfq") {
+                        navigate("/rfq");
+                        return;
+                      }
+                      setActiveTab(idx);
+                    }}
                     className={classNames("flex-shrink-0 rounded-xl py-2.5 px-3 text-xs font-medium transition-all focus:outline-none",
                       activeTab === idx
                         ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md"
                         : "text-gray-600 dark:text-slate-300 hover:text-green-700 dark:hover:text-green-400 hover:bg-white dark:hover:bg-slate-700 hover:shadow")}>
                     <div className="flex flex-col items-center gap-1">
-                      <tab.Icon className="h-4 w-4" />
+                      <div className="relative">
+                        <tab.Icon className="h-4 w-4" />
+                        {tab.id === "rfq" && rfqBadgeCount > 0 && (
+                          <span className="absolute -top-2 -right-2 inline-flex items-center justify-center min-w-4 h-4 px-1 text-[9px] font-bold rounded-full bg-red-500 text-white">
+                            {rfqBadgeCount}
+                          </span>
+                        )}
+                      </div>
                       <span className="whitespace-nowrap">{tab.label}</span>
                     </div>
                   </button>

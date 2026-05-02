@@ -123,13 +123,15 @@ const rfqApi = {
 
 // ── Create RFQ Form ────────────────────────────────────────────────────────────
 const CreateRFQForm = ({ onSuccess, onCancel }) => {
-  const { t: ct } = useTranslation();
+  const { t: ct, i18n } = useTranslation();
   const [form, setForm] = useState({
-    product_name: "", category: "", quantity: "", unit: "pcs",
+    product_name: "", category_id: "", category: "", quantity: "", unit: "pcs",
     specifications: "", budget_min: "", budget_max: "",
     currency: "MMK", deadline: "", notes: "",
     broadcast: true, seller_ids: [],
   });
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
   const [sellerSearch, setSellerSearch] = useState("");
   const [sellerResults, setSellerResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -139,6 +141,30 @@ const CreateRFQForm = ({ onSuccess, onCancel }) => {
   const searchTimeout = useRef(null);
 
   const set = (field) => (e) => setForm((p) => ({ ...p, [field]: e.target.value }));
+
+  useEffect(() => {
+    let mounted = true;
+    const loadCategories = async () => {
+      setLoadingCategories(true);
+      try {
+        const res = await api.get("/categories/all");
+        const roots = res.data?.data ?? [];
+        if (mounted) {
+          setCategories(roots);
+        }
+      } catch {
+        if (mounted) {
+          setCategories([]);
+        }
+      } finally {
+        if (mounted) {
+          setLoadingCategories(false);
+        }
+      }
+    };
+    loadCategories();
+    return () => { mounted = false; };
+  }, []);
 
   // Seller search (debounced)
   useEffect(() => {
@@ -168,7 +194,7 @@ const CreateRFQForm = ({ onSuccess, onCancel }) => {
   };
 
   const handleSubmit = async () => {
-    const required = ["product_name", "quantity", "unit", "deadline"];
+    const required = ["product_name", "category_id", "quantity", "unit", "deadline"];
     const missing  = required.filter((f) => !form[f]);
     if (missing.length) {
       const fieldLabels = missing.map((field) => ct(`rfq.fields.${field}`, field));
@@ -179,7 +205,16 @@ const CreateRFQForm = ({ onSuccess, onCancel }) => {
     setSubmitting(true);
     setError(null);
     try {
-      await rfqApi.create(form);
+      const selectedCategory = categories
+        .flatMap((parent) => (parent.children?.length ? parent.children : [parent]))
+        .find((c) => String(c.id) === String(form.category_id));
+      await rfqApi.create({
+        ...form,
+        category: (i18n.language === "my"
+          ? (selectedCategory?.name_mm || selectedCategory?.name_en)
+          : (selectedCategory?.name_en || selectedCategory?.name_mm)
+        ) ?? form.category ?? "",
+      });
       setSuccess(ct("rfq.messages.rfq_submitted"));
       setTimeout(() => onSuccess?.(), 1500);
     } catch (err) {
@@ -189,7 +224,8 @@ const CreateRFQForm = ({ onSuccess, onCancel }) => {
     }
   };
 
-  const inputCls = "w-full border border-gray-300 dark:border-slate-600 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none";
+  const controlCls = "w-full h-11 border border-gray-300 dark:border-slate-600 rounded-xl px-3 text-sm bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none";
+  const textareaCls = "w-full border border-gray-300 dark:border-slate-600 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none";
   const labelCls = "block text-xs font-bold text-gray-600 dark:text-slate-400 mb-1 uppercase tracking-wide";
 
   const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
@@ -208,26 +244,55 @@ const CreateRFQForm = ({ onSuccess, onCancel }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
             <label className={labelCls}>{ct('rfq.form.product_name')} <span className="text-red-500">*</span></label>
-            <input className={inputCls} placeholder={ct('rfq.form.product_name_placeholder')} value={form.product_name} onChange={set("product_name")} />
+            <input className={controlCls} placeholder={ct('rfq.form.product_name_placeholder')} value={form.product_name} onChange={set("product_name")} />
           </div>
           <div>
-
-            <label className={labelCls}>{ct('rfq.form.category')}</label>
-
-            <input className={inputCls} placeholder={ct("rfq.form.category_placeholder")} value={form.category} onChange={set("category")} />
+            <label className={labelCls}>{ct('rfq.form.category')} <span className="text-red-500">*</span></label>
+            <select
+              className={controlCls}
+              value={form.category_id}
+              onChange={set("category_id")}
+              disabled={loadingCategories}
+            >
+              <option value="">
+                {loadingCategories ? ct("rfq.form.category_loading") : ct("rfq.form.category_select_placeholder")}
+              </option>
+              {categories.map((parent) => (
+                <optgroup
+                  key={parent.id}
+                  label={i18n.language === "my"
+                    ? (parent.name_mm || parent.name_en)
+                    : (parent.name_en || parent.name_mm)}
+                >
+                  {parent.children?.length > 0
+                    ? parent.children.map((child) => (
+                        <option key={child.id} value={child.id}>
+                          {i18n.language === "my"
+                            ? (child.name_mm || child.name_en)
+                            : (child.name_en || child.name_mm)}
+                        </option>
+                      ))
+                    : (
+                        <option disabled>
+                          {ct("rfq.form.no_sub_categories")}
+                        </option>
+                      )}
+                </optgroup>
+              ))}
+            </select>
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div className="col-span-2">
 
               <label className={labelCls}>{ct('rfq.form.quantity')} <span className="text-red-500">*</span></label>
 
-              <input type="number" min="1" className={inputCls} placeholder="500" value={form.quantity} onChange={set("quantity")} />
+              <input type="number" min="1" className={controlCls} placeholder="500" value={form.quantity} onChange={set("quantity")} />
             </div>
             <div>
 
               <label className={labelCls}>{ct('rfq.form.unit')} <span className="text-red-500">*</span></label>
 
-              <select className={inputCls} value={form.unit} onChange={set("unit")}>
+              <select className={controlCls} value={form.unit} onChange={set("unit")}>
                 {["pcs", "kg", "ton", "g", "L", "ml", "bags", "boxes", "sets", "m", "m²", "m³", "rolls"].map((u) => (
                   <option key={u} value={u}>{u}</option>
                 ))}
@@ -238,7 +303,7 @@ const CreateRFQForm = ({ onSuccess, onCancel }) => {
 
             <label className={labelCls}>{ct('rfq.form.specifications')}</label>
 
-            <textarea className={inputCls + " resize-none"} rows={3} placeholder={ct("rfq.form.specifications_placeholder")} value={form.specifications} onChange={set("specifications")} />
+            <textarea className={textareaCls + " resize-none"} rows={3} placeholder={ct("rfq.form.specifications_placeholder")} value={form.specifications} onChange={set("specifications")} />
           </div>
         </div>
       </section>
@@ -257,7 +322,7 @@ const CreateRFQForm = ({ onSuccess, onCancel }) => {
 
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">MMK</span>
-              <input type="number" className={inputCls + " pl-12"} placeholder="0" value={form.budget_min} onChange={set("budget_min")} />
+              <input type="number" className={controlCls + " pl-12"} placeholder="0" value={form.budget_min} onChange={set("budget_min")} />
             </div>
           </div>
           <div>
@@ -266,21 +331,21 @@ const CreateRFQForm = ({ onSuccess, onCancel }) => {
 
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">MMK</span>
-              <input type="number" className={inputCls + " pl-12"} placeholder="0" value={form.budget_max} onChange={set("budget_max")} />
+              <input type="number" className={controlCls + " pl-12"} placeholder="0" value={form.budget_max} onChange={set("budget_max")} />
             </div>
           </div>
           <div>
 
             <label className={labelCls}>{ct('rfq.form.deadline')} <span className="text-red-500">*</span></label>
 
-            <input type="date" min={minDate} className={inputCls} value={form.deadline} onChange={set("deadline")} />
+            <input type="date" min={minDate} className={controlCls} value={form.deadline} onChange={set("deadline")} />
           </div>
         </div>
         <div className="mt-4">
 
           <label className={labelCls}>{ct('rfq.form.notes')}</label>
 
-          <textarea className={inputCls + " resize-none"} rows={2} placeholder={ct("rfq.form.notes_placeholder")} value={form.notes} onChange={set("notes")} />
+          <textarea className={textareaCls + " resize-none"} rows={2} placeholder={ct("rfq.form.notes_placeholder")} value={form.notes} onChange={set("notes")} />
         </div>
       </section>
 
@@ -313,7 +378,7 @@ const CreateRFQForm = ({ onSuccess, onCancel }) => {
                 <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
 
                 <input
-                  className={inputCls + " pl-9"}
+                  className={controlCls + " pl-9"}
                   placeholder={ct('rfq.form.seller_search_placeholder')}
                   value={sellerSearch}
                   onChange={(e) => setSellerSearch(e.target.value)}
@@ -893,7 +958,7 @@ const RFQCard = ({ rfq, onClick, role = "buyer" }) => {
 // Main RFQManager Component
 // ══════════════════════════════════════════════════════════════════════════════
 const RFQManager = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { isSeller, isAdmin } = useAuth();
 
   // Derive a stable role string for this session.
@@ -914,6 +979,41 @@ const RFQManager = () => {
   const [showCreate,    setShowCreate]    = useState(false);
   const [searchTerm,    setSearchTerm]    = useState("");
   const [statusFilter,  setStatusFilter]  = useState("all");
+  const [categoryMap, setCategoryMap] = useState({});
+
+  useEffect(() => {
+    let mounted = true;
+    const loadCategories = async () => {
+      try {
+        const res = await api.get("/categories/all");
+        const roots = res.data?.data ?? [];
+        const map = {};
+        roots.forEach((parent) => {
+          if (parent?.id) {
+            map[parent.id] = { en: parent.name_en, my: parent.name_mm };
+          }
+          (parent.children || []).forEach((child) => {
+            if (child?.id) {
+              map[child.id] = { en: child.name_en, my: child.name_mm };
+            }
+          });
+        });
+        if (mounted) setCategoryMap(map);
+      } catch {
+        if (mounted) setCategoryMap({});
+      }
+    };
+    loadCategories();
+    return () => { mounted = false; };
+  }, []);
+
+  const getLocalizedCategory = (rfq) => {
+    const ref = rfq?.category_id ? categoryMap[rfq.category_id] : null;
+    if (ref) {
+      return i18n.language === "my" ? (ref.my || ref.en) : (ref.en || ref.my);
+    }
+    return rfq?.category || "";
+  };
 
   // ── Fetch data ─────────────────────────────────────────────────────────────
   const fetchSent = useCallback(async () => {
@@ -1138,7 +1238,7 @@ const RFQManager = () => {
                       {displaySent.map((rfq) => (
                         <RFQCard
                           key={rfq.id}
-                          rfq={rfq}
+                          rfq={{ ...rfq, category: getLocalizedCategory(rfq) }}
                           role={activeTab === "received" ? "seller" : "buyer"}
                           onClick={() => setSelectedRFQ(rfq)}
                         />
@@ -1160,7 +1260,7 @@ const RFQManager = () => {
                       {displayReceived.map((rfq) => (
                         <div key={rfq.id} className="space-y-2">
                           <RFQCard
-                            rfq={rfq}
+                            rfq={{ ...rfq, category: getLocalizedCategory(rfq) }}
                             role={activeTab === "received" ? "seller" : "buyer"}
                             onClick={() => setSelectedRFQ(rfq)}
                           />

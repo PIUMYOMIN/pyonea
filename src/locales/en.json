@@ -2089,6 +2089,8 @@
       "product_name_placeholder": "e.g., Steel Pipes, Rice, Electronics",
       "category": "Category",
       "category_placeholder": "e.g. Building Materials",
+      "category_select_placeholder": "Select a category",
+      "category_loading": "Loading categories...",
       "quantity": "Quantity",
       "unit": "Unit",
       "specifications": "Specifications",
@@ -2104,10 +2106,12 @@
       "broadcast_desc": "Send to all verified sellers on Pyonea",
       "seller_search_placeholder": "Search sellers by name...",
       "searching": "Searching sellers...",
+      "no_sub_categories": "No sub-categories",
       "sellers_selected": "{{count}} seller(s) selected"
     },
     "fields": {
       "product_name": "Product name",
+      "category_id": "Category",
       "quantity": "Quantity",
       "unit": "Unit",
       "deadline": "Deadline"
