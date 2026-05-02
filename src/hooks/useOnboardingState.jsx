@@ -9,6 +9,7 @@ export const useOnboardingState = () => {
     const [isLoading, setIsLoading]           = useState(false);
     const [businessTypeInfo, setBusinessTypeInfo] = useState(null);
     const [uploadedDocs, setUploadedDocs]     = useState({});
+    const [documentRequirements, setDocumentRequirements] = useState([]);
 
     // Prevent concurrent initialisations on React strict-mode double-mount
     const initStarted = useRef(false);
@@ -19,7 +20,7 @@ export const useOnboardingState = () => {
         { id: 'address',          title: 'Address',          icon: '📍' },
         { id: 'delivery-zones',   title: 'Delivery Zones',   icon: '🚚' },
         { id: 'documents',        title: 'Documents',        icon: '📎' },
-        { id: 'review',           title: 'Review',           icon: '✅' },
+        { id: 'review-submit',    title: 'Review',           icon: '✅' },
     ];
 
     // ── Initialise — single consolidated load call ────────────────────────
@@ -67,7 +68,9 @@ export const useOnboardingState = () => {
             }
 
             if (docsRes.status === 'fulfilled' && docsRes.value.data.success) {
-                setUploadedDocs(docsRes.value.data.data?.uploaded_documents || {});
+                const docsData = docsRes.value.data.data;
+                setUploadedDocs(docsData?.uploaded_documents || {});
+                setDocumentRequirements(docsData?.requirements || []);
             }
 
         } catch (error) {
@@ -87,7 +90,7 @@ export const useOnboardingState = () => {
                 'business-details': '/seller/onboarding/business-details',
                 'address':          '/seller/onboarding/address',
                 'documents':        '/seller/onboarding/mark-documents-complete',
-                'review':           '/seller/onboarding/submit',
+                'review-submit':    '/seller/onboarding/submit',
             };
 
             const endpoint = endpoints[step];
@@ -105,7 +108,7 @@ export const useOnboardingState = () => {
                     'business-details': 'address',
                     'address':          'documents',
                     'documents':        'review-submit',
-                    'review':           'complete',
+                    'review-submit':     'complete',
                 };
 
                 return {
@@ -215,6 +218,7 @@ export const useOnboardingState = () => {
         isLoading,
         businessTypeInfo,
         uploadedDocs,
+        documentRequirements,
         saveStep,
         uploadDocument,
         deleteDocument,

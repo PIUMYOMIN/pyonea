@@ -14,37 +14,22 @@ import {
 } from '@heroicons/react/24/outline';
 import OnboardingLayout from '../../components/OnboardingLayout';
 import { useOnboardingState } from '../../hooks/useOnboardingState';
-import api from '../../utils/api';
+
 
 const DocumentUpload = () => {
     const navigate = useNavigate();
-    const { saveStep, isLoading, businessTypeInfo, uploadedDocs, uploadDocument, deleteDocument, loadDocumentRequirements } = useOnboardingState();
-    const [requirements, setRequirements] = useState([]);
+    const { saveStep, isLoading, businessTypeInfo, uploadedDocs, documentRequirements, uploadDocument, deleteDocument } = useOnboardingState();
     const [uploading, setUploading] = useState({});
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [documentsComplete, setDocumentsComplete] = useState(false);
 
-    useEffect(() => {
-        fetchDocumentRequirements();
-    }, []);
+    // requirements come from the hook's init() call — no extra fetch needed
+    const requirements = documentRequirements;
 
     useEffect(() => {
         checkDocumentsComplete();
     }, [uploadedDocs, requirements]);
-
-    const fetchDocumentRequirements = async () => {
-        try {
-            const response = await api.get('/seller/document-requirements');
-            if (response.data.success) {
-                setRequirements(response.data.data.requirements || []);
-                checkDocumentsComplete();
-            }
-        } catch (error) {
-            console.error('Failed to fetch document requirements:', error);
-            setError('Failed to load document requirements');
-        }
-    };
 
     const checkDocumentsComplete = () => {
         const requiredDocs = requirements.filter(req => req.required);
@@ -80,7 +65,6 @@ const DocumentUpload = () => {
         if (result.success) {
             setSuccess(`${requirement.label} uploaded successfully!`);
             setTimeout(() => setSuccess(""), 3000);
-            await fetchDocumentRequirements();
         } else {
             setError(result.message || 'Failed to upload document');
         }
@@ -94,7 +78,6 @@ const DocumentUpload = () => {
         if (result.success) {
             setSuccess('Document removed successfully');
             setTimeout(() => setSuccess(""), 3000);
-            await fetchDocumentRequirements();
         } else {
             setError(result.message || 'Failed to remove document');
         }

@@ -428,6 +428,38 @@ const MyStore = ({ storeData, stats, refreshData }) => {
                   <p className="font-medium text-gray-900 dark:text-slate-100">{storeData.account_number}</p>
                 </div>
               )}
+
+              {/* NRC / National Identity Number */}
+              {storeData.nrc_full && (
+                <div className="md:col-span-2">
+                  <p className="text-sm text-gray-500 dark:text-slate-400 mb-1">
+                    National Identity Number (NRC)
+                  </p>
+                  <div className="inline-flex flex-col gap-0.5 bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg px-3 py-2">
+                    <span className="font-mono font-semibold text-gray-900 dark:text-slate-100 tracking-wider">
+                      {storeData.nrc_full}
+                    </span>
+                    {storeData.nrc_full_mm && (
+                      <span className="text-sm text-gray-500 dark:text-slate-400">
+                        {storeData.nrc_full_mm}
+                      </span>
+                    )}
+                  </div>
+                  {storeData.nrc_verification_status && storeData.nrc_verification_status !== 'unverified' && (
+                    <span className={`ml-2 inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full ${
+                      storeData.nrc_verification_status === 'verified'
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                        : storeData.nrc_verification_status === 'pending'
+                        ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                        : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                    }`}>
+                      {storeData.nrc_verification_status === 'verified' ? '✓ Verified'
+                        : storeData.nrc_verification_status === 'pending' ? '⏳ Pending review'
+                        : '⚠ ' + storeData.nrc_verification_status}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
