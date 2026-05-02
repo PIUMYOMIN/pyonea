@@ -12,6 +12,7 @@ import { HelmetProvider } from "react-helmet-async";
 import OrderTracking from "./pages/OrderTracking";
 import { setNavigate } from "./utils/api";
 import { trackPageView, isInitialised } from "./utils/analytics";
+import { NotificationProvider } from './context/NotificationContext';
 
 // Layout
 import Header from "./components/layout/Header";
@@ -119,7 +120,8 @@ function App() {
       <I18nextProvider i18n={i18n}>
         <GoogleReCaptchaProvider reCaptchaKey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}>
           <AuthProvider>
-            <CartProvider>
+            <NotificationProvider>
+              <CartProvider>
               <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <NavigationWirer />
                 <GARouteTracker />
@@ -348,6 +350,7 @@ function App() {
                 </WishlistProvider>
               </Router>
             </CartProvider>
+            </NotificationProvider>
           </AuthProvider>
         </GoogleReCaptchaProvider>
       </I18nextProvider>

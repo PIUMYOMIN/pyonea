@@ -70,6 +70,19 @@ const TodayHours = ({ hours, enabled }) => {
 };
 
 // ── Main Component ────────────────────────────────────────────────────────────
+const getDescriptionPreview = (description, sentenceLimit = 4) => {
+  const text = description?.trim();
+  if (!text) return { preview: '', hasMore: false };
+
+  const sentences = text.match(/[^.!?]+[.!?]+["')\]]*|[^.!?]+$/g) || [text];
+  const preview = sentences.slice(0, sentenceLimit).join(' ').trim();
+
+  return {
+    preview,
+    hasMore: sentences.length > sentenceLimit,
+  };
+};
+
 const SellerProfile = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -91,12 +104,14 @@ const SellerProfile = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [copied, setCopied] = useState(false);
   const [logoError, setLogoError] = useState(false);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
   // ── Fetch ──────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!slug) return;
     setLoading(true);
     setError(null);
+    setDescriptionExpanded(false);
     (async () => {
       try {
         const r = await api.get(`/sellers/${slug}`);
@@ -239,6 +254,7 @@ const SellerProfile = () => {
   const reviewCount = seller.reviews_count || 0;
   const memberSince = new Date(seller.created_at).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
   const isVerified = seller.is_verified || seller.verification_status === 'verified';
+  const descriptionPreview = getDescriptionPreview(seller.store_description);
   const socialLinks = Object.entries(SOCIAL_META)
     .filter(([k]) => seller[k])
     .map(([k, meta]) => ({ key: k, url: seller[k], ...meta }));
@@ -365,9 +381,20 @@ const SellerProfile = () => {
 
             {/* Description */}
             {seller.store_description && (
-              <p className="mt-3 text-sm text-gray-600 dark:text-slate-400 max-w-2xl leading-relaxed">
-                {seller.store_description}
-              </p>
+              <div className="mt-3 max-w-2xl">
+                <p className="text-sm text-gray-600 dark:text-slate-400 leading-relaxed whitespace-pre-wrap">
+                  {descriptionExpanded ? seller.store_description : descriptionPreview.preview}
+                </p>
+                {descriptionPreview.hasMore && (
+                  <button
+                    type="button"
+                    onClick={() => setDescriptionExpanded(prev => !prev)}
+                    className="mt-1 text-sm font-medium text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                  >
+                    {descriptionExpanded ? 'Show Less' : 'Read More >>'}
+                  </button>
+                )}
+              </div>
             )}
           </div>
 

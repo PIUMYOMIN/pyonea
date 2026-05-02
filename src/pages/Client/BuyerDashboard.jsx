@@ -10,7 +10,8 @@ import {
   ClockIcon, XCircleIcon, HeartIcon, CogIcon, ChartBarIcon, HomeIcon,
   DocumentTextIcon, BuildingStorefrontIcon, PencilSquareIcon,
   ArrowPathIcon, ExclamationTriangleIcon, TrashIcon, DocumentArrowDownIcon,
-  ReceiptRefundIcon, PrinterIcon, Bars3Icon, XMarkIcon, BellIcon, GiftIcon
+  ReceiptRefundIcon, PrinterIcon, Bars3Icon, XMarkIcon, BellIcon, GiftIcon,
+  SunIcon, MoonIcon
 } from "@heroicons/react/24/outline";
 import api from "../../utils/api";
 import { getImageUrl } from "../../utils/imageHelpers";
@@ -18,6 +19,7 @@ import NotificationPreferences from "../../components/Shared/NotificationPrefere
 import NotificationsPanel from "../../components/Shared/NotificationsPanel";
 import { NotificationBell } from "../../components/Shared/NotificationsPanel";
 import ReferralPanel from "../../components/Shared/ReferralPanel";
+import { useTheme } from "../../context/ThemeContext";
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 const formatMMK = (n) =>
@@ -1116,6 +1118,7 @@ const ProfileTab = ({ user, onUpdate }) => {
 // ─── Settings Tab ─────────────────────────────────────────────────────────────
 const SettingsTab = ({ user }) => {
   const { t } = useTranslation();
+  const { theme, isDark, setLight, setDark } = useTheme();
   const [pwd, setPwd]     = useState({ current_password: "", new_password: "", confirm_password: "" });
   const [loading, setL]   = useState(false);
   const [msg, setMsg]     = useState(null);
@@ -1135,6 +1138,7 @@ const SettingsTab = ({ user }) => {
 
   const subTabs = [
     { id:"notifications", label:t("buyer_dashboard.notifications") },
+    { id:"appearance",    label:"Appearance" },
     { id:"password",      label:t("buyer_dashboard.password") },
     { id:"account",       label:t("buyer_dashboard.account") },
   ];
@@ -1159,6 +1163,61 @@ const SettingsTab = ({ user }) => {
             userType="buyer"
             initialPrefs={user?.notification_preferences || {}}
           />
+        </div>
+      )}
+
+      {section === "appearance" && (
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm dark:shadow-slate-900/50 p-5 sm:p-6">
+          <div className="mb-5">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-slate-100">Appearance</h2>
+            <p className="text-sm text-gray-500 dark:text-slate-500 mt-1">
+              Choose how Pyonea looks on this device.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
+            <button
+              type="button"
+              onClick={setLight}
+              aria-pressed={!isDark}
+              className={`flex items-center justify-between gap-4 rounded-xl border p-4 text-left transition-colors
+                ${!isDark
+                  ? "border-green-500 bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-300"
+                  : "border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700"}`}
+            >
+              <span className="flex items-center gap-3">
+                <SunIcon className="h-5 w-5" />
+                <span>
+                  <span className="block text-sm font-semibold">Light mode</span>
+                  <span className="block text-xs text-gray-500 dark:text-slate-500">Bright interface</span>
+                </span>
+              </span>
+              {!isDark && <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400" />}
+            </button>
+
+            <button
+              type="button"
+              onClick={setDark}
+              aria-pressed={isDark}
+              className={`flex items-center justify-between gap-4 rounded-xl border p-4 text-left transition-colors
+                ${isDark
+                  ? "border-green-500 bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-300"
+                  : "border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700"}`}
+            >
+              <span className="flex items-center gap-3">
+                <MoonIcon className="h-5 w-5" />
+                <span>
+                  <span className="block text-sm font-semibold">Dark mode</span>
+                  <span className="block text-xs text-gray-500 dark:text-slate-500">Low-light interface</span>
+                </span>
+              </span>
+              {isDark && <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400" />}
+            </button>
+          </div>
+
+          <p className="mt-4 text-xs text-gray-500 dark:text-slate-500">
+            Current theme: <span className="font-medium capitalize text-gray-700 dark:text-slate-300">{theme}</span>
+          </p>
         </div>
       )}
 

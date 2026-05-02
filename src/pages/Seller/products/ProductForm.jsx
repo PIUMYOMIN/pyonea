@@ -326,7 +326,7 @@ const ProductForm = ({ product = null, onSuccess, onCancel }) => {
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
   const goToStep = (step) => {
-    if (completedSteps.has(step - 1) || step === 1 || (createdProductId && step === 5)) {
+    if (createdProductId || completedSteps.has(step - 1) || step === 1) {
       setCurrentStep(step);
     }
   };
