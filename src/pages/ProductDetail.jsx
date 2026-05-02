@@ -154,7 +154,20 @@ const ProductDetail = () => {
 
   // ── Derived values ──────────────────────────────────────────────────────────
   // Show the variant price when one is selected, otherwise the base product price
-  const displayPrice = selectedVariant?.price ?? product?.price;
+  const displayPrice = selectedVariant?.price
+    ?? (product?.is_currently_on_sale ? product?.selling_price : null)
+    ?? product?.price;
+
+  // Effective discount percentage for the badge — only when no variant selected
+  // (variants are not discounted at the product level).
+  const displayDiscountPct = !selectedVariant && product?.is_currently_on_sale
+    ? (product?.effective_discount_pct ?? 0)
+    : 0;
+  
+  // How much the buyer saves (shown below the price)
+  const displayDiscountSaved = !selectedVariant && product?.is_currently_on_sale
+    ? (product?.discount_saved ?? 0)
+    : 0;
 
   // Stock available for the current selection
   const availableStock = selectedVariant != null
@@ -494,13 +507,11 @@ const ProductDetail = () => {
 
               {/* Price — shows variant price when selected */}
               <div>
-                {product.is_currently_on_sale && product.selling_price < product.price ? (
+                {displayDiscountPct > 0 ? (
                   <>
-                    {product.discount_percentage > 0 && (
-                      <span className="inline-block bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full mb-2">
-                        -{Math.round(product.discount_percentage)}% OFF
-                      </span>
-                    )}
+                    <span className="inline-block bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full mb-2">
+                      -{Math.round(displayDiscountPct)}% OFF
+                    </span>
                     <div className="flex items-baseline gap-3">
                       <h2 className="text-2xl font-bold text-red-600">
                         {parseFloat(displayPrice).toLocaleString()} MMK
@@ -509,9 +520,9 @@ const ProductDetail = () => {
                         {parseFloat(product.price).toLocaleString()} MMK
                       </span>
                     </div>
-                    {product.discount_saved > 0 && (
+                    {displayDiscountSaved > 0 && (
                       <p className="text-sm text-green-600 font-medium mt-0.5">
-                        You save {parseFloat(product.discount_saved).toLocaleString()} MMK
+                        You save {parseFloat(displayDiscountSaved).toLocaleString()} MMK
                       </p>
                     )}
                   </>
@@ -520,7 +531,6 @@ const ProductDetail = () => {
                     <h2 className="text-2xl font-semibold text-green-600">
                       {parseFloat(displayPrice).toLocaleString()} MMK
                     </h2>
-                    {/* Show "From" label if no specific variant selected yet */}
                     {hasVariants && !selectedVariant && (
                       <span className="text-sm text-gray-500 dark:text-slate-400">starting price</span>
                     )}

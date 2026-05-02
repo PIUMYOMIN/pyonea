@@ -20,6 +20,7 @@ import {
   UserCircleIcon,
   GiftIcon,
   WalletIcon,
+  TagIcon,
 } from "@heroicons/react/24/outline";
 import Sidebar from "../../components/layout/Sidebar";
 import DashboardSummary from "../../components/seller/DashboardSummary";
@@ -232,7 +233,7 @@ const SellerDashboard = () => {
     { name: t("seller.order.title"),    icon: ShoppingBagIcon,        key: "orders" },
     { name: t("seller.delivery_zones.title"), icon: TruckIcon,        key: "delivery_zones" },
     { name: t("seller.product.title"),  icon: CubeIcon,               key: "products" },
-    { name: t("seller.discount.title"), icon: CubeIcon,               key: "discounts" },
+    { name: t("seller.discount.title"), icon: TagIcon,               key: "discounts" },
     { name: "Coupons",                  icon: TicketIcon,             key: "coupons" },
     { name: t("seller.sales.title"),    icon: CurrencyDollarIcon,     key: "sales" },
     { name: t("seller.reviews.title"),  icon: StarIcon,               key: "reviews" },

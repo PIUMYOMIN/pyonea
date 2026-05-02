@@ -9,7 +9,8 @@ import {
   EyeIcon,
   DocumentTextIcon,
   BuildingStorefrontIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  CameraIcon,
 } from "@heroicons/react/24/outline";
 import api from "../../utils/api";
 
@@ -59,11 +60,11 @@ const DeliveryManagement = ({ refreshData }) => {
   const [deliveries, setDeliveries]               = useState([]);
   const [loading, setLoading]                     = useState(true);
   const [error, setError]                         = useState(null);
-  const [selectedDelivery, setSelectedDelivery]   = useState(null);
+  const [selectedDelivery, setSelectedDelivery] = useState(null);
+  const [proofModalDelivery, setProofModalDelivery] = useState(null);
   const [isModalOpen, setIsModalOpen]             = useState(false);
   const [showDeliveryMethodModal, setShowDeliveryMethodModal] = useState(false);
   const [selectedOrder, setSelectedOrder]         = useState(null);
-  // FIX: track which delivery is mid-request to disable its action button
   const [actionLoading, setActionLoading]         = useState(null);
 
   const fetchDeliveries = useCallback(async () => {
@@ -321,15 +322,28 @@ const DeliveryManagement = ({ refreshData }) => {
                         </button>
                       )}
 
-                      {delivery.status === "in_transit" && delivery.delivery_method === "supplier" && (
-                        <button
-                          disabled={actionLoading === delivery.id}
-                          onClick={() => updateDeliveryStatus(delivery.id, "out_for_delivery", "Out for delivery")}
-                          className="text-xs bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 disabled:opacity-50"
-                        >
-                          {actionLoading === delivery.id ? "..." : "Out for Delivery"}
-                        </button>
-                      )}
+                      {selectedDelivery && (
+                      <DeliveryDetailsModal
+                      delivery={selectedDelivery}
+                      isOpen={isModalOpen}
+                      actionLoading={actionLoading}
+                      onClose={() => { setIsModalOpen(false); setSelectedDelivery(null); }}
+                      onProofUpload={uploadDeliveryProof}
+        />
+      )}
+      {proofModalDelivery && (
+        <ProofUploadModal
+          delivery={proofModalDelivery}
+          actionLoading={actionLoading}
+          onClose={() => setProofModalDelivery(null)}
+          onUpload={async (id, file, name, phone) => {
+            await uploadDeliveryProof(id, file, name, phone);
+            setProofModalDelivery(null);
+            fetchDeliveries();
+          }}
+        />
+      )}
+
                     </td>
                   </tr>
                 ))
@@ -502,9 +516,158 @@ const DeliveryMethodModal = ({ order, loading, onClose, onMethodSelect, calculat
   );
 };
 
+const ProofUploadModal = ({ delivery, actionLoading, onUpload, onClose }) => {
+  const [proofFile, setProofFile]         = useState(null);
+  const [recipientName, setRecipientName] = useState("");
+  const [recipientPhone, setRecipientPhone] = useState("");
+  const [proofError, setProofError]       = useState("");
+ 
+  if (!delivery) return null;
+ 
+  const handleSubmit = async () => {
+    if (!proofFile || !recipientName.trim() || !recipientPhone.trim()) {
+      setProofError("Please fill all fields and select a proof photo.");
+      return;
+    }
+    setProofError("");
+    await onUpload(delivery.id, proofFile, recipientName.trim(), recipientPhone.trim());
+    onClose();
+  };
+ 
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md">
+ 
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-slate-700">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+              <CameraIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+                Upload Delivery Proof
+              </h2>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                Order #{delivery.order?.order_number ?? delivery.order_id}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-slate-200
+                       hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+          >
+            <XCircleIcon className="h-5 w-5" />
+          </button>
+        </div>
+ 
+        {/* Body */}
+        <div className="px-5 py-5 space-y-4">
+          <p className="text-xs text-gray-500 dark:text-slate-400">
+            Attach a photo of the delivered package and confirm recipient details to
+            mark this order as delivered.
+          </p>
+ 
+          {proofError && (
+            <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20
+                           border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
+              {proofError}
+            </p>
+          )}
+ 
+          {/* Photo picker */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1.5 uppercase tracking-wide">
+              Proof Photo <span className="text-red-500">*</span>
+            </label>
+            <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl cursor-pointer hover:border-green-400 dark:hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/10 transition-colors">
+              {proofFile ? (
+                <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                  <CheckCircleIcon className="h-5 w-5" />
+                  <span className="text-sm font-medium truncate max-w-[220px]">{proofFile.name}</span>
+                </div>
+              ) : (
+                <>
+                  <CameraIcon className="h-7 w-7 text-gray-400 dark:text-slate-500 mb-1" />
+                  <span className="text-xs text-gray-500 dark:text-slate-400">Click to select a photo</span>
+                  <span className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">JPG, PNG up to 5 MB</span>
+                </>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => { setProofFile(e.target.files[0]); setProofError(""); }}
+              />
+            </label>
+          </div>
+ 
+          {/* Recipient details */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1.5 uppercase tracking-wide">
+              Recipient Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Ko Aung"
+              value={recipientName}
+              onChange={(e) => { setRecipientName(e.target.value); setProofError(""); }}
+              className="w-full px-3 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm
+                         bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100
+                         focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+          </div>
+ 
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1.5 uppercase tracking-wide">
+              Recipient Phone <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. 09 xxx xxx xxx"
+              value={recipientPhone}
+              onChange={(e) => { setRecipientPhone(e.target.value); setProofError(""); }}
+              className="w-full px-3 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm
+                         bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100
+                         focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+          </div>
+        </div>
+ 
+        {/* Footer */}
+        <div className="flex gap-3 px-5 pb-5">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm font-medium
+                       text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={actionLoading === delivery.id}
+            className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800
+                       text-white rounded-xl text-sm font-semibold transition-colors
+                       disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {actionLoading === delivery.id ? (
+              <><ArrowPathIcon className="h-4 w-4 animate-spin" /> Uploading…</>
+            ) : (
+              <><CameraIcon className="h-4 w-4" /> Submit Proof</>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Delivery Details Modal
-// FIX: reset proof form state after successful upload; use deliveryUpdates (camelCase)
 // ─────────────────────────────────────────────────────────────────────────────
 const DeliveryDetailsModal = ({ delivery, isOpen, actionLoading, onClose, onProofUpload }) => {
   const [showProofUpload, setShowProofUpload] = useState(false);

@@ -62,6 +62,42 @@ const parseShippingAddress = (shippingAddress) => {
 };
 
 // ─── Delivery Method Modal ─────────────────────────────────────────────────────
+const DeliveryMethodModal = ({ order, onConfirm, onClose, loading }) => {
+  if (!order) return null;
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-slate-700">
+          <div>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+              Set Delivery Method
+            </h2>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+              Order #{order.order_number || order.id}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-slate-200
+                       hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+          >
+            <XCircleIcon className="h-5 w-5" />
+          </button>
+        </div>
+        {/* Body */}
+        <div className="p-5">
+          <DeliveryMethodPanel order={order} onConfirm={onConfirm} loading={loading} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── Delivery Method Modal ─────────────────────────────────────────────────────
 // Shown inline inside the Order Details modal when the order is confirmed
 // and no delivery method has been set yet.
 const DeliveryMethodPanel = ({ order, onConfirm, loading }) => {
@@ -548,9 +584,9 @@ const OrderManagement = () => {
   const [selectedOrder, setSelectedOrder]   = useState(null);
   const [isModalOpen, setIsModalOpen]       = useState(false);
   const [error, setError]                   = useState(null);
-  // key: orderId for status updates, "delivery-{orderId}" for delivery method
   const [actionLoading, setActionLoading]   = useState(null);
   const [downloadingSlip, setDownloadingSlip] = useState(null);
+  const [deliveryModalOrder, setDeliveryModalOrder] = useState(null);
 
   const statuses = [
     { id: "all",        name: t("seller.order.all_orders", "All Orders")  },
@@ -898,10 +934,18 @@ const OrderManagement = () => {
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-xs">
                       {needsMethod ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 gap-1">
+                        <button
+                          onClick={() => setDeliveryModalOrder(order)}
+                          className="inline-flex items-center px-2 py-0.5 rounded-full
+                                     bg-amber-100 hover:bg-amber-200
+                                     dark:bg-amber-900/30 dark:hover:bg-amber-800/50
+                                     text-amber-800 dark:text-amber-300 gap-1
+                                     transition-colors cursor-pointer"
+                          title="Click to set delivery method"
+                        >
                           <ExclamationCircleIcon className="h-3.5 w-3.5" />
-                          Choose method
-                        </span>
+                          Set delivery
+                        </button>
                       ) : deliveryMethod ? (
                         <div className="space-y-0.5">
                           <span className={`inline-flex px-2 py-0.5 rounded-full text-xs ${
@@ -948,6 +992,20 @@ const OrderManagement = () => {
                           {actionLoading === order.id ? "..." : "Confirm"}
                         </button>
                       )}
+                      {needsMethod && (
+                        <button
+                          onClick={() => setDeliveryModalOrder(order)}
+                          disabled={actionLoading === `delivery-${order.id}`}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg
+                                     bg-amber-500 hover:bg-amber-600 active:bg-amber-700
+                                     text-white text-xs font-semibold
+                                     shadow-sm transition-colors disabled:opacity-50"
+                          title="Set delivery method"
+                        >
+                          <TruckIcon className="h-3.5 w-3.5" />
+                          Set Delivery
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );
@@ -969,6 +1027,22 @@ const OrderManagement = () => {
         </div>
       </div>
 
+      {deliveryModalOrder && (
+        <DeliveryMethodModal
+          order={deliveryModalOrder}
+          loading={actionLoading === `delivery-${deliveryModalOrder.id}`}
+          onClose={() => setDeliveryModalOrder(null)}
+          onConfirm={async (method, pickupAddress) => {
+            const ok = await handleDeliveryMethodSet(
+              deliveryModalOrder.id,
+              method,
+              pickupAddress
+            );
+            if (ok) setDeliveryModalOrder(null);
+          }}
+        />
+      )}
+      
       {/* Order Details Modal */}
       {selectedOrder && (
         <OrderDetailsModal

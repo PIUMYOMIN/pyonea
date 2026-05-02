@@ -14,6 +14,7 @@ import {
   StarIcon,
   TruckIcon,
   ShieldCheckIcon,
+  CheckBadgeIcon,
   BriefcaseIcon,
   BellIcon,
   EnvelopeIcon,
@@ -39,6 +40,7 @@ import EmailCampaigns from "../../components/admin/EmailCampaigns";
 import ReportManagement from "../../components/admin/ReportManagement";
 import CategoryManagement from "../../components/admin/CategoryManagement";        // self‑contained
 import SellerVerificationManagement from "../../components/admin/SellerVerificationManagement";
+import VerifiedSellerList from "../../components/admin/VerifiedSellerList";
 import NotificationsPanel from "../../components/Shared/NotificationsPanel";
 import { NotificationBell } from "../../components/Shared/NotificationsPanel";
 import AnnouncementManagement from "../../components/admin/AnnouncementManagement";
@@ -370,6 +372,11 @@ const AdminDashboard = () => {
       name: "Seller Verification",
       icon: ShieldCheckIcon,
       component: <SellerVerificationManagement />
+    },
+    {
+      name: "Verified Sellers",
+      icon: CheckBadgeIcon,
+      component: <VerifiedSellerList />
     },
     {
       name: t("seller.product.title"),

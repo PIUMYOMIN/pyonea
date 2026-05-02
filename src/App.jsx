@@ -83,6 +83,7 @@ import Error from "./pages/Errors/404";
 import SellerRouteGuard from "./components/SellerRouteGuard";
 import MyStore from "./components/seller/MyStore";
 import FinancialReports from "./components/admin/FinancialReports";
+import VerifiedSellerList from "./components/admin/VerifiedSellerList";
 
 import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 

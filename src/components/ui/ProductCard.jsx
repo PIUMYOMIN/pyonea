@@ -89,26 +89,33 @@ const ProductCard = ({ product, className = "" }) => {
     const n = Number(v);
     return Number.isFinite(n) ? n : 0;
   };
-
+ 
   const basePrice = toNum(product.price);
-  const computedSalePrice = toNum(product.selling_price || product.discount_price);
-  const rawDiscountPct = toNum(product.discount_percentage);
-  const hasDiscountedPrice = computedSalePrice > 0 && computedSalePrice < basePrice;
-  const hasPctDiscount = rawDiscountPct > 0 && basePrice > 0;
-
-  const isOnSale = Boolean(
-    product.is_currently_on_sale
-      ?? (product.is_on_sale && (hasDiscountedPrice || hasPctDiscount))
-  );
-
+ 
+  // Prefer the canonical server-computed values; fall back to local derivation
+  // for any edge case where the API response is missing a field.
+  const isOnSale = product.is_currently_on_sale
+    ?? (product.is_on_sale && (
+      (toNum(product.selling_price) > 0 && toNum(product.selling_price) < basePrice) ||
+      toNum(product.discount_percentage) > 0
+    ));
+ 
   const effectivePrice = isOnSale
-    ? (hasDiscountedPrice ? computedSalePrice : basePrice * (1 - rawDiscountPct / 100))
+    ? (toNum(product.selling_price) > 0 && toNum(product.selling_price) < basePrice
+        ? toNum(product.selling_price)
+        : basePrice * (1 - toNum(product.discount_percentage) / 100))
     : basePrice;
-
-  const computedPct = basePrice > 0
-    ? Math.round(((basePrice - effectivePrice) / basePrice) * 100)
+ 
+  // effective_discount_pct is the authoritative badge value from the backend.
+  // Fall back to local calculation if it's absent.
+  const discountPct = isOnSale
+    ? Math.max(
+        0,
+        toNum(product.effective_discount_pct) ||
+        (basePrice > 0 ? Math.round(((basePrice - effectivePrice) / basePrice) * 100) : 0)
+      )
     : 0;
-  const discountPct = isOnSale ? Math.max(0, rawDiscountPct || computedPct) : 0;
+  
 
   const isBuyer       = !user || user.type === "buyer";
   const isUnavailable = !product.is_active;

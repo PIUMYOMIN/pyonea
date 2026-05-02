@@ -302,9 +302,12 @@ export default function Checkout() {
     items: cartItems.map(item => ({
       product_id: item.product_id,
       quantity: item.quantity,
-      price: (item.is_currently_on_sale && item.selling_price && item.selling_price < item.price)
+      // Use selling_price when an active discount exists (mirrors CartController logic).
+      // Falls back to item.price (base price) for non-discounted items.
+      price: item.is_currently_on_sale && item.selling_price != null && item.selling_price < item.price
         ? item.selling_price
         : item.price,
+      variant_id: item.variant_id ?? null,
     })),
     shipping_address: shippingAddress,
     payment_method: paymentMethod,
@@ -905,16 +908,26 @@ export default function Checkout() {
                         </div>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        {item.is_currently_on_sale && item.selling_price && item.selling_price < item.price ? (
+                        {item.is_currently_on_sale && item.selling_price != null && item.selling_price < item.price ? (
                           <>
-                            <p className="font-medium text-red-600 dark:text-red-400">{formatMMK(item.selling_price * item.quantity)}</p>
-                            <p className="text-gray-400 dark:text-slate-600 line-through text-sm">{formatMMK(item.price)} each</p>
-                            <p className="text-gray-500 dark:text-slate-500 text-xs">{formatMMK(item.selling_price)} each</p>
+                            <p className="font-medium text-red-600 dark:text-red-400">
+                              {formatMMK(item.selling_price * item.quantity)}
+                            </p>
+                            <p className="text-xs text-gray-400 dark:text-slate-600 line-through">
+                              {formatMMK(item.price * item.quantity)}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-slate-500">
+                              {formatMMK(item.selling_price)} each
+                            </p>
                           </>
                         ) : (
                           <>
-                            <p className="font-medium text-gray-900 dark:text-slate-100">{formatMMK(item.price * item.quantity)}</p>
-                            <p className="text-gray-500 dark:text-slate-500 text-sm">{formatMMK(item.price)} each</p>
+                            <p className="font-medium text-gray-900 dark:text-slate-100">
+                              {formatMMK(item.price * item.quantity)}
+                            </p>
+                            <p className="text-gray-500 dark:text-slate-500 text-sm">
+                              {formatMMK(item.price)} each
+                            </p>
                           </>
                         )}
                       </div>

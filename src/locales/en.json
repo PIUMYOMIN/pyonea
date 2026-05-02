@@ -327,7 +327,7 @@
       "showing": "Showing"
     },
     "product": {
-      "title": "products",
+      "title": "Products",
       "subtitle": "Manage and update your product listings",
       "all_products": "All Products",
       "refresh": "Refresh",
@@ -337,7 +337,7 @@
       "product_management": "Product Management"
     },
     "delivery": {
-      "title": "delivery",
+      "title": "Delivery",
       "subtitle": "Manage and update your delivery"
     },
     "delivery_zones": {

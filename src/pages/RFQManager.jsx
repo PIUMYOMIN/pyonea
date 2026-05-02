@@ -1,5 +1,6 @@
 // src/pages/RFQManager.jsx
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "../context/AuthContext";
 import {
@@ -412,10 +413,16 @@ const QuoteCard = ({ quote, rfqId, onAccepted, onRejected, canRespond = true }) 
             <BuildingStorefrontIcon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
           </div>
           <div>
-            <p className="font-bold text-sm text-gray-900 dark:text-slate-100">{quote.seller?.store_name}</p>
-            {quote.seller?.rating && (
+            <p className="font-bold text-sm text-gray-900 dark:text-slate-100">
+              {quote.seller?.seller_profile?.store_name
+                || quote.seller?.sellerProfile?.store_name
+                || quote.seller?.name
+                || "Unknown Seller"}
+            </p>
+            {(quote.seller?.seller_profile?.average_rating || quote.seller?.rating) && (
               <div className="flex items-center gap-1 text-xs text-amber-500">
-                <StarIcon className="h-3 w-3" /> {quote.seller.rating.toFixed(1)}
+                <StarIcon className="h-3 w-3" />
+                {(quote.seller?.seller_profile?.average_rating ?? quote.seller?.rating)?.toFixed(1)}
               </div>
             )}
           </div>
@@ -479,6 +486,7 @@ const QuoteCard = ({ quote, rfqId, onAccepted, onRejected, canRespond = true }) 
 
 // ── RFQ Detail Modal (sent RFQs) ───────────────────────────────────────────────
 const RFQDetailModal = ({ rfq, onClose, onRefresh, canManageQuotes = true }) => {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const [data, setData]       = useState(rfq);
   const [loading, setLoading] = useState(false);
@@ -563,46 +571,62 @@ const RFQDetailModal = ({ rfq, onClose, onRefresh, canManageQuotes = true }) => 
             {/* Accepted Quote Summary */}
             {data.accepted_quote && (
               <div className="bg-green-50 dark:bg-green-900/20 rounded-2xl border-2 border-green-400 dark:border-green-600 p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
+                {/* Header */}
+                <div className="flex items-center gap-2 mb-4">
+                  <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
                   <h3 className="font-bold text-green-800 dark:text-green-300">{t("rfq.messages.accepted_quotation")}</h3>
                 </div>
+ 
+                {/* Quote details grid */}
                 <div className="grid grid-cols-3 gap-3">
                   <div>
                     <p className="text-xs text-green-600 dark:text-green-400 font-semibold">{t("rfq.quote.seller")}</p>
-                    <p className="text-sm font-bold text-green-900 dark:text-green-200">{data.accepted_quote.seller?.store_name}</p>
+                    <p className="text-sm font-bold text-green-900 dark:text-green-200">
+                      {data.accepted_quote.seller?.seller_profile?.store_name
+                        || data.accepted_quote.seller?.sellerProfile?.store_name
+                        || data.accepted_quote.seller?.name
+                        || "—"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-green-600 dark:text-green-400 font-semibold">{t("rfq.quote.unit_price")}</p>
-                    <p className="text-sm font-bold text-green-900 dark:text-green-200">{fmtPrice(data.accepted_quote.unit_price)} {data.accepted_quote.currency}</p>
+                    <p className="text-sm font-bold text-green-900 dark:text-green-200">
+                      {fmtPrice(data.accepted_quote.unit_price)} {data.accepted_quote.currency}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-green-600 dark:text-green-400 font-semibold">{t("rfq.quote.total_value")}</p>
-                    <p className="text-sm font-bold text-green-900 dark:text-green-200">{fmtPrice(data.accepted_quote.total_price)} {data.accepted_quote.currency}</p>
+                    <p className="text-sm font-bold text-green-900 dark:text-green-200">
+                      {fmtPrice(data.accepted_quote.total_price)} {data.accepted_quote.currency}
+                    </p>
                   </div>
                 </div>
  
-                {/* ── Order link — shown once the backend creates the order ── */}
+                {/* Order link — shown once the backend has created the order */}
                 {data.order && (
-                  <div className="mt-4 pt-4 border-t border-green-200 dark:border-green-700 flex items-center justify-between">
+                  <div className="mt-4 pt-4 border-t border-green-200 dark:border-green-700 flex items-center justify-between gap-3">
                     <div>
                       <p className="text-xs text-green-600 dark:text-green-400 font-semibold uppercase tracking-wide">
                         Order Created
                       </p>
-                      <p className="text-sm font-bold text-green-900 dark:text-green-200 font-mono">
+                      <p className="text-sm font-bold text-green-900 dark:text-green-200 font-mono tracking-wide">
                         {data.order.order_number}
                       </p>
                       <p className="text-xs text-green-600 dark:text-green-400 capitalize mt-0.5">
-                        Status: {data.order.status}
+                        Status: <span className="font-semibold">{data.order.status}</span>
                       </p>
                     </div>
-                    <a
-                      href={`/orders/${data.order.order_number}`}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white text-sm font-semibold transition-colors"
+                    <button
+                      onClick={() => navigate(`/order-tracking?order=${data.order.order_number}`)}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl
+                                 bg-green-600 hover:bg-green-700 active:bg-green-800
+                                 dark:bg-green-500 dark:hover:bg-green-600
+                                 text-white text-sm font-semibold
+                                 shadow-sm transition-colors flex-shrink-0"
                     >
                       <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-                      View Order
-                    </a>
+                      Track Order
+                    </button>
                   </div>
                 )}
               </div>
