@@ -1442,9 +1442,9 @@
     "error_email": "Contact email is required",
     "error_phone": "Contact phone is required",
     "error_save": "Failed to save store information",
-    "error_load_business": "Failed to load business types"
-    ,"upload_logo_failed": "Failed to upload logo. Please try again." 
-    ,"upload_banner_failed": "Failed to upload banner. Please try again."
+    "error_load_business": "Failed to load business types",
+    "upload_logo_failed": "Failed to upload logo. Please try again.",
+    "upload_banner_failed": "Failed to upload banner. Please try again."
   },
   "about": {
     "title": "About Pyonea",
@@ -1665,11 +1665,26 @@
       "edit_subtitle": "Update your product details"
     },
     "steps": {
-      "basic_info": { "title": "Basic Info", "description": "Product details" },
-      "pricing": { "title": "Pricing", "description": "Price & B2B" },
-      "media": { "title": "Media", "description": "Images & specs" },
-      "shipping": { "title": "Shipping", "description": "Delivery & more" },
-      "variants": { "title": "Variants", "description": "Options & stock" },
+      "basic_info": {
+        "title": "Basic Info",
+        "description": "Product details"
+      },
+      "pricing": {
+        "title": "Pricing",
+        "description": "Price & B2B"
+      },
+      "media": {
+        "title": "Media",
+        "description": "Images & specs"
+      },
+      "shipping": {
+        "title": "Shipping",
+        "description": "Delivery & more"
+      },
+      "variants": {
+        "title": "Variants",
+        "description": "Options & stock"
+      },
       "count": "Step {{current}} of {{total}}"
     },
     "sections": {
@@ -1711,7 +1726,6 @@
       "discount_price": "Discount Price (MMK)",
       "moq": "MOQ (Minimum Order Qty)",
       "moq_label": "Minimum order quantity",
-      "quantity_unit": "Quantity Unit",
       "quantity_unit_label": "Product quantity unit",
       "lead_time": "Lead Time",
       "weight": "Weight (kg)",
@@ -1842,10 +1856,22 @@
       "roll": "Roll"
     },
     "conditions": {
-      "new": { "label": "New", "description": "Brand new, never used" },
-      "used_like_new": { "label": "Used - Like New", "description": "Used but looks and functions like new" },
-      "used_good": { "label": "Used - Good", "description": "Used with minor signs of wear" },
-      "used_fair": { "label": "Used - Fair", "description": "Used with visible signs of wear" }
+      "new": {
+        "label": "New",
+        "description": "Brand new, never used"
+      },
+      "used_like_new": {
+        "label": "Used - Like New",
+        "description": "Used but looks and functions like new"
+      },
+      "used_good": {
+        "label": "Used - Good",
+        "description": "Used with minor signs of wear"
+      },
+      "used_fair": {
+        "label": "Used - Fair",
+        "description": "Used with visible signs of wear"
+      }
     },
     "warranty_types": {
       "manufacturer": "Manufacturer Warranty",
@@ -3149,7 +3175,36 @@
         "failedDelete": "Failed to delete product",
         "failedBulkAction": "Failed to perform {{action}} operation",
         "selectProductsFirst": "Please select products first",
-        "selectAction": "Please select an action"
+        "selectAction": "Please select an action",
+        "unknownError": "An unexpected error occurred",
+        "loadRetryHint": "Please try again. If the problem persists, contact support."
+      },
+      "notifications": {
+        "deleted": "Product deleted",
+        "deleteFailed": "Delete failed",
+        "deleteSuccessMsg": "\"{{name}}\" has been permanently deleted.",
+        "deleteFailMsg": "Could not delete \"{{name}}\": {{reason}}",
+        "approved": "Product approved",
+        "approveFailed": "Approve failed",
+        "approveSuccessMsg": "\"{{name}}\" has been approved and is now visible to buyers.",
+        "approveFailMsg": "Could not approve \"{{name}}\": {{reason}}",
+        "rejected": "Product rejected",
+        "rejectFailed": "Reject failed",
+        "rejectSuccessMsg": "\"{{name}}\" has been rejected. The seller will be notified.",
+        "rejectFailMsg": "Could not reject \"{{name}}\": {{reason}}",
+        "statusUpdated": "Status updated",
+        "statusUpdateFailed": "Status update failed",
+        "statusActivatedMsg": "\"{{name}}\" is now active and visible to buyers.",
+        "statusDeactivatedMsg": "\"{{name}}\" has been deactivated and hidden from buyers.",
+        "statusFailMsg": "Could not update status for \"{{name}}\": {{reason}}",
+        "bulkSuccess": "Bulk action complete",
+        "bulkSuccessMsg": "{{count}} product(s) have been {{action}}.",
+        "bulkFailed": "Bulk action failed",
+        "bulkFailMsg": "Could not complete bulk {{action}}: {{reason}}",
+        "noProductsSelected": "No products selected",
+        "noProductsSelectedMsg": "Please select at least one product before applying an action.",
+        "noActionSelected": "No action selected",
+        "noActionSelectedMsg": "Please choose an action from the dropdown before clicking Apply."
       }
     }
   },

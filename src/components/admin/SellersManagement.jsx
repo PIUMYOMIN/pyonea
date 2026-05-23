@@ -1,4 +1,4 @@
-// components/admin/SellersManagement.js
+// components/admin/SellersManagement.jsx
 import React, { useState, useEffect } from "react";
 import {
   MagnifyingGlassIcon,
@@ -8,6 +8,7 @@ import {
   XCircleIcon,
   ClockIcon,
   EyeIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import api from "../../utils/api";
 import DataTable from "../ui/DataTable";
@@ -50,6 +51,99 @@ const getStatusBadge = (status) => {
   }
 };
 
+// ── Status Update Modal ───────────────────────────────────────────────────────
+const StatusUpdateModal = ({ modal, reason, setReason, onConfirm, onClose, submitting }) => {
+  if (!modal) return null;
+
+  const { seller, newStatus } = modal;
+  const badge = getStatusBadge(newStatus);
+
+  const requiresReason = ["rejected", "suspended", "closed"].includes(newStatus);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4 border border-gray-100 dark:border-slate-700">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+            <ExclamationTriangleIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div>
+            <h3 className="font-bold text-gray-900 dark:text-slate-100 text-base">Update Seller Status</h3>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+              {seller?.store_name || "Unknown Store"}
+            </p>
+          </div>
+        </div>
+
+        {/* Status change preview */}
+        <div className="flex items-center gap-3 bg-gray-50 dark:bg-slate-700/50 rounded-xl px-4 py-3 mb-4">
+          <span className="text-sm text-gray-500 dark:text-slate-400">Current:</span>
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(seller?.status).cls}`}>
+            {getStatusBadge(seller?.status).label}
+          </span>
+          <span className="text-gray-400 dark:text-slate-500 text-xs">→</span>
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${badge.cls}`}>
+            {badge.label}
+          </span>
+        </div>
+
+        {/* Reason field */}
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
+            Reason
+            {requiresReason && <span className="text-red-500 ml-1">*</span>}
+            {!requiresReason && <span className="text-gray-400 dark:text-slate-500 font-normal ml-1">(optional)</span>}
+          </label>
+          <textarea
+            rows={3}
+            value={reason}
+            onChange={e => setReason(e.target.value)}
+            placeholder={
+              requiresReason
+                ? `Please provide a reason for ${newStatus === "suspended" ? "suspending" : newStatus === "rejected" ? "rejecting" : "closing"} this seller…`
+                : `Optionally describe why you're changing the status to ${newStatus}…`
+            }
+            disabled={submitting}
+            className="w-full rounded-xl border border-gray-300 dark:border-slate-600 px-3 py-2.5 text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20 resize-none disabled:opacity-60 transition-colors"
+          />
+          {requiresReason && !reason.trim() && (
+            <p className="text-xs text-red-500 dark:text-red-400 mt-1.5 flex items-center gap-1">
+              <ExclamationTriangleIcon className="h-3.5 w-3.5" />
+              A reason is required for this status change.
+            </p>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            disabled={submitting}
+            className="px-4 py-2 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 text-sm rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={submitting || (requiresReason && !reason.trim())}
+            className="px-5 py-2 bg-green-600 text-white text-sm font-semibold rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {submitting ? (
+              <>
+                <span className="h-4 w-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                Updating…
+              </>
+            ) : (
+              "Confirm Update"
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ── Main component ────────────────────────────────────────────────────────────
 const SellersManagement = () => {
   const [_toast, _setToast] = useState(null);
@@ -58,16 +152,32 @@ const SellersManagement = () => {
     setTimeout(() => _setToast(null), 3000);
   };
 
-  const [sellers, setSellers]               = useState([]);
-  const [loading, setLoading]               = useState(true);
-  const [error, setError]                   = useState(null);
-  const [searchTerm, setSearchTerm]         = useState("");
-  const [statusFilter, setStatusFilter]     = useState("all");
-  const [currentPage, setCurrentPage]       = useState(1);
-  const [pagination, setPagination]         = useState(null);
-  const [sortField, setSortField]           = useState("created_at");
-  const [sortDirection, setSortDirection]   = useState("desc");
+  const [sellers, setSellers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState(null);
+  const [sortField, setSortField] = useState("created_at");
+  const [sortDirection, setSortDirection] = useState("desc");
   const [selectedSellers, setSelectedSellers] = useState([]);
+
+  // ── Status modal state ────────────────────────────────────────────────────
+  const [statusModal, setStatusModal] = useState(null); // { seller, newStatus }
+  const [statusReason, setStatusReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const openStatusModal = (seller, newStatus) => {
+    setStatusReason("");
+    setStatusModal({ seller, newStatus });
+  };
+
+  const closeStatusModal = () => {
+    if (submitting) return; // prevent close while saving
+    setStatusModal(null);
+    setStatusReason("");
+  };
 
   const fetchSellers = async (page = currentPage, search = searchTerm, status = statusFilter) => {
     setLoading(true);
@@ -84,11 +194,11 @@ const SellersManagement = () => {
         setSellers(data.data || []);
         setPagination({
           current_page: data.current_page,
-          per_page:     data.per_page,
-          total:        data.total,
-          last_page:    data.last_page,
-          from:         data.from,
-          to:           data.to,
+          per_page: data.per_page,
+          total: data.total,
+          last_page: data.last_page,
+          from: data.from,
+          to: data.to,
         });
       } else {
         setSellers(response.data.data || []);
@@ -105,21 +215,35 @@ const SellersManagement = () => {
   useEffect(() => { fetchSellers(1, searchTerm, statusFilter); }, []);
   useEffect(() => { fetchSellers(currentPage, searchTerm, statusFilter); }, [searchTerm, statusFilter, currentPage]);
 
-  const handleStatusUpdate = async (sellerId, newStatus) => {
+  const handleStatusUpdate = async () => {
+    if (!statusModal) return;
+    const { seller, newStatus } = statusModal;
+    const requiresReason = ["rejected", "suspended", "closed"].includes(newStatus);
+    if (requiresReason && !statusReason.trim()) return;
+
+    setSubmitting(true);
     try {
-      const response = await api.put(`/admin/seller/${sellerId}/status`, { status: newStatus });
+      const payload = { status: newStatus };
+      if (statusReason.trim()) payload.reason = statusReason.trim();
+
+      const response = await api.put(`/admin/seller/${seller.id}/status`, payload);
       if (response.data.success) {
         flash(`Seller status updated to ${newStatus} successfully.`);
         setSellers(prev =>
-          prev.map(s => s.id === sellerId ? { ...s, status: newStatus } : s)
+          prev.map(s => s.id === seller.id ? { ...s, status: newStatus } : s)
         );
+        setStatusModal(null);
+        setStatusReason("");
       }
     } catch (error) {
       flash(error.response?.data?.message || error.message || "Failed to update seller status", "error");
+      // Keep modal open so admin can retry or cancel
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const toggleSelection    = (id) => setSelectedSellers(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  const toggleSelection = (id) => setSelectedSellers(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   const toggleAllSelection = () => setSelectedSellers(prev => prev.length === sellers.length ? [] : sellers.map(s => s.id));
 
   const handleSort = (field) => {
@@ -130,8 +254,8 @@ const SellersManagement = () => {
   const sortedSellers = [...sellers].sort((a, b) => {
     let av = a[sortField] || "";
     let bv = b[sortField] || "";
-    if (sortField === "rating")          { av = parseFloat(a.reviews_avg_rating) || 0; bv = parseFloat(b.reviews_avg_rating) || 0; }
-    if (sortField === "products_count")  { av = a.products_count || 0; bv = b.products_count || 0; }
+    if (sortField === "rating") { av = parseFloat(a.reviews_avg_rating) || 0; bv = parseFloat(b.reviews_avg_rating) || 0; }
+    if (sortField === "products_count") { av = a.products_count || 0; bv = b.products_count || 0; }
     if (typeof av === "string") av = av.toLowerCase();
     if (typeof bv === "string") bv = bv.toLowerCase();
     return sortDirection === "asc" ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
@@ -156,15 +280,15 @@ const SellersManagement = () => {
       ),
       accessor: "selection", width: "50px",
     },
-    { header: "Store ID",      accessor: "store_id" },
-    { header: "Store Name",    accessor: "store_name" },
-    { header: "Email",         accessor: "contact_email" },
-    { header: "Phone",         accessor: "contact_phone" },
+    { header: "Store ID", accessor: "store_id" },
+    { header: "Store Name", accessor: "store_name" },
+    { header: "Email", accessor: "contact_email" },
+    { header: "Phone", accessor: "contact_phone" },
     { header: "Business Type", accessor: "business_type" },
-    { header: <SortBtn field="status"         label="Status" />,         accessor: "status" },
-    { header: <SortBtn field="rating"         label="Rating" />,         accessor: "rating" },
-    { header: <SortBtn field="products_count" label="Products" />,       accessor: "products_count" },
-    { header: <SortBtn field="created_at"     label="Created" />,        accessor: "created_at" },
+    { header: <SortBtn field="status" label="Status" />, accessor: "status" },
+    { header: <SortBtn field="rating" label="Rating" />, accessor: "rating" },
+    { header: <SortBtn field="products_count" label="Products" />, accessor: "products_count" },
+    { header: <SortBtn field="created_at" label="Created" />, accessor: "created_at" },
     { header: "Actions", accessor: "actions", width: "200px" },
   ];
 
@@ -179,8 +303,8 @@ const SellersManagement = () => {
           onChange={() => toggleSelection(seller.id)}
           className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 dark:border-slate-600 rounded" />
       ),
-      store_id:      seller.store_id      || "N/A",
-      store_name:    seller.store_name    || "N/A",
+      store_id: seller.store_id || "N/A",
+      store_name: seller.store_name || "N/A",
       contact_email: seller.contact_email || "N/A",
       contact_phone: seller.contact_phone || "N/A",
       business_type: seller.business_type || "N/A",
@@ -211,7 +335,7 @@ const SellersManagement = () => {
           </button>
           <select
             value={seller.status}
-            onChange={e => handleStatusUpdate(seller.id, e.target.value)}
+            onChange={e => openStatusModal(seller, e.target.value)}
             className="text-xs border border-gray-300 dark:border-slate-600 rounded px-2 py-1 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-1 focus:ring-green-500 transition-colors"
           >
             <option value="pending">Pending</option>
@@ -230,6 +354,29 @@ const SellersManagement = () => {
 
   return (
     <div className="space-y-6">
+      {/* Status Update Modal */}
+      <StatusUpdateModal
+        modal={statusModal}
+        reason={statusReason}
+        setReason={setStatusReason}
+        onConfirm={handleStatusUpdate}
+        onClose={closeStatusModal}
+        submitting={submitting}
+      />
+
+      {/* Toast */}
+      {_toast && (
+        <div className={`fixed top-4 right-4 z-[60] flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-sm font-medium transition-all
+          ${_toast.type === "success"
+            ? "bg-green-50 dark:bg-green-900/40 border border-green-200 dark:border-green-700 text-green-800 dark:text-green-300"
+            : "bg-red-50 dark:bg-red-900/40 border border-red-200 dark:border-red-700 text-red-800 dark:text-red-300"}`}>
+          {_toast.type === "success"
+            ? <CheckCircleIcon className="h-4 w-4 flex-shrink-0" />
+            : <XCircleIcon className="h-4 w-4 flex-shrink-0" />}
+          {_toast.msg}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>

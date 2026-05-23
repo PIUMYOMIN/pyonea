@@ -3,15 +3,16 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   MagnifyingGlassIcon, FunnelIcon, TrashIcon, ShieldCheckIcon,
   CheckCircleIcon, XCircleIcon, ArrowPathIcon, UserCircleIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import api from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const ROLE_COLORS = {
-  admin:  "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400",
+  admin: "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400",
   seller: "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400",
-  buyer:  "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400",
+  buyer: "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400",
 };
 
 const RoleBadge = ({ role }) => (
@@ -24,8 +25,8 @@ const RoleBadge = ({ role }) => (
 const StatusBadge = ({ active }) => (
   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold
                     ${active
-                      ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
-                      : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"}`}>
+      ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
+      : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"}`}>
     {active
       ? <><CheckCircleIcon className="h-3 w-3" />Active</>
       : <><XCircleIcon className="h-3 w-3" />Inactive</>}
@@ -47,25 +48,41 @@ const Toast = ({ toast }) => toast ? (
 
 // ── Delete confirm modal ──────────────────────────────────────────────────────
 const DeleteModal = ({ user, onConfirm, onClose }) => user ? (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60">
-    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4 border border-gray-100 dark:border-slate-700">
+      {/* Icon + title */}
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-11 h-11 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center flex-shrink-0">
           <TrashIcon className="h-5 w-5 text-red-600 dark:text-red-400" />
         </div>
-        <h3 className="font-bold text-gray-900 dark:text-slate-100">Delete User</h3>
+        <h3 className="font-bold text-gray-900 dark:text-slate-100 text-base">Delete User</h3>
       </div>
+
+      {/* ⚠️ Warning alert banner */}
+      <div className="flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl px-4 py-3 mb-4">
+        <ExclamationTriangleIcon className="h-5 w-5 text-amber-500 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">This action cannot be undone</p>
+          <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+            Deleting this account will permanently remove all associated data including orders, reviews, and profile information.
+          </p>
+        </div>
+      </div>
+
+      {/* Confirmation message */}
       <p className="text-sm text-gray-600 dark:text-slate-400 mb-6">
-        Delete <strong className="text-gray-900 dark:text-slate-200">{user.name}</strong>? This cannot be undone and will remove all their data.
+        Are you sure you want to delete <strong className="text-gray-900 dark:text-slate-200">{user.name}</strong>?
       </p>
+
       <div className="flex justify-end gap-3">
         <button onClick={onClose}
           className="px-4 py-2 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 text-sm rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
           Cancel
         </button>
         <button onClick={onConfirm}
-          className="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 transition-colors">
-          Delete
+          className="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 transition-colors flex items-center gap-2">
+          <TrashIcon className="h-4 w-4" />
+          Delete User
         </button>
       </div>
     </div>
@@ -74,9 +91,23 @@ const DeleteModal = ({ user, onConfirm, onClose }) => user ? (
 
 // ── Bulk confirm modal ────────────────────────────────────────────────────────
 const BulkModal = ({ action, count, onConfirm, onClose }) => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60">
-    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4">
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4 border border-gray-100 dark:border-slate-700">
       <h3 className="font-bold text-gray-900 dark:text-slate-100 mb-2">Confirm Bulk Action</h3>
+
+      {/* Warning banner for bulk delete */}
+      {action === "delete" && (
+        <div className="flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl px-4 py-3 mb-4">
+          <ExclamationTriangleIcon className="h-5 w-5 text-amber-500 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Permanent deletion warning</p>
+            <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+              All data for the selected users will be permanently removed and cannot be recovered.
+            </p>
+          </div>
+        </div>
+      )}
+
       <p className="text-sm text-gray-600 dark:text-slate-400 mb-6">
         Are you sure you want to <strong className="text-gray-900 dark:text-slate-200">{action}</strong> {count} user(s)?
       </p>
@@ -86,7 +117,8 @@ const BulkModal = ({ action, count, onConfirm, onClose }) => (
           Cancel
         </button>
         <button onClick={onConfirm}
-          className="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-xl hover:bg-green-700 transition-colors">
+          className={`px-4 py-2 text-white text-sm font-semibold rounded-xl transition-colors
+            ${action === "delete" ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}`}>
           Confirm
         </button>
       </div>
@@ -97,19 +129,19 @@ const BulkModal = ({ action, count, onConfirm, onClose }) => (
 // ── Main component ────────────────────────────────────────────────────────────
 const UserManagement = () => {
   const { user: adminUser } = useAuth();
-  const [users, setUsers]             = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [error, setError]             = useState("");
-  const [toast, setToast]             = useState(null);
-  const [searchTerm, setSearch]       = useState("");
-  const [roleFilter, setRoleFilter]   = useState("all");
-  const [statusFilter, setStatus]     = useState("all");
-  const [page, setPage]               = useState(1);
-  const [pagination, setPagination]   = useState(null);
-  const [selectedUsers, setSelected]  = useState([]);
-  const [bulkAction, setBulkAction]   = useState("");
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [toast, setToast] = useState(null);
+  const [searchTerm, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [statusFilter, setStatus] = useState("all");
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState(null);
+  const [selectedUsers, setSelected] = useState([]);
+  const [bulkAction, setBulkAction] = useState("");
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [showBulkModal, setBulkModal]   = useState(false);
+  const [showBulkModal, setBulkModal] = useState(false);
   const toastTimer = useRef(null);
 
   const flash = (msg, type = "success") => {
@@ -131,15 +163,15 @@ const UserManagement = () => {
       const res = await api.get("/users", { params });
       const payload = res.data.data;
       const items = Array.isArray(payload?.data) ? payload.data
-                  : Array.isArray(payload)        ? payload : [];
+        : Array.isArray(payload) ? payload : [];
       setUsers(items);
       const meta = res.data.meta || payload;
       setPagination({
         current_page: meta?.current_page ?? pg,
-        last_page:    meta?.last_page    ?? 1,
-        total:        meta?.total        ?? items.length,
-        from:         meta?.from         ?? 1,
-        to:           meta?.to           ?? items.length,
+        last_page: meta?.last_page ?? 1,
+        total: meta?.total ?? items.length,
+        from: meta?.from ?? 1,
+        to: meta?.to ?? items.length,
       });
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load users.");
@@ -200,8 +232,8 @@ const UserManagement = () => {
     setBulkModal(false);
     try {
       await Promise.all(selectedUsers.map(id => {
-        if (bulkAction === "delete")     return api.delete(`/users/${id}`);
-        if (bulkAction === "activate")   return api.put(`/users/${id}`, { is_active: true });
+        if (bulkAction === "delete") return api.delete(`/users/${id}`);
+        if (bulkAction === "activate") return api.put(`/users/${id}`, { is_active: true });
         if (bulkAction === "deactivate") return api.put(`/users/${id}`, { is_active: false });
         return Promise.resolve();
       }));
@@ -362,8 +394,8 @@ const UserManagement = () => {
                             {u.profile_photo
                               ? <img loading="lazy" src={u.profile_photo} alt="" className="w-full h-full object-cover" />
                               : <span className="w-full h-full flex items-center justify-center text-xs font-bold text-gray-500 dark:text-slate-400">
-                                  {u.name?.[0]?.toUpperCase() || "?"}
-                                </span>
+                                {u.name?.[0]?.toUpperCase() || "?"}
+                              </span>
                             }
                           </div>
                           <div>

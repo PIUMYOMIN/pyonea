@@ -37,11 +37,22 @@ const ProductManagement = () => {
   const bulkActionLabel = bulkAction ? t(`admin.productManagement.bulkActions.${bulkAction}Selected`) : bulkAction;
 
   // Modal state — replaces alert/confirm/prompt
-  const [deleteModal, setDeleteModal]   = useState(null);  // productId | null
-  const [approveModal, setApproveModal] = useState(null);  // productId | null — FIX: was window.confirm
-  const [rejectModal, setRejectModal]   = useState(null);  // productId | null
+  const [deleteModal, setDeleteModal] = useState(null);  // { id, name } | null
+  const [approveModal, setApproveModal] = useState(null);  // { id, name } | null
+  const [rejectModal, setRejectModal] = useState(null);  // { id, name } | null
   const [rejectReason, setRejectReason] = useState("");
-  const [bulkModal, setBulkModal]       = useState(false);
+  const [bulkModal, setBulkModal] = useState(false);
+
+  // Toast notifications — action-level feedback visible without hiding the table
+  const [notifications, setNotifications] = useState([]);
+
+  const addNotification = (type, title, message) => {
+    const id = Date.now() + Math.random();
+    setNotifications(prev => [...prev, { id, type, title, message }]);
+    setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), 6000);
+  };
+
+  const dismissNotification = (id) => setNotifications(prev => prev.filter(n => n.id !== id));
 
   // Preview modal state
   const [previewProduct, setPreviewProduct] = useState(null); // product object | null
@@ -117,11 +128,8 @@ const ProductManagement = () => {
   }, [searchTerm, statusFilter, approvalFilter, categoryFilter]);
 
   // Handle product status change (active/inactive)
-  const handleProductStatus = async (productId, isActive) => {
+  const handleProductStatus = async (productId, isActive, productName) => {
     try {
-      // FIX: was calling PUT /products/{id} which is the seller-scoped update endpoint.
-      // Admins always get 404 from that route because it does where('seller_id', Auth::id()).
-      // Use the dedicated admin toggle-status route instead.
       await api.patch(`/admin/products/${productId}/toggle-status`);
 
       // Update local state
@@ -130,9 +138,23 @@ const ProductManagement = () => {
           ? { ...product, is_active: isActive }
           : product
       ));
+      addNotification(
+        'success',
+        t('admin.productManagement.notifications.statusUpdated'),
+        isActive
+          ? t('admin.productManagement.notifications.statusActivatedMsg', { name: productName })
+          : t('admin.productManagement.notifications.statusDeactivatedMsg', { name: productName })
+      );
     } catch (error) {
       console.error("Failed to update product status:", error);
-      setError(error.response?.data?.message || t("admin.productManagement.errors.failedUpdateStatus"));
+      addNotification(
+        'error',
+        t('admin.productManagement.notifications.statusUpdateFailed'),
+        t('admin.productManagement.notifications.statusFailMsg', {
+          name: productName,
+          reason: error.response?.data?.message || t('admin.productManagement.errors.unknownError')
+        })
+      );
     }
   };
 
@@ -140,12 +162,24 @@ const ProductManagement = () => {
   const handleApprove = async () => {
     if (!approveModal) return;
     try {
-      await api.post(`/admin/products/${approveModal}/approve`);
+      await api.post(`/admin/products/${approveModal.id}/approve`);
+      addNotification(
+        'success',
+        t('admin.productManagement.notifications.approved'),
+        t('admin.productManagement.notifications.approveSuccessMsg', { name: approveModal.name })
+      );
       setApproveModal(null);
       await fetchProducts();
     } catch (error) {
+      addNotification(
+        'error',
+        t('admin.productManagement.notifications.approveFailed'),
+        t('admin.productManagement.notifications.approveFailMsg', {
+          name: approveModal.name,
+          reason: error.response?.data?.message || t('admin.productManagement.errors.unknownError')
+        })
+      );
       setApproveModal(null);
-      setError(error.response?.data?.message || t("admin.productManagement.errors.failedApprove"));
     }
   };
 
@@ -153,10 +187,22 @@ const ProductManagement = () => {
   const handleReject = async () => {
     if (!rejectModal) return;
     try {
-      await api.post(`/admin/products/${rejectModal}/reject`, { reason: rejectReason });
+      await api.post(`/admin/products/${rejectModal.id}/reject`, { reason: rejectReason });
+      addNotification(
+        'success',
+        t('admin.productManagement.notifications.rejected'),
+        t('admin.productManagement.notifications.rejectSuccessMsg', { name: rejectModal.name })
+      );
       await fetchProducts();
     } catch (error) {
-      setError(error.response?.data?.message || t("admin.productManagement.errors.failedReject"));
+      addNotification(
+        'error',
+        t('admin.productManagement.notifications.rejectFailed'),
+        t('admin.productManagement.notifications.rejectFailMsg', {
+          name: rejectModal.name,
+          reason: error.response?.data?.message || t('admin.productManagement.errors.unknownError')
+        })
+      );
     } finally {
       setRejectModal(null);
       setRejectReason("");
@@ -167,12 +213,22 @@ const ProductManagement = () => {
   const handleDelete = async () => {
     if (!deleteModal) return;
     try {
-      // FIX: admin delete can use the same /products/{id} endpoint — the
-      // destroy() method now allows admins through after the auth fix
-      await api.delete(`/products/${deleteModal}`);
+      await api.delete(`/admin/products/${deleteModal.id}`);
+      addNotification(
+        'success',
+        t('admin.productManagement.notifications.deleted'),
+        t('admin.productManagement.notifications.deleteSuccessMsg', { name: deleteModal.name })
+      );
       fetchProducts();
     } catch (error) {
-      setError(error.response?.data?.message || t("admin.productManagement.errors.failedDelete"));
+      addNotification(
+        'error',
+        t('admin.productManagement.notifications.deleteFailed'),
+        t('admin.productManagement.notifications.deleteFailMsg', {
+          name: deleteModal.name,
+          reason: error.response?.data?.message || t('admin.productManagement.errors.unknownError')
+        })
+      );
     } finally {
       setDeleteModal(null);
     }
@@ -180,13 +236,26 @@ const ProductManagement = () => {
 
   // Handle bulk actions
   const handleBulkAction = async () => {
-    if (selectedProducts.length === 0) { setError(t("admin.productManagement.errors.selectProductsFirst")); return; }
-    if (!bulkAction) { setError(t("admin.productManagement.errors.selectAction")); return; }
+    if (selectedProducts.length === 0) {
+      addNotification('warning',
+        t('admin.productManagement.notifications.noProductsSelected'),
+        t('admin.productManagement.notifications.noProductsSelectedMsg')
+      );
+      return;
+    }
+    if (!bulkAction) {
+      addNotification('warning',
+        t('admin.productManagement.notifications.noActionSelected'),
+        t('admin.productManagement.notifications.noActionSelectedMsg')
+      );
+      return;
+    }
     setBulkModal(true);
   };
 
   const executeBulkAction = async () => {
     setBulkModal(false);
+    const count = selectedProducts.length;
     try {
       // FIX: activate/deactivate now use the correct admin toggle-status route.
       // FIX: batch requests sequentially in chunks of 5 instead of all at once
@@ -198,20 +267,32 @@ const ProductManagement = () => {
 
       for (const chunk of chunks) {
         await Promise.all(chunk.map(productId => {
-          if (bulkAction === "delete")     return api.delete(`/products/${productId}`);
-          if (bulkAction === "activate")   return api.patch(`/admin/products/${productId}/toggle-status`);
+          if (bulkAction === "delete") return api.delete(`/admin/products/${productId}`);
+          if (bulkAction === "activate") return api.patch(`/admin/products/${productId}/toggle-status`);
           if (bulkAction === "deactivate") return api.patch(`/admin/products/${productId}/toggle-status`);
-          if (bulkAction === "approve")    return api.post(`/admin/products/${productId}/approve`);
-          if (bulkAction === "reject")     return api.post(`/admin/products/${productId}/reject`);
+          if (bulkAction === "approve") return api.post(`/admin/products/${productId}/approve`);
+          if (bulkAction === "reject") return api.post(`/admin/products/${productId}/reject`);
           return Promise.resolve();
         }));
       }
 
+      addNotification(
+        'success',
+        t('admin.productManagement.notifications.bulkSuccess'),
+        t('admin.productManagement.notifications.bulkSuccessMsg', { count, action: bulkActionLabel })
+      );
       fetchProducts();
       setSelectedProducts([]);
       setBulkAction("");
     } catch (error) {
-      setError(error.response?.data?.message || t("admin.productManagement.errors.failedBulkAction", { action: bulkActionLabel }));
+      addNotification(
+        'error',
+        t('admin.productManagement.notifications.bulkFailed'),
+        t('admin.productManagement.notifications.bulkFailMsg', {
+          action: bulkActionLabel,
+          reason: error.response?.data?.message || t('admin.productManagement.errors.unknownError')
+        })
+      );
     }
   };
 
@@ -603,11 +684,10 @@ const ProductManagement = () => {
         </div>
       ),
       status: (
-        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-          product.is_active
+        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${product.is_active
             ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
             : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
-        }`}>
+          }`}>
           {product.is_active ? (
             <>
               <CheckCircleIcon className="h-3 w-3 mr-1" />
@@ -640,7 +720,7 @@ const ProductManagement = () => {
           </button>
           <button
             className="inline-flex items-center p-1.5 text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
-            onClick={() => setDeleteModal(product.id)}
+            onClick={() => setDeleteModal({ id: product.id, name: product.name_en })}
             title={t("admin.productManagement.buttons.delete")}
           >
             <TrashIcon className="h-4 w-4" />
@@ -650,14 +730,14 @@ const ProductManagement = () => {
           {product.status === 'pending' && (
             <>
               <button
-                onClick={() => setApproveModal(product.id)}
+                onClick={() => setApproveModal({ id: product.id, name: product.name_en })}
                 className="inline-flex items-center p-1.5 text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/30 rounded"
                 title={t("admin.productManagement.buttons.approve")}
               >
                 <CheckCircleIcon className="h-4 w-4" />
               </button>
               <button
-                onClick={() => { setRejectModal(product.id); setRejectReason(""); }}
+                onClick={() => { setRejectModal({ id: product.id, name: product.name_en }); setRejectReason(""); }}
                 className="inline-flex items-center p-1.5 text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
                 title={t("admin.productManagement.buttons.reject")}
               >
@@ -669,7 +749,7 @@ const ProductManagement = () => {
           {/* FIX: rejected products can now be re-approved (backend updated to allow it) */}
           {product.status === 'rejected' && (
             <button
-              onClick={() => setApproveModal(product.id)}
+              onClick={() => setApproveModal({ id: product.id, name: product.name_en })}
               className="inline-flex items-center px-2 py-1 text-xs text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 rounded border border-green-200 dark:border-green-800"
               title={t("admin.productManagement.table.reApprove")}
             >
@@ -681,7 +761,7 @@ const ProductManagement = () => {
           {product.status === 'approved' && (
             <select
               value={product.is_active ? "active" : "inactive"}
-              onChange={(e) => handleProductStatus(product.id, e.target.value === "active")}
+              onChange={(e) => handleProductStatus(product.id, e.target.value === "active", product.name_en)}
               className="text-xs border border-gray-300 dark:border-slate-600 rounded px-2 py-1 bg-white dark:bg-slate-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-1 focus:ring-green-500"
             >
               <option value="active">Active</option>
@@ -696,11 +776,51 @@ const ProductManagement = () => {
   return (
     <div className="space-y-6">
 
+      {/* ── Toast notifications (action-level feedback) ── */}
+      {notifications.length > 0 && (
+        <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 w-full max-w-sm pointer-events-none">
+          {notifications.map(n => (
+            <div
+              key={n.id}
+              className={`pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-xl shadow-lg border text-sm ${n.type === 'success'
+                ? 'bg-green-50 dark:bg-green-900/40 border-green-200 dark:border-green-700'
+                : n.type === 'warning'
+                  ? 'bg-yellow-50 dark:bg-yellow-900/40 border-yellow-200 dark:border-yellow-700'
+                  : 'bg-red-50 dark:bg-red-900/40 border-red-200 dark:border-red-700'
+                }`}
+            >
+              <div className="flex-1 min-w-0">
+                <p className={`font-semibold ${n.type === 'success' ? 'text-green-800 dark:text-green-200'
+                  : n.type === 'warning' ? 'text-yellow-800 dark:text-yellow-200'
+                    : 'text-red-800 dark:text-red-200'
+                  }`}>{n.title}</p>
+                {n.message && (
+                  <p className={`mt-0.5 leading-snug ${n.type === 'success' ? 'text-green-700 dark:text-green-300'
+                    : n.type === 'warning' ? 'text-yellow-700 dark:text-yellow-300'
+                      : 'text-red-700 dark:text-red-300'
+                    }`}>{n.message}</p>
+                )}
+              </div>
+              <button
+                onClick={() => dismissNotification(n.id)}
+                className={`flex-shrink-0 mt-0.5 ${n.type === 'success' ? 'text-green-500 hover:text-green-700 dark:text-green-400'
+                  : n.type === 'warning' ? 'text-yellow-500 hover:text-yellow-700 dark:text-yellow-400'
+                    : 'text-red-500 hover:text-red-700 dark:text-red-400'
+                  }`}
+              >
+                <XCircleIcon className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* ── Approve confirmation modal ── */}
       {approveModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl p-6 max-w-sm w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2">{t("admin.productManagement.modals.approveProduct")}</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-1">{t("admin.productManagement.modals.approveProduct")}</h3>
+            <p className="text-sm font-medium text-green-700 dark:text-green-400 mb-2 truncate">"{approveModal.name}"</p>
             <p className="text-sm text-gray-600 dark:text-slate-400 mb-6">
               {t("admin.productManagement.modals.approveConfirm")}
             </p>
@@ -726,7 +846,8 @@ const ProductManagement = () => {
       {deleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl p-6 max-w-sm w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2">{t("admin.productManagement.modals.deleteProduct")}</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-1">{t("admin.productManagement.modals.deleteProduct")}</h3>
+            <p className="text-sm font-medium text-red-600 dark:text-red-400 mb-2 truncate">"{deleteModal.name}"</p>
             <p className="text-sm text-gray-600 dark:text-slate-400 mb-6">
               {t("admin.productManagement.modals.deleteConfirm")}
             </p>
@@ -742,7 +863,8 @@ const ProductManagement = () => {
       {rejectModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl p-6 max-w-sm w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2">{t("admin.productManagement.modals.rejectProduct")}</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-1">{t("admin.productManagement.modals.rejectProduct")}</h3>
+            <p className="text-sm font-medium text-red-600 dark:text-red-400 mb-2 truncate">"{rejectModal.name}"</p>
             <p className="text-sm text-gray-600 dark:text-slate-400 mb-3">{t("admin.productManagement.modals.rejectReason")}</p>
             <textarea
               value={rejectReason}
@@ -787,14 +909,14 @@ const ProductManagement = () => {
                 {previewProduct.status === 'pending' && (
                   <>
                     <button
-                      onClick={() => { setPreviewProduct(null); setApproveModal(previewProduct.id); }}
+                      onClick={() => { setPreviewProduct(null); setApproveModal({ id: previewProduct.id, name: previewProduct.name_en }); }}
                       className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg"
                     >
                       <CheckCircleIcon className="h-3.5 w-3.5 mr-1" />
                       Approve
                     </button>
                     <button
-                      onClick={() => { setPreviewProduct(null); setRejectModal(previewProduct.id); setRejectReason(""); }}
+                      onClick={() => { setPreviewProduct(null); setRejectModal({ id: previewProduct.id, name: previewProduct.name_en }); setRejectReason(""); }}
                       className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg"
                     >
                       <XCircleIcon className="h-3.5 w-3.5 mr-1" />
@@ -1122,7 +1244,7 @@ const ProductManagement = () => {
         </div>
       )}
 
-      {/* Error State */}
+      {/* Error State — only shown when the product list itself fails to load */}
       {error && !loading && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
           <div className="flex">
@@ -1135,6 +1257,7 @@ const ProductManagement = () => {
               <h3 className="text-sm font-medium text-red-800 dark:text-red-300">{t("admin.productManagement.error")}</h3>
               <div className="mt-2 text-sm text-red-700 dark:text-red-400">
                 <p>{error}</p>
+                <p className="mt-1 text-xs text-red-500 dark:text-red-400">{t("admin.productManagement.errors.loadRetryHint")}</p>
               </div>
               <div className="mt-4">
                 <button
