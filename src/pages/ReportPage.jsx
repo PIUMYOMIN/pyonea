@@ -14,7 +14,6 @@ import {
   ClockIcon,
   PaperClipIcon,
   ArrowRightIcon,
-  InformationCircleIcon,
 } from '@heroicons/react/24/outline';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
@@ -22,25 +21,25 @@ import { useAuth } from '../context/AuthContext';
 // ── Constants (same as ReportForm modal) ─────────────────────────────────────
 
 const CATEGORIES = [
-  { value: 'bug',        label: 'Bug / App Error',        labelMM: ' ပရိုဂရမ်ချို့ယွင်းမှု' },
-  { value: 'payment',    label: 'Payment Issue',           labelMM: ' ငွေပေးချေမှုပြဿနာ' },
-  { value: 'order',      label: 'Order Problem',           labelMM: ' အော်ဒါပြဿနာ' },
-  { value: 'seller',     label: 'Seller Misconduct',       labelMM: ' ရောင်းသူပြဿနာ' },
-  { value: 'product',    label: 'Fake / Wrong Product',    labelMM: ' ကုန်ပစ္စည်းပြဿနာ' },
-  { value: 'account',    label: 'Account Issue',           labelMM: ' အကောင့်ပြဿနာ' },
-  { value: 'content',    label: 'Inappropriate Content',  labelMM: ' မသင့်တော်သောအကြောင်းအရာ' },
-  { value: 'billing',    label: 'Billing Dispute',         labelMM: 'ငွေကြေးဆိုင်ရာတိုင်ကြားချက်' },
-  { value: 'delivery',   label: 'Delivery Problem',        labelMM: 'ပို့ဆောင်ရေးပြဿနာ' },
-  { value: 'safety',     label: 'Safety / Fraud / Scam',  labelMM: 'လုံခြုံရေး / လိမ်လည်မှု' },
-  { value: 'suggestion', label: 'Suggestion / Feedback',  labelMM: 'အကြံပြုချက်' },
-  { value: 'other',      label: 'Other',                   labelMM: 'အခြား' },
+  'bug',
+  'payment',
+  'order',
+  'seller',
+  'product',
+  'account',
+  'content',
+  'billing',
+  'delivery',
+  'safety',
+  'suggestion',
+  'other',
 ];
 
 const PRIORITIES = [
-  { value: 'low',      label: 'Low',      labelMM: 'နိမ့်', cls: 'text-gray-600 dark:text-slate-400' },
-  { value: 'medium',   label: 'Medium',   labelMM: 'သာမန်', cls: 'text-blue-600 dark:text-blue-400' },
-  { value: 'high',     label: 'High',     labelMM: 'မြင့်', cls: 'text-orange-600 dark:text-orange-400' },
-  { value: 'critical', label: 'Critical', labelMM: 'အရေးပေါ်', cls: 'text-red-600 dark:text-red-400' },
+  { value: 'low',      cls: 'text-gray-600 dark:text-slate-400' },
+  { value: 'medium',   cls: 'text-blue-600 dark:text-blue-400' },
+  { value: 'high',     cls: 'text-orange-600 dark:text-orange-400' },
+  { value: 'critical', cls: 'text-red-600 dark:text-red-400' },
 ];
 
 const SLA_INFO = [
@@ -66,10 +65,10 @@ const extractTicketId = (response) =>
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function ReportPage() {
-  const { t, i18n }              = useTranslation();
+  const { t }                    = useTranslation();
   const { user }                 = useAuth();
   const { executeRecaptcha }     = useGoogleReCaptcha();
-  const isMM                     = i18n.language === 'my';
+  const tr                       = (key, options) => t(`subscription.report.${key}`, options);
 
   const [form, setForm] = useState({
     category: '', priority: 'medium', subject: '', description: '',
@@ -88,7 +87,7 @@ export default function ReportPage() {
     setErrors({});
 
     if (!executeRecaptcha) {
-      setErrors({ general: 'reCAPTCHA not ready. Please refresh and try again.' });
+      setErrors({ general: tr('form.recaptcha_error') });
       return;
     }
 
@@ -106,7 +105,7 @@ export default function ReportPage() {
       });
       const ticketId = extractTicketId(res);
       if (!ticketId) {
-        throw new Error('Report submitted but ticket ID was missing in response.');
+        throw new Error(tr('form.missing_ticket_error'));
       }
       setSuccess({ ticket_id: ticketId });
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -114,7 +113,7 @@ export default function ReportPage() {
       if (e.response?.data?.errors) {
         setErrors(e.response.data.errors);
       } else {
-        setErrors({ general: e.response?.data?.message || 'Failed to submit. Please try again.' });
+        setErrors({ general: e.response?.data?.message || tr('form.submit_error') });
       }
     } finally {
       setLoading(false);
@@ -130,17 +129,15 @@ export default function ReportPage() {
             <CheckCircleIcon className="h-12 w-12 text-green-600 dark:text-green-400" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-2">
-            {isMM ? 'ကျေးဇူးတင်ပါသည်။' : 'Report Submitted!'}
+            {tr('success.title')}
           </h1>
           <p className="text-gray-500 dark:text-slate-400 mb-6 text-sm">
-            {isMM
-              ? 'လူကြီးမင်း၏ တိုင်ကြားစာသည် Pyonea အတွက် လွန်စွာအရေးပါပါသည်။ ID ကိုမှတ်တမ်းတင်ထားပါမည်။'
-              : 'Your report has been logged. Save your ticket ID to track progress.'}
+            {tr('success.message')}
           </p>
 
           <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl px-8 py-5 mb-6">
             <p className="text-xs text-green-700 dark:text-green-400 uppercase tracking-widest font-semibold mb-2">
-              {isMM ? 'ကိစ္စရပ် ID' : 'Ticket ID'}
+              {tr('success.ticket_id')}
             </p>
             <p className="font-mono text-2xl font-black text-green-800 dark:text-green-300 tracking-widest">
               {success.ticket_id}
@@ -148,9 +145,7 @@ export default function ReportPage() {
           </div>
 
           <p className="text-xs text-gray-400 dark:text-slate-500 mb-6">
-            {isMM
-              ? 'အပ်ဒိတ်များကို email သို့ ပေးပို့မည်'
-              : 'Status updates will be sent to your email address'}
+            {tr('success.email_notice')}
           </p>
 
           <div className="flex flex-col gap-3">
@@ -158,13 +153,13 @@ export default function ReportPage() {
               <Link to="/my-reports"
                 className="flex items-center justify-center gap-2 w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-colors text-sm">
                 <TicketIcon className="h-4 w-4" />
-                {isMM ? 'ကျွန်ုပ်၏ တိုင်ကြားချက်များ' : 'View My Reports'}
+                {tr('success.view_my_reports')}
                 <ArrowRightIcon className="h-4 w-4" />
               </Link>
             )}
             <button onClick={() => { setSuccess(null); setForm({ category: '', priority: 'medium', subject: '', description: '', related_order_id: '', related_url: '', guest_name: '', guest_email: '' }); setFiles([]); }}
               className="w-full py-3 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-sm font-semibold">
-              {isMM ? 'နောက်ထပ်တင်ပြမည်' : 'Submit Another Report'}
+              {tr('success.submit_another')}
             </button>
           </div>
         </div>
@@ -183,17 +178,15 @@ export default function ReportPage() {
             <TicketIcon className="h-7 w-7 text-green-600 dark:text-green-400" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-100">
-            {isMM ? 'တိုင်ကြားချက်တင်ပြမည်' : 'Report an Issue'}
+            {tr('title')}
           </h1>
           <p className="text-gray-500 dark:text-slate-400 mt-2 text-sm max-w-md mx-auto">
-            {isMM
-              ? 'ပြဿနာတစ်ခုတွေ့ပါက ကျွန်ုပ်တို့အားအသိပေးပါ။ ၂၄ နာရီအတွင်း ပြန်ကြားပါမည်။'
-              : 'Found a bug, issue, or want to report misconduct? We take every report seriously and respond promptly.'}
+            {tr('subtitle')}
           </p>
           {user && (
             <p className="mt-3 text-sm">
               <Link to="/my-reports" className="text-green-600 dark:text-green-400 hover:underline font-medium inline-flex items-center gap-1">
-                View my previous reports <ArrowRightIcon className="h-3.5 w-3.5" />
+                {tr('my_reports_link')} <ArrowRightIcon className="h-3.5 w-3.5" />
               </Link>
             </p>
           )}
@@ -219,16 +212,16 @@ export default function ReportPage() {
                   <div className="grid grid-cols-2 gap-4 pb-5 border-b border-gray-100 dark:border-slate-700">
                     <div>
                       <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">
-                        {isMM ? 'နာမည်' : 'Your Name'} *
+                        {tr('form.guest_name')} *
                       </label>
                       <input value={form.guest_name} onChange={set('guest_name')} required
-                        placeholder={isMM ? 'နာမည်ထည့်ပါ' : 'Full name'}
+                        placeholder={tr('form.guest_name_placeholder')}
                         className={INPUT_CLS} />
                       {errors.guest_name && <p className="text-xs text-red-500 mt-1">{errors.guest_name[0]}</p>}
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">
-                        Email *
+                        {tr('form.email')} *
                       </label>
                       <input type="email" value={form.guest_email} onChange={set('guest_email')} required
                         placeholder="your@email.com" className={INPUT_CLS} />
@@ -240,21 +233,19 @@ export default function ReportPage() {
                 {/* Category */}
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">
-                    {isMM ? 'အမျိုးအစား' : 'Category'} *
+                    {tr('form.category')} *
                   </label>
                   <select value={form.category} onChange={set('category')} required className={INPUT_CLS}>
-                    <option value="">{isMM ? 'ရွေးချယ်ပါ…' : 'Select a category…'}</option>
+                    <option value="">{tr('form.category_placeholder')}</option>
                     {CATEGORIES.map(c => (
-                      <option key={c.value} value={c.value}>{isMM ? c.labelMM : c.label}</option>
+                      <option key={c} value={c}>{tr(`categories.${c}`)}</option>
                     ))}
                   </select>
                   {errors.category && <p className="text-xs text-red-500 mt-1">{errors.category[0]}</p>}
                   {(form.category === 'safety') && (
                     <div className="mt-2 flex items-start gap-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
                       <ExclamationTriangleIcon className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-                      {isMM
-                        ? 'ဤအမျိုးအစားကို ဦးစားပေး HIGH အဖြစ် အလိုအလျောက် တင်ပေးပါမည်'
-                        : 'This category is automatically escalated to HIGH priority'}
+                      {tr('safety_warning')}
                     </div>
                   )}
                 </div>
@@ -262,7 +253,7 @@ export default function ReportPage() {
                 {/* Priority */}
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">
-                    {isMM ? 'အရေးတကြီး' : 'Priority'}
+                    {tr('form.priority')}
                   </label>
                   <div className="grid grid-cols-4 gap-2">
                     {PRIORITIES.map(p => (
@@ -273,7 +264,7 @@ export default function ReportPage() {
                             ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
                             : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500 bg-white dark:bg-slate-800'
                         } ${p.cls}`}>
-                        {isMM ? p.labelMM : p.label}
+                        {tr(`priorities.${p.value}`)}
                       </button>
                     ))}
                   </div>
@@ -282,10 +273,10 @@ export default function ReportPage() {
                 {/* Subject */}
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">
-                    {isMM ? 'အကျဉ်းချုပ်' : 'Subject'} *
+                    {tr('form.subject')} *
                   </label>
                   <input value={form.subject} onChange={set('subject')} required
-                    placeholder={isMM ? 'ပြဿနာအကျဉ်းချုပ် (min 5 characters)' : 'Brief summary of the issue (min 5 characters)'}
+                    placeholder={tr('form.subject_placeholder')}
                     className={INPUT_CLS} maxLength={200} />
                   {errors.subject && <p className="text-xs text-red-500 mt-1">{errors.subject[0]}</p>}
                 </div>
@@ -293,16 +284,14 @@ export default function ReportPage() {
                 {/* Description */}
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">
-                    {isMM ? 'အသေးစိတ်ဖော်ပြချက်' : 'Description'} *
+                    {tr('form.description')} *
                     <span className="ml-1 font-normal text-gray-400 dark:text-slate-500">
-                      {isMM ? '(min 20 characters)' : '(min 20 characters)'}
+                      {tr('form.description_min')}
                     </span>
                   </label>
                   <textarea value={form.description} onChange={set('description')} required
                     rows={5} maxLength={5000}
-                    placeholder={isMM
-                      ? 'လူကြီးမင်း၏ ပြဿနာကိုပြောပါ။'
-                      : 'Describe the issue in detail — what happened, when it occurred, steps to reproduce, and what you expected to happen.'}
+                    placeholder={tr('form.description_placeholder')}
                     className={INPUT_CLS + ' resize-none'} />
                   <div className="flex justify-between mt-1">
                     {errors.description
@@ -318,9 +307,9 @@ export default function ReportPage() {
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">
                     <PaperClipIcon className="inline h-3.5 w-3.5 mr-1" />
-                    {isMM ? 'ပူးတွဲဖိုင်များ' : 'Attachments'}
+                    {tr('form.attachments')}
                     <span className="ml-1 font-normal text-gray-400 dark:text-slate-500">
-                      ({isMM ? 'ပုံများ / PDF max 5' : 'screenshots or PDF, up to 5 files'})
+                      ({tr('form.attachments_hint')})
                     </span>
                   </label>
                   <input type="file" multiple accept="image/*,.pdf"
@@ -333,7 +322,7 @@ export default function ReportPage() {
                       hover:file:bg-green-100 dark:hover:file:bg-green-900/30 file:transition-colors" />
                   {files.length > 0 && (
                     <p className="text-xs text-gray-500 dark:text-slate-400 mt-1.5">
-                      {files.length} file{files.length > 1 ? 's' : ''} selected
+                      {tr('form.files_selected', { count: files.length })}
                     </p>
                   )}
                 </div>
@@ -343,14 +332,14 @@ export default function ReportPage() {
                   <summary className="text-xs text-gray-500 dark:text-slate-400 cursor-pointer select-none hover:text-gray-700 dark:hover:text-slate-300 py-1">
                     <span className="group-open:hidden">+ </span>
                     <span className="hidden group-open:inline">− </span>
-                    {isMM ? 'ဆက်စပ်သောအချက်အလက်များ (ရွေးချယ်စရာ)' : 'Add related context (optional)'}
+                    {tr('form.related_context')}
                   </summary>
                   <div className="mt-3 space-y-3">
                     <input value={form.related_url} onChange={set('related_url')} type="url"
-                      placeholder="https://pyonea.com/... (page where issue occurred)"
+                      placeholder={tr('form.related_url_placeholder')}
                       className={INPUT_CLS} />
                     <input value={form.related_order_id} onChange={set('related_order_id')} type="number"
-                      placeholder="Order ID (if related to a specific order)"
+                      placeholder={tr('form.related_order_placeholder')}
                       className={INPUT_CLS} />
                   </div>
                 </details>
@@ -362,12 +351,12 @@ export default function ReportPage() {
                     {loading ? (
                       <>
                         <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        {isMM ? 'တင်ပေးနေသည်…' : 'Submitting…'}
+                        {tr('form.submitting')}
                       </>
                     ) : (
                       <>
                         <TicketIcon className="h-4 w-4" />
-                        {isMM ? 'တိုင်ကြားချက်တင်မည်' : 'Submit Report'}
+                        {tr('form.submit')}
                       </>
                     )}
                   </button>
@@ -384,7 +373,7 @@ export default function ReportPage() {
             <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-5">
               <h3 className="text-sm font-bold text-gray-900 dark:text-slate-100 mb-3 flex items-center gap-1.5">
                 <ClockIcon className="h-4 w-4 text-green-600" />
-                {isMM ? 'တုံ့ပြန်ချိန်' : 'Response Times'}
+                {tr('sidebar.response_times')}
               </h3>
               <div className="space-y-2">
                 {SLA_INFO.map(s => (
@@ -393,7 +382,7 @@ export default function ReportPage() {
                       {s.dot} {s.priority}
                     </span>
                     <span className="text-gray-500 dark:text-slate-400">
-                      {isMM ? `${s.hours} နာရီ` : `${s.hours}h`}
+                      {tr('sidebar.response_time_value', { hours: s.hours })}
                     </span>
                   </div>
                 ))}
@@ -403,19 +392,15 @@ export default function ReportPage() {
             {/* What happens next */}
             <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-5">
               <h3 className="text-sm font-bold text-gray-900 dark:text-slate-100 mb-3">
-                {isMM ? 'နောက်ဆက်တွဲ' : 'What Happens Next'}
+                {tr('sidebar.what_happens_next')}
               </h3>
               <ol className="space-y-3">
-                {[
-                  isMM
-                    ? ['တိုင်ကြားချက် ID ရမည်', 'Email မှ အတည်ပြုချက်ရမည်', 'ကျွန်ုပ်တို့ မသုံးသပ်မည်', 'ဖြေရှင်းချက် ပေးပို့မည်']
-                    : ['You receive a unique ticket ID', 'Email confirmation is sent', 'Our team reviews and investigates', 'Resolution sent via email & portal'],
-                ][0].map((step, i) => (
+                {['ticket_id', 'email_confirm', 'team_reviews', 'resolution'].map((step, i) => (
                   <li key={i} className="flex items-start gap-2.5 text-xs text-gray-600 dark:text-slate-400">
                     <span className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
                       {i + 1}
                     </span>
-                    {step}
+                    {tr(`sidebar.step.${step}`)}
                   </li>
                 ))}
               </ol>
@@ -427,10 +412,10 @@ export default function ReportPage() {
                 className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors group">
                 <div>
                   <p className="text-sm font-semibold text-green-800 dark:text-green-300">
-                    {isMM ? 'ကျွန်ုပ်၏ တိုင်ကြားချက်များ' : 'My Reports'}
+                    {tr('my_reports.title')}
                   </p>
                   <p className="text-xs text-green-700 dark:text-green-400 mt-0.5">
-                    {isMM ? 'ယခင် တင်ပြချက်များ ကြည့်မည်' : 'Track your previous tickets'}
+                    {tr('my_reports.subtitle')}
                   </p>
                 </div>
                 <ArrowRightIcon className="h-4 w-4 text-green-600 dark:text-green-400 group-hover:translate-x-1 transition-transform" />

@@ -2264,7 +2264,7 @@
     },
     "pricing": {
       "title": "စျေးနှုန်းနှင့် ကုန်ကျနှုန်းများ",
-      "subtitle": "လျှို့ဝှက်အခကြေးငွေ မရှိပါ။ အောင်မြင်ပြီးစီးသော အရောင်းအဝယ်များပေါ်တွင်သာ ကော်မရှင်ကောက်ခံပါ။",
+      "subtitle": "လျှို့ဝှက်အခကြေးငွေ မရှိပါ။ အောင်မြင်ပြီးစီးသော အရောင်းအဝယ်များပေါ်တွင်သာ ကော်မရှင်ကောက်ခံပါသည်။",
       "col_plan": "အစီအစဉ်",
       "col_monthly": "လစဉ်ကြေး",
       "col_commission": "ကော်မရှင်",
@@ -3299,6 +3299,80 @@
     "faq_contact_support_text": "အကူအညီအတွက် ဆက်သွယ်ပါ",
     "billing_email": "billing@pyonea.com",
     "for_invoice_receipt": "အရောင်းကောင်ကိုယ်စာ / တက်ကြွခြင်းများအတွက်။",
-    "consider_upgrading": "မြှင့်တင်ကြည့်ပါ။"
+    "consider_upgrading": "မြှင့်တင်ကြည့်ပါ။",
+    "report": {
+      "title": "တိုင်ကြားချက်တင်ပြမည်",
+      "subtitle": "ပြဿနာတစ်ခုတွေ့ပါက ကျွန်ုပ်တို့အားအသိပေးပါ။ ၂၄ နာရီအတွင်း ပြန်ကြားပါမည်။",
+      "my_reports_link": "ယခင် တင်ပြချက်များ ကြည့်မည်",
+      "success": {
+        "title": "ကျေးဇူးတင်ပါသည်။",
+        "message": "လူကြီးမင်း၏ တိုင်ကြားစာသည် Pyonea အတွက် လွန်စွာအရေးပါပါသည်။ ID ကိုမှတ်တမ်းတင်ထားပါမည်။",
+        "ticket_id": "ကိစ္စရပ် ID",
+        "email_notice": "အပ်ဒိတ်များကို email သို့ ပေးပို့မည်",
+        "view_my_reports": "ကျွန်ုပ်၏ တိုင်ကြားချက်များ",
+        "submit_another": "နောက်ထပ်တင်ပြမည်"
+      },
+      "form": {
+        "guest_name": "နာမည်",
+        "guest_name_placeholder": "နာမည်ထည့်ပါ",
+        "email": "Email",
+        "category": "အမျိုးအစား",
+        "category_placeholder": "ရွေးချယ်ပါ…",
+        "priority": "အရေးတကြီး",
+        "subject": "အကျဉ်းချုပ်",
+        "subject_placeholder": "ပြဿနာအကျဉ်းချုပ် (min 5 characters)",
+        "description": "အသေးစိတ်ဖော်ပြချက်",
+        "description_min": "(min 20 characters)",
+        "description_placeholder": "လူကြီးမင်း၏ ပြဿနာကိုပြောပါ။",
+        "attachments": "ပူးတွဲဖိုင်များ",
+        "attachments_hint": "ပုံများ / PDF max 5",
+        "related_context": "ဆက်စပ်သောအချက်အလက်များ (ရွေးချယ်စရာ)",
+        "related_url_placeholder": "https://pyonea.com/... (page where issue occurred)",
+        "related_order_placeholder": "Order ID (if related to a specific order)",
+        "files_selected_one": "ဖိုင် {{count}} ခု ရွေးထားသည်",
+        "files_selected_other": "ဖိုင် {{count}} ခု ရွေးထားသည်",
+        "submit": "တိုင်ကြားချက်တင်မည်",
+        "submitting": "တင်ပေးနေသည်…",
+        "recaptcha_error": "reCAPTCHA အဆင်သင့်မဖြစ်သေးပါ။ စာမျက်နှာကို ပြန်ဖွင့်ပြီး ထပ်စမ်းပါ။",
+        "missing_ticket_error": "တိုင်ကြားချက်တင်ပြီးသော်လည်း ticket ID မပါလာပါ။",
+        "submit_error": "တင်ပြ၍မရပါ။ ထပ်မံကြိုးစားပါ။"
+      },
+      "categories": {
+        "bug": "ပရိုဂရမ်ချို့ယွင်းမှု",
+        "payment": "ငွေပေးချေမှုပြဿနာ",
+        "order": "အော်ဒါပြဿနာ",
+        "seller": "ရောင်းသူပြဿနာ",
+        "product": "ကုန်ပစ္စည်းပြဿနာ",
+        "account": "အကောင့်ပြဿနာ",
+        "content": "မသင့်တော်သောအကြောင်းအရာ",
+        "billing": "ငွေကြေးဆိုင်ရာတိုင်ကြားချက်",
+        "delivery": "ပို့ဆောင်ရေးပြဿနာ",
+        "safety": "လုံခြုံရေး / လိမ်လည်မှု",
+        "suggestion": "အကြံပြုချက်",
+        "other": "အခြား"
+      },
+      "priorities": {
+        "low": "နိမ့်",
+        "medium": "သာမန်",
+        "high": "မြင့်",
+        "critical": "အရေးပေါ်"
+      },
+      "safety_warning": "ဤအမျိုးအစားကို ဦးစားပေး HIGH အဖြစ် အလိုအလျောက် တင်ပေးပါမည်",
+      "sidebar": {
+        "response_times": "တုံ့ပြန်ချိန်",
+        "response_time_value": "{{hours}} နာရီ",
+        "what_happens_next": "နောက်ဆက်တွဲ",
+        "step": {
+          "ticket_id": "တိုင်ကြားချက် ID ရမည်",
+          "email_confirm": "Email မှ အတည်ပြုချက်ရမည်",
+          "team_reviews": "ကျွန်ုပ်တို့ သုံးသပ်မည်",
+          "resolution": "ဖြေရှင်းချက် ပေးပို့မည်"
+        }
+      },
+      "my_reports": {
+        "title": "ကျွန်ုပ်၏ တိုင်ကြားချက်များ",
+        "subtitle": "ယခင် တင်ပြချက်များ ကြည့်မည်"
+      }
+    }
   }
 }

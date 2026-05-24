@@ -3250,6 +3250,80 @@
     "bulk_product_import": "Bulk product import",
     "custom_storefront_label": "Custom storefront",
     "available_plans": "Available Plans",
+    "report": {
+      "title": "Report an Issue",
+      "subtitle": "Found a bug, issue, or want to report misconduct? We take every report seriously and respond promptly.",
+      "my_reports_link": "View my previous reports",
+      "success": {
+        "title": "Report Submitted!",
+        "message": "Your report has been logged. Save your ticket ID to track progress.",
+        "ticket_id": "Ticket ID",
+        "email_notice": "Status updates will be sent to your email address",
+        "view_my_reports": "View My Reports",
+        "submit_another": "Submit Another Report"
+      },
+      "form": {
+        "guest_name": "Your Name",
+        "guest_name_placeholder": "Full name",
+        "email": "Email",
+        "category": "Category",
+        "category_placeholder": "Select a category…",
+        "priority": "Priority",
+        "subject": "Subject",
+        "subject_placeholder": "Brief summary of the issue (min 5 characters)",
+        "description": "Description",
+        "description_min": "(min 20 characters)",
+        "description_placeholder": "Describe the issue in detail — what happened, when it occurred, steps to reproduce, and what you expected to happen.",
+        "attachments": "Attachments",
+        "attachments_hint": "screenshots or PDF, up to 5 files",
+        "related_context": "Add related context (optional)",
+        "related_url_placeholder": "https://pyonea.com/... (page where issue occurred)",
+        "related_order_placeholder": "Order ID (if related to a specific order)",
+        "files_selected_one": "{{count}} file selected",
+        "files_selected_other": "{{count}} files selected",
+        "submit": "Submit Report",
+        "submitting": "Submitting…",
+        "recaptcha_error": "reCAPTCHA not ready. Please refresh and try again.",
+        "missing_ticket_error": "Report submitted but ticket ID was missing in response.",
+        "submit_error": "Failed to submit. Please try again."
+      },
+      "categories": {
+        "bug": "Bug / App Error",
+        "payment": "Payment Issue",
+        "order": "Order Problem",
+        "seller": "Seller Misconduct",
+        "product": "Fake / Wrong Product",
+        "account": "Account Issue",
+        "content": "Inappropriate Content",
+        "billing": "Billing Dispute",
+        "delivery": "Delivery Problem",
+        "safety": "Safety / Fraud / Scam",
+        "suggestion": "Suggestion / Feedback",
+        "other": "Other"
+      },
+      "priorities": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "critical": "Critical"
+      },
+      "safety_warning": "This category is automatically escalated to HIGH priority",
+      "sidebar": {
+        "response_times": "Response Times",
+        "response_time_value": "{{hours}}h",
+        "what_happens_next": "What Happens Next",
+        "step": {
+          "ticket_id": "You receive a unique ticket ID",
+          "email_confirm": "Email confirmation is sent",
+          "team_reviews": "Our team reviews and investigates",
+          "resolution": "Resolution sent via email & portal"
+        }
+      },
+      "my_reports": {
+        "title": "My Reports",
+        "subtitle": "Track your previous tickets"
+      }
+    },
     "current_plan": "Current Plan",
     "most_popular": "Most Popular",
     "your_current_plan": "Your Current Plan",
