@@ -74,14 +74,15 @@ const Header = () => {
   // Debounced search — stable ref avoids recreation on every location change
   const handleSearchChange = useCallback((value) => {
     setSearchTerm(value);
+    // Always kill any pending timer first so stale callbacks can never fire
+    // after a page change or URL-sync round-trip.
+    clearTimeout(debounceRef.current);
     if (isSyncingRef.current) return;
 
     // Only sync query params live when user is already on products listing.
     // Otherwise, don't mutate the current page URL; submit will navigate to /products.
     const isOnProductsPage = location.pathname.startsWith('/products');
     if (!isOnProductsPage) return;
-
-    clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       const params = new URLSearchParams(location.search);
       if (value.trim()) {

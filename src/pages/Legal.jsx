@@ -6,7 +6,7 @@ const Legal = () => {
   const { t } = useTranslation();
   const SeoComponent = useSEO({
     title: t("legal.title"),
-    description: "Pyonea's legal centre — terms of service, privacy policy, return policy, and platform guidelines for buyers and sellers on Myanmar's leading B2B marketplace.",
+    description: t("legal.seo.description"),
     url: "/legal",
   });
 

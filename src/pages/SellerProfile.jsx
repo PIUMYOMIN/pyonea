@@ -993,7 +993,7 @@ const SellerProfile = () => {
                           <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{p.label}</h3>
                           <ArrowUpIcon className="h-4 w-4 text-gray-400 dark:text-slate-600 group-open:rotate-180 transition-transform flex-shrink-0" />
                         </summary>
-                        <div className="px-6 pb-5 text-sm text-gray-600 dark:text-slate-400 leading-relaxed whitespace-pre-wrap border-t border-gray-50">
+                        <div className="px-6 pb-5 text-sm text-gray-600 dark:text-slate-400 leading-relaxed whitespace-pre-wrap border-t pt-2 border-gray-50">
                           {seller[p.key]}
                         </div>
                       </details>

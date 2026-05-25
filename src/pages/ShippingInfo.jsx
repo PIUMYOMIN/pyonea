@@ -79,9 +79,8 @@ const ShippingInfo = () => {
   const [openFaq, setOpenFaq] = useState(null);
 
   const SeoComponent = useSEO({
-    title: "Shipping Information | Pyonea Myanmar B2B Marketplace",
-    description:
-      "Everything you need to know about shipping on Pyonea — delivery zones, estimated times, packaging requirements, and how to handle lost or damaged shipments.",
+    title: t("shipping_page.seo.title"),
+    description: t("shipping_page.seo.description"),
     url: "/shipping",
   });
 

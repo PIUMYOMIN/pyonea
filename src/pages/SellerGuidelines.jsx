@@ -71,9 +71,8 @@ const SellerGuidelines = () => {
   const [openFaq, setOpenFaq] = useState(null);
 
   const SeoComponent = useSEO({
-    title: "Seller Guidelines | Pyonea Myanmar B2B Marketplace",
-    description:
-      "Everything you need to know to sell successfully on Pyonea — eligibility, product standards, prohibited items, performance requirements, and fees.",
+    title: t("seller_guidelines.seo.title"),
+    description: t("seller_guidelines.seo.description"),
     url: "/seller-guidelines",
   });
 

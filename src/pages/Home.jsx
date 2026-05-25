@@ -80,8 +80,8 @@ const Home = () => {
     : '/og-image.png';
 
   const SeoComponent = useSEO({
-    title: "Pyonea | Myanmar B2B Marketplace",
-    description: "Pyonea is a trusted Myanmar B2B marketplace connecting buyers with verified suppliers. Discover wholesale products, trusted sellers, and business opportunities.",
+    title: t("seo.home.title"),
+    description: t("seo.home.description"),
     image: ogImage,
     url: "/"
   });

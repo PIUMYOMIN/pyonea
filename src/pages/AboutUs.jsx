@@ -7,7 +7,7 @@ const AboutUs = () => {
 
   const SeoComponent = useSEO({
     title: t("about.title"),
-    description: "Pyonea is Myanmar's trusted B2B marketplace connecting verified suppliers with business buyers. Learn about our mission and commitment to Myanmar commerce.",
+    description: t("about.seo.description"),
     url: "/about-us",
   });
 

@@ -85,6 +85,7 @@
     "no_top_sellers": "No top sellers found",
     "no_categories_found": "No categories found",
     "browse_categories": "Browse Categories",
+    "unnamed_seller": "Unnamed seller",
     "general_merchant": "General Merchant",
     "why_us": "Why Choose Us",
     "why_choose_us": "Why Choose Our Platform",
@@ -397,7 +398,20 @@
     "track_order": "Track your order",
     "cookie_settings": "Cookie settings",
     "tagline": "Myanmar's B2B wholesale marketplace.",
-    "nav_label": "Footer navigation"
+    "nav_label": "Footer navigation",
+    "newsletter_title": "Stay updated",
+    "newsletter_subtitle": "Deals, new sellers, and platform news. No spam.",
+    "newsletter_card_title": "Get marketplace updates",
+    "newsletter_card_subtitle": "New products, seller highlights, and useful Pyonea news delivered to your inbox.",
+    "newsletter_email_placeholder": "Your email",
+    "newsletter_email_input": "Enter your email",
+    "newsletter_name_placeholder": "Your name (optional)",
+    "newsletter_subscribe": "Subscribe",
+    "newsletter_subscribing": "Subscribing...",
+    "newsletter_success_title": "Subscription requested!",
+    "newsletter_confirm_message": "Please check your email to confirm.",
+    "newsletter_error_message": "Something went wrong. Please try again.",
+    "newsletter_privacy_note": "No spam. Unsubscribe any time. We respect your privacy."
   },
   "localDeals": {
     "title": "Local Deals",
@@ -1448,6 +1462,9 @@
   },
   "about": {
     "title": "About Pyonea",
+    "seo": {
+      "description": "Pyonea is Myanmar's trusted B2B marketplace connecting verified suppliers with business buyers. Learn about our mission and commitment to Myanmar commerce."
+    },
     "mission": {
       "title": "Our Mission",
       "paragraph1": "Pyonea is a Myanmar-focused B2B marketplace that helps business buyers source products from verified suppliers—faster, with clearer terms, and with better accountability.",
@@ -1480,6 +1497,9 @@
   "legal": {
     "title": "Legal Information",
     "subtitle": "Key policies for using Pyonea. These summaries are for convenience—please read the full policy pages for details.",
+    "seo": {
+      "description": "Pyonea's legal centre: terms of service, privacy policy, return policy, and platform guidelines for buyers and sellers on Myanmar's B2B marketplace."
+    },
     "terms": {
       "title": "Terms of Service",
       "content": "By using Pyonea, you agree to these Terms.\n\n1) Accounts & eligibility: You must provide accurate information and keep your account secure. We may suspend accounts used for fraud, abuse, or policy violations.\n\n2) Marketplace role: Pyonea is a platform that connects buyers and independent sellers. Product listings, pricing, fulfillment, and warranties are the seller’s responsibility unless explicitly stated otherwise.\n\n3) Orders & payments: When you place an order you agree to pay the displayed total and follow the seller’s stated policies. Payment methods and processing may vary by seller and may involve third‑party providers.\n\n4) Content & conduct: You may not post illegal, misleading, or infringing content. Harassment, spam, and manipulation of reviews or ratings are not allowed.\n\n5) Changes: We may update these Terms to reflect product, legal, or operational changes. Continued use of Pyonea after updates means you accept the revised Terms.\n\nFor questions, contact us using the details below."
@@ -2169,6 +2189,10 @@
     "back_to_dashboard": "Back to Dashboard"
   },
   "seller_guidelines": {
+    "seo": {
+      "title": "Seller Guidelines | Pyonea Myanmar B2B Marketplace",
+      "description": "Everything you need to know to sell successfully on Pyonea: eligibility, product standards, prohibited items, performance requirements, and fees."
+    },
     "hero": {
       "for_sellers": "For Sellers",
       "title": "Seller Guidelines",
@@ -2358,6 +2382,10 @@
     }
   },
   "faq_page": {
+    "seo": {
+      "title": "FAQ | Pyonea Myanmar B2B Marketplace",
+      "description": "Frequently asked questions about buying, selling, payments, shipping, and accounts on Pyonea, Myanmar's B2B wholesale marketplace."
+    },
     "hero": {
       "label": "Help Center",
       "title": "Frequently Asked Questions",
@@ -2482,10 +2510,14 @@
     "footer_suggest": "Suggest a question"
   },
   "shipping_page": {
+    "seo": {
+      "title": "Shipping Information | Pyonea Myanmar B2B Marketplace",
+      "description": "Learn how shipping works on Pyonea, including delivery areas, estimated timelines, packaging standards, tracking, and support for lost or damaged orders."
+    },
     "hero": {
       "label": "Shipping",
       "title": "Shipping Information",
-      "desc": "Learn how orders are shipped on Pyonea — from handling times and delivery zones to packaging standards and what to do if something goes wrong.",
+      "desc": "Learn how orders are prepared, shipped, and tracked on Pyonea. This guide covers delivery areas, estimated timelines, packaging standards, and the steps to take if an order is delayed, lost, or damaged.",
       "track_order": "Track Your Order",
       "contact_support": "Contact Support"
     },
@@ -2495,7 +2527,7 @@
       "handling_sub": "Standard commitment",
       "tracking_label": "Tracking provided",
       "tracking_value": "> 50K MMK",
-      "tracking_sub": "All qualifying orders",
+      "tracking_sub": "Qualifying orders",
       "coverage_label": "Nationwide delivery",
       "coverage_value": "All states",
       "coverage_sub": "Domestic coverage",
@@ -2505,108 +2537,108 @@
     },
     "methods": {
       "title": "Shipping Methods",
-      "subtitle": "Sellers choose which methods to offer. Available options are shown at checkout.",
+      "subtitle": "Each seller chooses the shipping methods they can support. Available options are shown at checkout.",
       "standard_name": "Standard Shipping",
-      "standard_desc": "The default option for most orders. Reliable door-to-door delivery via Myanmar's major logistics networks.",
+      "standard_desc": "A reliable option for most orders, delivered through trusted domestic logistics partners.",
       "standard_d0": "Available nationwide",
       "standard_d1": "Tracking number provided for orders over 50,000 MMK",
-      "standard_d2": "Cost calculated by weight and destination at checkout",
+      "standard_d2": "Cost is calculated by weight and destination at checkout",
       "express_name": "Express Shipping",
-      "express_desc": "Faster delivery for time-sensitive orders. Available in Yangon and selected major cities.",
+      "express_desc": "Faster delivery for time-sensitive orders, available in Yangon and selected major cities.",
       "express_d0": "Same-day delivery available within Yangon for orders placed before 12 PM",
       "express_d1": "Next-day delivery to Mandalay",
-      "express_d2": "Higher shipping cost applies",
+      "express_d2": "Higher shipping fees may apply",
       "freight_name": "Freight / Bulk Shipping",
-      "freight_desc": "For large, heavy, or palletised orders where standard parcel services aren't suitable.",
+      "freight_desc": "For large, heavy, or oversized orders that are not suitable for standard parcel delivery.",
       "freight_d0": "Available for orders over 50 kg or oversized items",
-      "freight_d1": "Quote-based — contact the seller or our support team",
+      "freight_d1": "Quote-based — contact the seller or Pyonea support",
       "freight_d2": "Delivery time negotiated based on order size and location",
       "intl_name": "International Shipping",
-      "intl_desc": "Optional for sellers. Not all sellers ship internationally — check the product listing for availability.",
+      "intl_desc": "International shipping is optional for sellers. Check the product listing to confirm availability.",
       "intl_d0": "Subject to Myanmar export regulations and destination customs",
       "intl_d1": "Buyer is responsible for import duties and taxes",
       "intl_d2": "Delivery times vary widely by destination country"
     },
     "zones": {
-      "title": "Delivery Zones & Estimated Times",
-      "subtitle": "Times are in business days after dispatch. Actual delivery may vary by courier and conditions.",
+      "title": "Delivery Areas & Estimated Times",
+      "subtitle": "Timelines are estimated business days after dispatch. Actual delivery may vary by courier, weather, and local conditions.",
       "col_zone": "Zone",
-      "col_areas": "Coverage Areas",
+      "col_areas": "Delivery Areas",
       "col_standard": "Standard",
       "col_express": "Express",
       "col_freight": "Freight",
       "not_available": "Not available",
-      "footnote": "* Business days are Monday–Saturday, excluding Myanmar public holidays. Orders placed after 3 PM are processed the following business day.",
+      "footnote": "* Business days are Monday to Saturday, excluding Myanmar public holidays. Orders placed after 3 PM are processed on the next business day.",
       "zone_0_zone": "Yangon (City)",
       "zone_0_areas": "All Yangon townships",
       "zone_0_standard": "1–2 business days",
       "zone_0_express": "Same day / Next day",
-      "zone_0_freight": "On request",
+      "zone_0_freight": "By arrangement",
       "zone_1_zone": "Yangon (Outskirts)",
       "zone_1_areas": "Hlegu, Hmawbi, Taikkyi, Thanlyin",
       "zone_1_standard": "2–3 business days",
       "zone_1_express": "Next day",
-      "zone_1_freight": "On request",
+      "zone_1_freight": "By arrangement",
       "zone_2_zone": "Mandalay Region",
       "zone_2_areas": "Mandalay, Pyin Oo Lwin, Meiktila",
       "zone_2_standard": "3–5 business days",
       "zone_2_express": "2–3 business days",
-      "zone_2_freight": "On request",
-      "zone_3_zone": "Other Major Cities",
+      "zone_2_freight": "By arrangement",
+      "zone_3_zone": "Major Cities",
       "zone_3_areas": "Naypyidaw, Bago, Mawlamyine, Pathein",
       "zone_3_standard": "4–6 business days",
       "zone_3_express": "2–4 business days",
-      "zone_3_freight": "On request",
+      "zone_3_freight": "By arrangement",
       "zone_4_zone": "Remote Areas",
       "zone_4_areas": "Kachin, Kayah, Kayin, Chin, Mon, Rakhine, Shan states",
       "zone_4_standard": "6–10 business days",
       "zone_4_express": "Not available",
-      "zone_4_freight": "On request"
+      "zone_4_freight": "By arrangement"
     },
     "handling": {
-      "title": "Handling Time",
-      "subtitle": "The time a seller takes to prepare and dispatch your order after payment is confirmed.",
+      "title": "Order Preparation Time",
+      "subtitle": "The time a seller needs to prepare, pack, and hand over your order after payment is confirmed.",
       "standard_label": "Standard handling",
       "standard_value": "1–3 business days",
-      "standard_desc": "Default for all sellers",
+      "standard_desc": "For most orders",
       "express_label": "Express handling",
       "express_value": "Same day / Next day",
-      "express_desc": "Where offered by seller",
+      "express_desc": "Where offered by the seller",
       "bulk_label": "Bulk / Freight",
       "bulk_value": "3–7 business days",
       "bulk_desc": "For large or custom orders",
       "obligation_label": "Seller obligation:",
-      "obligation": "Sellers must ship within the handling time stated on their listing. If an order cannot be dispatched on time, the seller must notify the buyer immediately. Failure to do so may affect their performance rating."
+      "obligation": "Sellers must hand over orders within the preparation time shown on their listing. If an order cannot be shipped on time, the seller must notify the buyer promptly. Repeated delays may affect seller performance ratings."
     },
     "packaging": {
       "title": "Packaging Standards",
-      "subtitle": "All sellers on Pyonea must meet these minimum packaging requirements.",
-      "rule_0": "Use appropriate box or packaging material for the product type and weight",
+      "subtitle": "These minimum standards help products arrive safely and professionally.",
+      "rule_0": "Use a box or packaging material suitable for the product type and weight",
       "rule_1": "Fill empty space with padding (bubble wrap, foam, paper) to prevent movement",
       "rule_2": "Seal all seams and edges with strong packing tape",
       "rule_3": "Fragile items must be double-boxed with at least 5 cm of cushioning on all sides",
       "rule_4": "Label the outer package clearly with the recipient's name, address, and contact number",
-      "rule_5": "Include a packing slip inside the package with order details",
+      "rule_5": "Include a packing slip with the order details inside the package",
       "buyer_note_label": "Note for buyers:",
       "buyer_note": "If your order arrives with visibly damaged packaging, photograph it before opening and report it within 48 hours via the order page."
     },
     "lost": {
-      "title": "Lost or Damaged Shipments",
-      "subtitle": "Follow these steps if your order doesn't arrive or arrives in poor condition.",
+      "title": "Lost or Damaged Orders",
+      "subtitle": "Follow these steps if your order does not arrive, arrives damaged, or contains the wrong items.",
       "step_0_step": "Report within 7 days",
       "step_0_desc": "Contact the seller via the order page within 7 days of the estimated delivery date.",
-      "step_1_step": "Seller investigation",
-      "step_1_desc": "The seller has 48 hours to investigate with their courier and provide an update.",
+      "step_1_step": "Seller review",
+      "step_1_desc": "The seller has 48 hours to check with the courier and provide an update.",
       "step_2_step": "Pyonea mediation",
       "step_2_desc": "If unresolved, raise a dispute and Pyonea's support team will mediate.",
       "step_3_step": "Resolution",
-      "step_3_desc": "Eligible claims receive a full refund or replacement shipment within 5–7 business days.",
-      "eligible_title": "Eligible for refund/replacement",
-      "eligible_0": "Order not delivered within 7 days of estimated date",
+      "step_3_desc": "Eligible claims are resolved with a refund or replacement shipment within 5–7 business days.",
+      "eligible_title": "Eligible for refund or replacement",
+      "eligible_0": "Order not delivered within 7 days after the estimated date",
       "eligible_1": "Items arrived visibly damaged or broken",
       "eligible_2": "Wrong item received",
       "eligible_3": "Significant quantity shortage",
-      "not_eligible_title": "Not eligible",
+      "not_eligible_title": "Usually not eligible",
       "not_eligible_0": "Reported more than 7 days after estimated delivery",
       "not_eligible_1": "Buyer-caused damage after receipt",
       "not_eligible_2": "Delays due to incorrect address provided by buyer",
@@ -2614,14 +2646,14 @@
     },
     "seller_resp": {
       "title": "Seller Shipping Responsibilities",
-      "subtitle": "Sellers on Pyonea are accountable for the following.",
-      "item_0": "Ship within the committed handling time stated on the listing",
+      "subtitle": "To keep the marketplace reliable, sellers are expected to meet the following standards.",
+      "item_0": "Hand over orders within the preparation time stated on the listing",
       "item_1": "Provide a valid tracking number for all orders over 50,000 MMK",
-      "item_2": "Notify the buyer immediately if the order will be delayed",
-      "item_3": "Package all items safely to prevent transit damage",
+      "item_2": "Notify the buyer promptly if an order will be delayed",
+      "item_3": "Package all items securely to prevent transit damage",
       "item_4": "Offer at least one standard domestic shipping option",
       "item_5": "Respond to buyer shipping queries within 24 hours",
-      "item_6": "Honor the delivery estimates shown at checkout",
+      "item_6": "Respect the delivery estimates shown at checkout",
       "item_7": "Comply with all applicable courier and customs regulations"
     },
     "faq": {
@@ -2629,29 +2661,29 @@
       "q_0": "Can I choose my own courier?",
       "a_0": "Buyers cannot choose a specific courier — that is determined by the seller. If you have a strong preference, contact the seller before placing your order to discuss options.",
       "q_1": "What if the seller hasn't shipped my order within the stated handling time?",
-      "a_1": "Contact the seller through the order page. If there's no response within 24 hours, you can raise a dispute and Pyonea support will step in to assist.",
+      "a_1": "Contact the seller through the order page. If there is no response within 24 hours, you can raise a dispute and Pyonea support will assist.",
       "q_2": "Do shipping costs include insurance?",
-      "a_2": "Basic coverage is included for shipments via most courier partners. For high-value goods, sellers may offer additional insurance — check the listing or contact the seller.",
+      "a_2": "Basic coverage may be included through most courier partners. For high-value goods, check the listing or contact the seller to ask about additional insurance.",
       "q_3": "Can I change my shipping address after placing an order?",
       "a_3": "Address changes are only possible before the seller ships the order. Contact the seller immediately through the order page. Once shipped, the address cannot be changed.",
       "q_4": "Why does my tracking number not show any updates?",
-      "a_4": "It can take up to 24 hours for a new tracking number to appear in the courier's system. If there's no update after 48 hours, contact the seller to verify the tracking number is correct.",
+      "a_4": "It can take up to 24 hours for a new tracking number to appear in the courier system. If there is no update after 48 hours, contact the seller to confirm the tracking number.",
       "q_5": "Are public holidays counted in delivery estimates?",
       "a_5": "No. All delivery time estimates are in business days (Monday–Saturday, excluding Myanmar public holidays). Orders placed on public holidays begin processing on the next business day."
     },
     "cta": {
       "title": "Need help with a shipment?",
-      "desc": "Our support team is available Monday to Friday, 9 AM – 6 PM (Myanmar Standard Time).",
+      "desc": "Pyonea support is available Monday to Friday, 9 AM to 6 PM Myanmar Standard Time.",
       "contact_support": "Contact Support",
       "track_order": "Track Order"
     },
     "links": {
       "return_policy_label": "Return Policy",
-      "return_policy_desc": "How to return items and get refunds",
+      "return_policy_desc": "How returns and refunds are handled",
       "seller_guidelines_label": "Seller Guidelines",
       "seller_guidelines_desc": "Shipping rules for sellers",
       "faq_label": "FAQ",
-      "faq_desc": "More common questions answered"
+      "faq_desc": "Answers to common questions"
     },
     "footer": "Last updated: April 2026 · ",
     "footer_contact": "Contact us"
@@ -3338,5 +3370,82 @@
     "billing_email": "billing@pyonea.com",
     "for_invoice_receipt": "for invoice or receipt.",
     "consider_upgrading": "consider upgrading."
+  },
+  "pricing_page": {
+    "label": "Seller Plans",
+    "seo": {
+      "title": "Pricing & Plans | Pyonea Myanmar B2B Marketplace",
+      "description": "Choose a seller plan that fits your business. Start free on Pyonea and upgrade as your store grows."
+    },
+    "hero": {
+      "badge_label": "Plans for sellers",
+      "title": "Choose the right plan for your business",
+      "subtitle": "Start free and scale as you grow. Upgrade any time — cancel any time."
+    },
+    "plans": {
+      "basic": {
+        "name": "Basic",
+        "description": "For small businesses starting to sell"
+      },
+      "professional": {
+        "name": "Professional",
+        "description": "For stores ready to grow sales"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "For large businesses and wholesalers"
+      }
+    },
+    "format": {
+      "free": "Free",
+      "price_mmk": "{{amount}} MMK",
+      "per_month": "/mo",
+      "unlimited_symbol": "∞"
+    },
+    "badge": {
+      "most_popular": "Most Popular",
+      "current_plan": "Your Current Plan"
+    },
+    "feature": {
+      "products": "Products",
+      "products_with_count": "Up to {{count}} products",
+      "commission": "Commission",
+      "commission_with_rate": "{{rate}} commission",
+      "analytics_dashboard": "Analytics and sales insights",
+      "bulk_import_export": "Bulk product import / export",
+      "priority_support": "Priority support",
+      "custom_storefront": "Custom store page",
+      "products_used": "Products used"
+    },
+    "cta": {
+      "current_plan": "Current plan",
+      "get_started_free": "Get Started →",
+      "switch_to_basic": "Switch to Basic",
+      "upgrade_to": "Upgrade to",
+      "upgrade_to_plan": "Upgrade to {{plan}}",
+      "register_as_seller": "Create seller account"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "q_setup": "Are there any setup fees?",
+      "a_setup": "No. There are no setup or onboarding fees for any plan. If you choose a paid plan, you only pay the monthly subscription fee.",
+      "q_change_plans": "Can I change plans later?",
+      "a_change_plans": "Yes. You can change your plan any time from the Subscription tab in your Seller Dashboard.",
+      "q_payment": "What payment methods do you accept?",
+      "a_payment": "We accept KBZPay, Wave Money, CB Bank transfer, and MMQR. After transferring, enter your payment reference in the upgrade flow.",
+      "q_contract": "Is there a long-term contract?",
+      "a_contract": "No. Paid plans are billed month to month, and you can stop any time.",
+      "q_limit": "What happens if I reach my product limit?",
+      "a_limit": "You will need to upgrade or remove existing products before adding new ones. Your current listings remain live.",
+      "q_commission": "Does the commission rate apply to every order?",
+      "a_commission": "Yes. Commission applies only to completed sales and is calculated on the product subtotal before delivery fees.",
+      "close_symbol": "−",
+      "close": "Close"
+    },
+    "cta_banner": {
+      "ready": "Ready to start selling?",
+      "description": "Open your store on Pyonea, start free, and connect with new buyers across Myanmar.",
+      "cta": "Create Seller Account →"
+    }
   }
 }

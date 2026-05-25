@@ -81,9 +81,8 @@ const FAQ = () => {
   const [search, setSearch]                 = useState("");
 
   const SeoComponent = useSEO({
-    title: "FAQ | Pyonea Myanmar B2B Marketplace",
-    description:
-      "Frequently asked questions about buying, selling, payments, shipping, and accounts on Pyonea — Myanmar's leading B2B wholesale marketplace.",
+    title: t("faq_page.seo.title"),
+    description: t("faq_page.seo.description"),
     url: "/faq",
   });
 
