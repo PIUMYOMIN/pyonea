@@ -122,16 +122,17 @@ const EditStore = ({ storeData, refreshData }) => {
     }
 
     try {
-      const submitFormData = new FormData();
-
-      // Append all form fields
+      // Send as JSON — PHP/Laravel does not parse multipart/form-data on PUT
+      // requests, so FormData would produce an empty $request->all() on the
+      // backend. Since EditStore has no file uploads, plain JSON is correct.
+      const payload = {};
       Object.keys(formData).forEach((key) => {
         if (formData[key] !== null && formData[key] !== undefined) {
-          submitFormData.append(key, formData[key]);
+          payload[key] = formData[key];
         }
       });
 
-      const response = await api.put("/seller/my-store/update", submitFormData);
+      const response = await api.put("/seller/my-store/update", payload);
 
       if (response.data.success) {
         setMessage({ type: "success", text: "Store profile updated successfully!" });
@@ -187,11 +188,10 @@ const EditStore = ({ storeData, refreshData }) => {
       {/* Status Message */}
       {message.text && (
         <div
-          className={`p-4 rounded-xl flex items-center space-x-3 ${
-            message.type === "success"
+          className={`p-4 rounded-xl flex items-center space-x-3 ${message.type === "success"
               ? "bg-green-50 border border-green-200 text-green-700"
               : "bg-red-50 border border-red-200 text-red-700"
-          }`}
+            }`}
         >
           {message.type === "success" ? (
             <CheckIcon className="h-5 w-5 text-green-500 flex-shrink-0" />

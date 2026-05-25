@@ -136,7 +136,7 @@ const DeliveryZonesPanel = ({ areas, loading, error }) => {
               className="break-inside-avoid mb-2 rounded-lg border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden"
             >
               {/* Region header */}
-              <div className="flex items-center justify-between px-2.5 py-1.5 bg-gray-50 dark:bg-slate-700/50 border-b border-gray-100 dark:border-slate-700">
+              <div className="flex items-center justify-between px-2.5 py-1.5 pb-2 bg-gray-50 dark:bg-slate-700/50 border-b border-gray-100 dark:border-slate-700">
                 <span className="text-xs font-semibold text-gray-700 dark:text-slate-200 truncate">
                   {isNationwide ? '🌐 Nationwide' : regionKey}
                 </span>
