@@ -109,7 +109,7 @@ const ProductManagement = () => {
     setSelectedProduct(null);
 
     try {
-      await api.delete(`/products/${productId}`);
+      await api.delete(`/seller/products/${productId}`);
       fetchProducts(false);
     } catch (error) {
       console.error("Delete error:", error);
