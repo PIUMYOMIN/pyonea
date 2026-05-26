@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSwipeable } from "react-swipeable";
 import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import { getSrcSet, getWebPUrl } from "../../utils/imageHelpers";
 
 const normalizeImages = (images = []) =>
   (Array.isArray(images) ? images : [])
@@ -80,6 +81,10 @@ const ProductImageGallery = ({
   }, [lightboxOpen, next, prev]);
 
   const activeSrc = total ? getImageUrl(normalized[active]) : null;
+  const mainSrc = activeSrc ? getWebPUrl(activeSrc, { width: 1024, quality: 82 }) : null;
+  const mainSrcSet = activeSrc ? getSrcSet(activeSrc, [480, 768, 1024, 1280]) : "";
+  const lightboxSrc = activeSrc ? getWebPUrl(activeSrc, { width: 1600, quality: 90 }) : null;
+  const lightboxSrcSet = activeSrc ? getSrcSet(activeSrc, [768, 1200, 1600, 2000]) : "";
 
   // Autoplay (carousel): advances every `autoplayDelayMs`, pauses on hover/touch and in lightbox
   useEffect(() => {
@@ -121,7 +126,9 @@ const ProductImageGallery = ({
         {activeSrc ? (
           <img
             key={activeSrc}
-            src={activeSrc}
+            src={mainSrc}
+            srcSet={mainSrcSet}
+            sizes="(min-width: 1024px) 50vw, 100vw"
             alt={alt}
             className="absolute inset-0 w-full h-full object-contain bg-white/30 dark:bg-black/10"
             style={{ animation: "pdFadeSlideIn 450ms ease-out" }}
@@ -181,6 +188,7 @@ const ProductImageGallery = ({
         >
           {normalized.map((img, idx) => {
             const src = getImageUrl(img);
+            const thumbSrc = getWebPUrl(src, { width: 160, quality: 70 });
             const selected = idx === active;
             return (
               <button
@@ -197,7 +205,7 @@ const ProductImageGallery = ({
                 aria-label={`View image ${idx + 1}`}
               >
                 <img
-                  src={src}
+                  src={thumbSrc}
                   alt=""
                   className="absolute inset-0 w-full h-full object-cover bg-gray-100 dark:bg-slate-700"
                   loading="lazy"
@@ -238,7 +246,9 @@ const ProductImageGallery = ({
           <div className="absolute inset-0 flex items-center justify-center px-4">
             <img
               key={`lb-${activeSrc}`}
-              src={activeSrc}
+              src={lightboxSrc}
+              srcSet={lightboxSrcSet}
+              sizes="95vw"
               alt={alt}
               className="max-h-[88vh] max-w-[95vw] object-contain"
               style={{ animation: "pdFadeSlideIn 450ms ease-out" }}
@@ -280,4 +290,3 @@ const ProductImageGallery = ({
 };
 
 export default ProductImageGallery;
-
