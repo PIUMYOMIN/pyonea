@@ -10,12 +10,41 @@ const resources = {
   my: { translation: my },
 };
 
+const normalizeLanguage = (lng) => {
+  const code = String(lng || '').toLowerCase().replace('_', '-');
+
+  if (code.startsWith('my') || code.startsWith('mm')) return 'my';
+  if (code.startsWith('en')) return 'en';
+
+  return 'en';
+};
+
+const syncDocumentLanguage = (lng) => {
+  if (typeof document === 'undefined') return;
+
+  const language = normalizeLanguage(lng);
+  document.documentElement.lang = language;
+  document.documentElement.dir = 'ltr';
+};
+
+if (typeof window !== 'undefined') {
+  const savedLanguage = window.localStorage.getItem('pyonea_language')
+    || window.localStorage.getItem('i18nextLng');
+
+  if (savedLanguage) {
+    window.localStorage.setItem('pyonea_language', normalizeLanguage(savedLanguage));
+  }
+}
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources,
     supportedLngs: ['en', 'my'],
+    nonExplicitSupportedLngs: true,
+    load: 'languageOnly',
+    cleanCode: true,
     fallbackLng: 'en',
     interpolation: {
       escapeValue: false,
@@ -28,8 +57,22 @@ i18n
       lookupQuerystring: 'lang',
       lookupLocalStorage: 'pyonea_language',
       caches: ['localStorage'],
-      excludeCacheFor: ['querystring'],
+      convertDetectedLanguage: normalizeLanguage,
     },
+  })
+  .then(() => {
+    syncDocumentLanguage(i18n.resolvedLanguage || i18n.language);
   });
+
+i18n.on('languageChanged', (lng) => {
+  const language = normalizeLanguage(lng);
+
+  syncDocumentLanguage(language);
+
+  if (typeof window !== 'undefined') {
+    window.localStorage.setItem('pyonea_language', language);
+    window.localStorage.setItem('i18nextLng', language);
+  }
+});
 
 export default i18n;

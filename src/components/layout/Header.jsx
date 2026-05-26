@@ -135,7 +135,17 @@ const Header = () => {
     setMobileOpen(false);
   };
 
-  const changeLanguage = (lng) => i18n.changeLanguage(lng);
+  const changeLanguage = (lng) => {
+    const language = lng === 'my' ? 'my' : 'en';
+    i18n.changeLanguage(language);
+
+    const params = new URLSearchParams(location.search);
+    params.set('lang', language);
+    const nextSearch = params.toString();
+    const nextUrl = `${location.pathname}${nextSearch ? `?${nextSearch}` : ''}${location.hash || ''}`;
+
+    navigate(nextUrl, { replace: true });
+  };
 
   // Active link detection
   const isActive = (href) =>
