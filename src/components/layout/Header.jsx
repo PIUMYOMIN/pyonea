@@ -97,9 +97,11 @@ const Header = () => {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     clearTimeout(debounceRef.current);
+    const term = searchTerm.trim();
     const params = new URLSearchParams();
-    if (searchTerm.trim()) params.set('search', searchTerm.trim());
-    navigate(`/products?${params.toString()}`);
+    if (term) params.set('search', term);
+    const queryString = params.toString();
+    navigate(queryString ? `/products?${queryString}` : '/products');
     setMobileOpen(false);
     setMobileSearch(false);
   };
@@ -193,6 +195,7 @@ const Header = () => {
               <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
               <input
                 type="search"
+                lang={i18n.language === 'my' ? 'my' : 'en'}
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 placeholder={t('header.search_placeholder')}
@@ -327,6 +330,7 @@ const Header = () => {
               <input
                 ref={mobileSearchRef}
                 type="search"
+                lang={i18n.language === 'my' ? 'my' : 'en'}
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 placeholder={t('header.search_placeholder')}
