@@ -10,7 +10,6 @@ import { useAuth } from '../../context/AuthContext';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import useSEO from '../../hooks/useSEO';
 import { useGoogleLogin } from "@react-oauth/google";
-import FacebookLogin from "@greatsumini/react-facebook-login";
 
 const Register = () => {
   const { t } = useTranslation();
@@ -88,7 +87,7 @@ const Register = () => {
 
   const handleGoogleAccessToken = async (accessToken) => {
     if (!accessToken) {
-      setSocialError("Google sign-in failed. Please try again.");
+      setSocialError(t('login.googleFailedTryAgain'));
       return;
     }
 
@@ -120,7 +119,7 @@ const Register = () => {
       if (user?.roles?.includes("seller") || user?.type === "seller") navigate("/seller", { replace: true });
       else navigate("/", { replace: true });
     } catch (err) {
-      setSocialError(err.response?.data?.message || "Google sign-in failed");
+      setSocialError(err.response?.data?.message || t('login.googleFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -129,58 +128,17 @@ const Register = () => {
   const googleLogin = useGoogleLogin({
     scope: "email profile",
     onSuccess: (tokenResponse) => handleGoogleAccessToken(tokenResponse?.access_token),
-    onError: () => setSocialError("Google sign-in failed. Please try again."),
+    onError: () => setSocialError(t('login.googleFailedTryAgain')),
   });
-
-  const handleFacebookSuccess = async (response) => {
-    const accessToken = response?.accessToken;
-    if (!accessToken) {
-      setSocialError("Facebook sign-in failed. Please try again.");
-      return;
-    }
-
-    setIsLoading(true);
-    setSocialError("");
-
-    try {
-      const r = await api.post("/auth/facebook", {
-        credential: accessToken,
-        token_type: "access_token",
-      });
-
-      if (r.data?.status === "needs_role") {
-        const pending = { ...r.data.data, provider: "facebook" };
-        sessionStorage.setItem("social_pending", JSON.stringify(pending));
-        navigate("/social/role", { replace: true, state: { socialPending: pending } });
-        return;
-      }
-
-      const token = r.data?.data?.token;
-      const user = r.data?.data?.user;
-      setSession({ token, user });
-
-      if (user?.email && !user?.email_verified_at) {
-        navigate("/verify-email", { replace: true });
-        return;
-      }
-
-      if (user?.roles?.includes("seller") || user?.type === "seller") navigate("/seller", { replace: true });
-      else navigate("/", { replace: true });
-    } catch (err) {
-      setSocialError(err.response?.data?.message || "Facebook sign-in failed");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
     const onSubmit = async (data) => {
     if (!agreed) {
-      setAgreedError('You must agree to the Terms & Conditions and Privacy Policy.');
+      setAgreedError(t('register.terms_required'));
       return;
     }
     setAgreedError('');
     if (!executeRecaptcha) {
-      setError('reCAPTCHA not ready');
+      setError(t('auth.recaptcha_not_ready'));
       return;
     }
 
@@ -272,7 +230,7 @@ const Register = () => {
             <div className="mt-4 flex items-center gap-2 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-xl px-4 py-3 text-sm">
               <span className="text-green-600">🎁</span>
               <span className="text-green-800 dark:text-green-200">
-                You were referred by <strong>{referrerName}</strong>. Your account will be linked to their referral.
+                {t('register.referred_by_prefix')} <strong>{referrerName}</strong>. {t('register.referred_by_suffix')}
               </span>
             </div>
           )}
@@ -469,15 +427,15 @@ const Register = () => {
                   </div>
                 </div>
                 <span className="text-sm text-gray-600 dark:text-slate-400 leading-snug">
-                  I agree to Pyonea's{' '}
+                  {t('register.terms_agree_prefix')}{' '}
                   <a href="/terms" target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
-                    className="font-medium text-green-600 hover:underline">Terms &amp; Conditions</a>
-                  {' and '}
+                    className="font-medium text-green-600 hover:underline">{t('register.terms')}</a>
+                  {' '}{t('register.and')}{' '}
                   <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
-                    className="font-medium text-green-600 hover:underline">Privacy Policy</a>
-                  {userType === 'seller' && (<>{' and the '}
+                    className="font-medium text-green-600 hover:underline">{t('register.privacy_policy')}</a>
+                  {userType === 'seller' && (<>{' '}{t('register.and_the')}{' '}
                     <a href="/seller-guidelines" target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
-                      className="font-medium text-green-600 hover:underline">Seller Guidelines</a>
+                      className="font-medium text-green-600 hover:underline">{t('register.seller_guidelines')}</a>
                   </>)}
                 </span>
               </label>
@@ -523,7 +481,7 @@ const Register = () => {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400">
-                  {t("login.orContinue") || "Or continue with"}
+                  {t("login.orContinue")}
                 </span>
               </div>
             </div>

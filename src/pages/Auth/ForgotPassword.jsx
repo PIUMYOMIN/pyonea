@@ -7,6 +7,8 @@ import api from '../../utils/api';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import useSEO from '../../hooks/useSEO';
 
+const MotionDiv = motion.div;
+
 const ForgotPassword = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -19,7 +21,7 @@ const ForgotPassword = () => {
 
   const onSubmit = async (data) => {
     if (!executeRecaptcha) {
-      setError('reCAPTCHA not ready');
+      setError(t('auth.recaptcha_not_ready'));
       return;
     }
 
@@ -50,7 +52,7 @@ const ForgotPassword = () => {
     <>
       {SeoComponent}
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 dark:from-slate-900 dark:to-slate-800 py-12 px-4 sm:px-6 lg:px-8 theme-transition">
-        <motion.div 
+        <MotionDiv
           className="max-w-md w-full space-y-8 bg-white dark:bg-slate-800 p-10 rounded-2xl shadow-xl dark:shadow-slate-900/50"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -137,7 +139,7 @@ const ForgotPassword = () => {
               </form>
             </>
           )}
-        </motion.div>
+        </MotionDiv>
       </div>
     </>
   );

@@ -2,7 +2,6 @@
 // Public seller profile page — fully structured with SEO, tabs, live data.
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Tab } from '@headlessui/react';
 import {
   StarIcon, MapPinIcon, PhoneIcon, EnvelopeIcon, GlobeAltIcon,
@@ -18,11 +17,11 @@ import {
 import useSEO from '../hooks/useSEO';
 import api from '../utils/api';
 import { SITE_PUBLIC_URL } from '../config';
+import { getImageUrl } from '../utils/imageHelpers';
 import { useAuth } from '../context/AuthContext';
 import ProductCard from '../components/ui/ProductCard';
 import { SkeletonSellerProfile } from '../components/ui/Skeleton';
 import { DEFAULT_PLACEHOLDER } from '../config';
-import { useTranslation } from 'react-i18next';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const fmtK = (n) => {
@@ -216,7 +215,6 @@ const SellerProfile = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { i18n } = useTranslation();
   const [seller, setSeller] = useState(null);
   const [products, setProducts] = useState([]);
   const [stats, setStats] = useState({});
@@ -269,7 +267,9 @@ const SellerProfile = () => {
     try {
       const r = await api.get(`/reviews/sellers/${slug}`, { params: { page, per_page: 5 } });
       if (r.data.success) setReviews(r.data.data || { data: [], meta: {} });
-    } catch { }
+    } catch {
+      setReviews({ data: [], meta: {} });
+    }
     finally { setRevLoading(false); }
   }, [slug]);
 
@@ -314,6 +314,12 @@ const SellerProfile = () => {
     } catch { setReviewForm(f => ({ ...f, submitting: false })); }
   };
 
+  const sellerShareImage = seller?.store_logo
+    ? getImageUrl(seller.store_logo)
+    : seller?.store_banner
+      ? getImageUrl(seller.store_banner)
+      : undefined;
+
   // ── Share ──────────────────────────────────────────────────────────────
   const shareData = useCallback(() => {
     const profileUrl = `${window.location.origin}/sellers/${slug}`;
@@ -329,13 +335,14 @@ const SellerProfile = () => {
       title,
       text,
       description: `Seller profile on Pyonea • ${profileUrl}`,
+      image: sellerShareImage,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${enc(profileUrl)}`,
       whatsapp: `https://wa.me/?text=${enc(`${text} ${profileUrl}`)}`,
       viber: `viber://forward?text=${enc(`${text} ${profileUrl}`)}`,
       telegram: `https://t.me/share/url?url=${enc(profileUrl)}&text=${enc(text)}`,
       twitter: `https://x.com/intent/tweet?text=${enc(text)}&url=${enc(profileUrl)}`,
     };
-  }, [seller?.store_name, seller?.website, slug]);
+  }, [seller?.store_name, seller?.website, sellerShareImage, slug]);
 
   const handleShare = async () => {
     const d = shareData();
@@ -390,7 +397,7 @@ const SellerProfile = () => {
     '@type': 'LocalBusiness',
     name: seller.store_name,
     description: seller.store_description,
-    image: seller.store_logo || seller.store_banner,
+    image: sellerShareImage,
     url: `${SITE_PUBLIC_URL}/sellers/${slug}`,
     // telephone: seller.contact_phone || undefined,
     email: seller.contact_email || undefined,
@@ -441,7 +448,7 @@ const SellerProfile = () => {
   const SeoComponent = useSEO({
     title: seller ? seller.store_name : 'Seller Profile',
     description: seller?.store_description?.slice(0, 155) || 'View products and information from this verified seller on Pyonea.',
-    image: seller?.store_logo || seller?.store_banner || undefined,
+    image: sellerShareImage,
     imageAlt: seller?.store_name || undefined,
     url: `/sellers/${slug}`,
     type: 'profile',

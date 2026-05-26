@@ -42,6 +42,9 @@
     }
   },
   "app_name": "Pyonea",
+  "auth": {
+    "recaptcha_not_ready": "Security check is still loading. Please wait a moment and try again."
+  },
   "common": {
     "currency": {
       "mmk": "MMK"
@@ -334,27 +337,32 @@
   },
   "forgot_password": {
     "title": "Forgot Password?",
-    "subtitle": "Enter your email address to reset your password",
+    "subtitle": "Enter your registered email or phone number and we’ll send instructions to reset your password.",
     "email_or_phone_label": "Email or Phone Number",
-    "email_or_phone_placeholder": "Enter your email or phone number",
+    "email_or_phone_placeholder": "Enter your registered email or phone number",
     "required_field": "This field is required",
     "send_reset": "Send Reset Link",
     "sending": "Sending...",
-    "success_message": "Password reset link sent! Please check your email.",
+    "success_message": "If the account exists, we’ve sent password reset instructions. Please check your inbox.",
     "back_to_login": "Back to Login",
-    "error": "Failed to send reset link. Please try again."
+    "error": "We couldn’t send the reset link. Please check your details and try again."
   },
   "reset_password": {
     "title": "Reset Password",
-    "subtitle": "Enter your new password",
+    "subtitle": "Create a new password for your Pyonea account.",
+    "seo_description": "Reset your Pyonea account password and regain secure access to your buyer or seller account.",
+    "invalid_link_title": "Invalid Reset Link",
+    "invalid_link_message": "This password reset link is invalid or has expired. Please request a new link.",
+    "request_new_link": "Request a new link",
     "new_password_label": "New Password",
-    "new_password_placeholder": "Enter new password",
+    "new_password_placeholder": "Enter your new password",
     "confirm_password_label": "Confirm New Password",
-    "confirm_password_placeholder": "Confirm new password",
+    "confirm_password_placeholder": "Re-enter your new password",
     "reset_button": "Reset Password",
     "resetting": "Resetting...",
-    "success_message": "Password reset successfully!",
-    "error": "Failed to reset password. Please try again."
+    "success_message": "Your password has been reset successfully.",
+    "redirecting": "Redirecting to login...",
+    "error": "We couldn’t reset your password. Please try again or request a new link."
   },
   "footer": {
     "company": "Company",
@@ -1015,7 +1023,16 @@
     "register": "Sign up",
     "orContinue": "Or continue with",
     "invalidCredentials": "Invalid phone number or password",
-    "error": "An error occurred during login"
+    "error": "An error occurred during login",
+    "redirectMessage": "Please sign in to add this item to your cart. We’ll add it automatically after login.",
+    "signInAndAdd": "Login & Add to Cart",
+    "signingInAndAdding": "Logging in & Adding to Cart...",
+    "cartAddSuccess": "Product added to cart successfully!",
+    "cartAddFailed": "You’re logged in, but we couldn’t add the product to your cart. Please try again.",
+    "googleFailed": "Google sign-in failed",
+    "googleFailedTryAgain": "Google sign-in failed. Please try again.",
+    "facebookFailed": "Facebook sign-in failed",
+    "facebookFailedTryAgain": "Facebook sign-in failed. Please try again."
   },
   "register": {
     "title": "Create your account",
@@ -1058,6 +1075,15 @@
     "hasAccount": "Already have an account?",
     "signIn": "Sign in",
     "error": "An error occurred during registration",
+    "terms_required": "You must agree to the Terms & Conditions and Privacy Policy.",
+    "terms_agree_prefix": "I agree to Pyonea’s",
+    "terms": "Terms & Conditions",
+    "and": "and",
+    "and_the": "and the",
+    "privacy_policy": "Privacy Policy",
+    "seller_guidelines": "Seller Guidelines",
+    "referred_by_prefix": "You were referred by",
+    "referred_by_suffix": "Your account will be linked to their referral.",
     "referral_og_title": "Join Pyonea — invited by {{name}}",
     "referral_og_description": "Create your free account on Myanmar's B2B wholesale marketplace.",
     "referral_og_title_generic": "Join Pyonea with a friend's referral",

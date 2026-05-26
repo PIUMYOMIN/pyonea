@@ -1,13 +1,15 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 import useSEO from "../hooks/useSEO";
 
 const Legal = () => {
   const { t } = useTranslation();
+  const location = useLocation();
   const SeoComponent = useSEO({
     title: t("legal.title"),
     description: t("legal.seo.description"),
-    url: "/legal",
+    url: location.pathname === "/terms" ? "/terms" : "/legal",
   });
 
   const legalSections = [

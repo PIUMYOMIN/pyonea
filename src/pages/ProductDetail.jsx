@@ -65,6 +65,20 @@ const buildDeliveryNameLookup = () => {
 
 const DELIVERY_NAME_LOOKUP = buildDeliveryNameLookup();
 
+const isPrimaryImage = (image) => (
+  image?.is_primary === true ||
+  image?.is_primary === 1 ||
+  image?.is_primary === "1" ||
+  image?.primary === true ||
+  image?.primary === 1 ||
+  image?.primary === "1"
+);
+
+const getPrimaryProductImage = (images = []) => {
+  if (!Array.isArray(images) || images.length === 0) return null;
+  return images.find(isPrimaryImage) || images[0];
+};
+
 
 const ProductDetail = () => {
   const { t, i18n } = useTranslation();
@@ -128,6 +142,8 @@ const ProductDetail = () => {
 
   const fallbackTitle       = t("productDetail.title");
   const fallbackDescription = t("productDetail.description_meta");
+  const primaryProductImage = useMemo(() => getPrimaryProductImage(product?.images), [product?.images]);
+  const primaryProductImageUrl = primaryProductImage ? getImageUrl(primaryProductImage) : undefined;
 
   // ── Fetch product ────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -547,7 +563,7 @@ const ProductDetail = () => {
     const title = loc(product.name_en, product.name_mm) || t("productDetail.product");
     const text  = t("productDetail.share_text", { title });
     const description = t("productDetail.share_description", { url });
-    const image = product.images?.[0] ? getImageUrl(product.images[0]) : null;
+    const image = primaryProductImageUrl || null;
     const enc   = encodeURIComponent;
     return {
       url,
@@ -563,7 +579,7 @@ const ProductDetail = () => {
       telegram:  `https://t.me/share/url?url=${enc(url)}&text=${enc(text)}`,
       twitter:   `https://x.com/intent/tweet?text=${enc(text)}&url=${enc(url)}`,
     };
-  }, [product, slug, i18n.language, t]);
+  }, [product, slug, i18n.language, t, primaryProductImageUrl]);
 
   const handleShare = async () => {
     if (!shareData) return;
@@ -722,7 +738,7 @@ const ProductDetail = () => {
   const SeoComponent = useSEO({
     title:       pageTitle,
     description: pageDescription,
-    image:       product?.images?.[0] ? getImageUrl(product.images[0]) : undefined,
+    image:       primaryProductImageUrl,
     imageAlt:    product ? (loc(product.name_en, product.name_mm) || t("productDetail.product")) : undefined,
     url:         pageUrl,
     type:        "product",

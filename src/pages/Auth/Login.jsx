@@ -10,7 +10,6 @@ import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import useSEO from '../../hooks/useSEO';
 import { useGoogleLogin } from "@react-oauth/google";
 import api from "../../utils/api";
-import FacebookLogin from "@greatsumini/react-facebook-login";
 
 const Login = () => {
   const { t } = useTranslation();
@@ -91,12 +90,12 @@ const Login = () => {
         try {
           await addToCart({ id: productId, quantity: 1 });
           navigate(returnTo, {
-            state: { message: 'Product added to cart successfully!', messageType: 'success' },
+            state: { message: t('login.cartAddSuccess'), messageType: 'success' },
             replace: true
           });
-        } catch (cartError) {
+        } catch {
           navigate(returnTo, {
-            state: { message: 'Logged in successfully, but failed to add product to cart. Please try again.', messageType: 'error' },
+            state: { message: t('login.cartAddFailed'), messageType: 'error' },
             replace: true
           });
         }
@@ -115,14 +114,14 @@ const Login = () => {
       } else {
         navigate('/', { replace: true });
       }
-    } catch (error) {
+    } catch {
       navigate('/', { replace: true });
     }
   };
 
   const onSubmit = async (data) => {
     if (!executeRecaptcha) {
-      setError('reCAPTCHA not ready');
+      setError(t('auth.recaptcha_not_ready'));
       return;
     }
 
@@ -145,7 +144,7 @@ const Login = () => {
       } else {
         setError(result.message || t('login.invalidCredentials'));
       }
-    } catch (err) {
+    } catch {
       setError(t('login.error'));
     } finally {
       setIsLoading(false);
@@ -154,7 +153,7 @@ const Login = () => {
 
   const handleGoogleAccessToken = async (accessToken) => {
     if (!accessToken) {
-      setError("Google sign-in failed. Please try again.");
+      setError(t('login.googleFailedTryAgain'));
       return;
     }
 
@@ -188,7 +187,7 @@ const Login = () => {
 
       await handleLoginSuccess(user);
     } catch (err) {
-      setError(err.response?.data?.message || "Google sign-in failed");
+      setError(err.response?.data?.message || t('login.googleFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -197,51 +196,8 @@ const Login = () => {
   const googleLogin = useGoogleLogin({
     scope: "email profile",
     onSuccess: (tokenResponse) => handleGoogleAccessToken(tokenResponse?.access_token),
-    onError: () => setError("Google sign-in failed. Please try again."),
+    onError: () => setError(t('login.googleFailedTryAgain')),
   });
-
-  const handleFacebookSuccess = async (response) => {
-    const accessToken = response?.accessToken;
-    if (!accessToken) {
-      setError("Facebook sign-in failed. Please try again.");
-      return;
-    }
-
-    setIsLoading(true);
-    setError("");
-
-    try {
-      const r = await api.post("/auth/facebook", {
-        credential: accessToken,
-        token_type: "access_token",
-      });
-
-      if (r.data?.status === "needs_role") {
-        const pending = { ...r.data.data, provider: "facebook" };
-        sessionStorage.setItem("social_pending", JSON.stringify(pending));
-        navigate("/social/role", { replace: true, state: { socialPending: pending } });
-        return;
-      }
-
-      const token = r.data?.data?.token;
-      const user = r.data?.data?.user;
-      setSession({ token, user });
-
-      if (user?.email && !user?.email_verified_at) {
-        navigate("/verify-email", {
-          replace: true,
-          state: { returnTo: location.state?.from || "/" },
-        });
-        return;
-      }
-
-      await handleLoginSuccess(user);
-    } catch (err) {
-      setError(err.response?.data?.message || "Facebook sign-in failed");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const showRedirectMessage = from === 'cart-add' && productId;
 
@@ -264,7 +220,7 @@ const Login = () => {
             </div>
             <div className="ml-3">
               <p className="text-sm text-blue-700 dark:text-blue-300">
-                {t('login.redirectMessage') || 'Please login to add items to your cart. The product will be automatically added after login.'}
+                {t('login.redirectMessage')}
               </p>
             </div>
           </div>
@@ -389,10 +345,10 @@ const Login = () => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                {showRedirectMessage ? t('login.signingInAndAdding') || 'Logging in & Adding to Cart...' : t('login.signingIn')}
+              {showRedirectMessage ? t('login.signingInAndAdding') : t('login.signingIn')}
               </>
             ) : (
-              showRedirectMessage ? t('login.signInAndAdd') || 'Login & Add to Cart' : t('login.signIn')
+              showRedirectMessage ? t('login.signInAndAdd') : t('login.signIn')
             )}
           </button>
         </div>

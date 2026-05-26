@@ -49,7 +49,8 @@ const Contact = () => {
 
   const SeoComponent = useSEO({
       title: t("contact.title"),
-      description: t("contact.subtitle")
+      description: t("contact.subtitle"),
+      url: "/contact",
     });
 
   return (

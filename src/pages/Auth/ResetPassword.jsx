@@ -8,6 +8,8 @@ import api from '../../utils/api';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import useSEO from '../../hooks/useSEO';
 
+const MotionDiv = motion.div;
+
 const ResetPassword = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -29,13 +31,13 @@ const ResetPassword = () => {
 
   useEffect(() => {
     if (!token || !email) {
-      setError('Invalid reset link');
+      setError(t('reset_password.invalid_link_title'));
     }
-  }, [token, email]);
+  }, [token, email, t]);
 
   const onSubmit = async (data) => {
     if (!executeRecaptcha) {
-      setError('reCAPTCHA not ready');
+      setError(t('auth.recaptcha_not_ready'));
       return;
     }
 
@@ -61,11 +63,11 @@ const ResetPassword = () => {
   };
 
   // Determine title based on link validity
-  const pageTitle = (!token || !email) ? "Invalid Reset Link" : t('reset_password.title');
+  const pageTitle = (!token || !email) ? t('reset_password.invalid_link_title') : t('reset_password.title');
 
   const SeoComponent = useSEO({
     title: pageTitle,
-    description: "Reset your Pyonea account password. Enter your new password to regain access.",
+    description: t('reset_password.seo_description'),
     noindex: true,
   });
 
@@ -73,7 +75,7 @@ const ResetPassword = () => {
     <>
       {SeoComponent}
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 dark:from-slate-900 dark:to-slate-800 py-12 px-4 sm:px-6 lg:px-8 theme-transition">
-        <motion.div 
+        <MotionDiv
           className="max-w-md w-full space-y-8 bg-white dark:bg-slate-800 p-10 rounded-2xl shadow-xl dark:shadow-slate-900/50"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -90,7 +92,7 @@ const ResetPassword = () => {
             </h2>
             {(!token || !email) ? (
               <p className="mt-2 text-center text-sm text-gray-600 dark:text-slate-400">
-                The password reset link is invalid or expired.
+                {t('reset_password.invalid_link_message')}
               </p>
             ) : (
               <p className="mt-2 text-center text-sm text-gray-600 dark:text-slate-400">
@@ -102,7 +104,7 @@ const ResetPassword = () => {
           {(!token || !email) && (
             <div className="text-center">
               <Link to="/forgot-password" className="text-green-600 hover:text-green-700 font-medium">
-                Request a new link
+                {t('reset_password.request_new_link')}
               </Link>
             </div>
           )}
@@ -119,7 +121,9 @@ const ResetPassword = () => {
                   <p className="text-sm font-medium text-green-800 dark:text-green-200">
                     {t('reset_password.success_message')}
                   </p>
-                  <p className="text-sm text-green-700 dark:text-green-300 mt-1">Redirecting to login...</p>
+                  <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                    {t('reset_password.redirecting')}
+                  </p>
                 </div>
               </div>
             </div>
@@ -200,7 +204,7 @@ const ResetPassword = () => {
               </div>
             </form>
           )}
-        </motion.div>
+        </MotionDiv>
       </div>
     </>
   );

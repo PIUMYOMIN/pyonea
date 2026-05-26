@@ -13,6 +13,21 @@ const routeConfig = {
   "/forgot-password": { type: "website", key: "auth" },
 };
 
+const withLanguageParam = (url, lang) => {
+  try {
+    const parsed = new URL(url);
+    parsed.searchParams.set("lang", lang);
+    return parsed.toString();
+  } catch {
+    const base = url.startsWith("/")
+      ? `${SITE_PUBLIC_URL}${url}`
+      : `${SITE_PUBLIC_URL}/${url}`;
+    const parsed = new URL(base);
+    parsed.searchParams.set("lang", lang);
+    return parsed.toString();
+  }
+};
+
 const useSEO = ({
   title,
   description,
@@ -48,14 +63,16 @@ const useSEO = ({
 
   // Canonical URL — use caller-supplied override when available, else derive from location
   const currentPath = location.pathname + location.search;
-  const resolvedUrl = customUrl
+  const baseResolvedUrl = customUrl
     ? (customUrl.startsWith('http') ? customUrl : `${SITE_PUBLIC_URL}${customUrl.startsWith('/') ? '' : '/'}${customUrl}`)
     : `${SITE_PUBLIC_URL}${currentPath}`;
+  const currentLanguage = i18n.language === "my" ? "my" : "en";
+  const resolvedUrl = withLanguageParam(baseResolvedUrl, currentLanguage);
 
   // Alternate hreflang URLs
   const alternateUrls = {};
   ['en', 'my'].forEach(lang => {
-    alternateUrls[lang] = resolvedUrl;
+    alternateUrls[lang] = withLanguageParam(baseResolvedUrl, lang);
   });
   
   const inferredOgType =
