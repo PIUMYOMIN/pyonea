@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 import { useTranslation } from "react-i18next";
-import { getWebPUrl } from "../../utils/imageHelpers";
+import { getImageUrl, getWebPUrl } from "../../utils/imageHelpers";
 
 // Deterministic gradient from category name — consistent across renders
 const gradientFromName = (name = "") => {
@@ -23,6 +23,8 @@ const gradientFromName = (name = "") => {
   return gradients[Math.abs(hash) % gradients.length];
 };
 
+const MotionSpan = motion.span;
+
 // Auto-cycles through items with a swipe-up animation
 const SlidingText = ({ items }) => {
   const [index, setIndex] = useState(0);
@@ -40,7 +42,7 @@ const SlidingText = ({ items }) => {
   return (
     <div className="relative h-5 overflow-hidden">
       <AnimatePresence mode="wait" initial={false}>
-        <motion.span
+        <MotionSpan
           key={index}
           className="absolute inset-0 flex items-center text-xs text-green-700 font-medium"
           initial={{ y: 16, opacity: 0 }}
@@ -49,16 +51,25 @@ const SlidingText = ({ items }) => {
           transition={{ duration: 0.35, ease: "easeOut" }}
         >
           {items[index]}
-        </motion.span>
+        </MotionSpan>
       </AnimatePresence>
     </div>
   );
 };
 
 const CategoryCard = ({ category, priority = false }) => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const [imageFailed, setImageFailed] = useState(false);
 
-  if (!category || category.products_count === 0) return null;
+  const toNum = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const hasProducts = (cat) =>
+    toNum(cat?.products_count) > 0 || (cat?.children || []).some(hasProducts);
+
+  if (!category || !hasProducts(category)) return null;
 
   const loc = (en, mm) =>
     i18n.language === "my" ? (mm || en) : (en || mm);
@@ -66,14 +77,9 @@ const CategoryCard = ({ category, priority = false }) => {
   const displayName = loc(category.name_en, category.name_mm);
   const gradient    = gradientFromName(displayName);
 
-  const toNum = (v) => {
-    const n = Number(v);
-    return Number.isFinite(n) ? n : 0;
-  };
-
   // Only children that have products
   const activeChildren = (category.children || []).filter(
-    (c) => (c.products_count || 0) > 0
+    (c) => hasProducts(c)
   );
 
   // e.g. ["2 Power Banks", "1 Bluetooth Speaker"]
@@ -104,12 +110,12 @@ const CategoryCard = ({ category, priority = false }) => {
 
         {/* ── Image / Gradient placeholder ────────────── */}
         <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-slate-700">
-          {category.image ? (
+          {category.image && !imageFailed ? (
             priority ? (
               // Above-fold (first cards): native <img> so fetchPriority="high"
               // and eager loading take effect without the LazyLoadImage JS overhead.
               <img
-                src={getWebPUrl(category.image, { width: 400 })}
+                src={getWebPUrl(getImageUrl(category.image), { width: 400 })}
                 alt={displayName}
                 loading="eager"
                 decoding="sync"
@@ -117,12 +123,12 @@ const CategoryCard = ({ category, priority = false }) => {
                 width={400}
                 height={400}
                 className="w-full h-full object-cover"
-                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                onError={() => setImageFailed(true)}
               />
             ) : (
               // Below-fold: lazy-load with blur-up
               <LazyLoadImage
-                src={getWebPUrl(category.image, { width: 400 })}
+                src={getWebPUrl(getImageUrl(category.image), { width: 400 })}
                 alt={displayName}
                 effect="blur"
                 loading="lazy"
@@ -132,7 +138,7 @@ const CategoryCard = ({ category, priority = false }) => {
                 height={400}
                 className="w-full h-full object-cover"
                 placeholderSrc="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300'%3E%3Crect width='300' height='300' fill='%23f3f4f6'/%3E%3C/svg%3E"
-                onError={(e) => { e.target.style.display = 'none'; }}
+                onError={() => setImageFailed(true)}
               />
             )
           ) : (
@@ -148,7 +154,7 @@ const CategoryCard = ({ category, priority = false }) => {
           {maxDiscountPct > 0 && (
             <div className="absolute top-2 left-2">
               <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full leading-tight shadow-sm">
-                Up to {maxDiscountPct}% OFF
+                {t("categories.discount_badge", { percent: maxDiscountPct })}
               </span>
             </div>
           )}

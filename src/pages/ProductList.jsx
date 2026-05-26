@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { MagnifyingGlassIcon, XMarkIcon, AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
 import api from "../utils/api";
@@ -27,8 +27,7 @@ const ProductCardSkeleton = () => (
 );
 
 const ProductList = () => {
-  const { t } = useTranslation();
-  const { slug_en } = useParams();
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { addToCart } = useCart();
@@ -61,7 +60,7 @@ const ProductList = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await api.get("/categories?fields=id,name_en,parent_id,children,products_count");
+        const res = await api.get("/categories?fields=id,name_en,name_mm,parent_id,children,products_count");
         const data = res.data.data || res.data || [];
         setCategories(Array.isArray(data) ? data : []);
       } catch (err) {
@@ -99,7 +98,7 @@ const ProductList = () => {
       if (filters.maxPrice) params.append("max_price",  filters.maxPrice);
       params.append("sort_by",    filters.sortBy);
       params.append("sort_order", filters.sortOrder);
-      params.append("fields", "id,name_en,name_mm,slug_en,price,images,average_rating,review_count,quantity,is_active,moq,min_order_unit,category_id,seller_id,is_on_sale");
+      params.append("fields", "id,name_en,name_mm,slug_en,price,selling_price,images,average_rating,review_count,quantity,total_stock,in_stock,is_active,moq,min_order_unit,quantity_unit,category_id,seller_id,is_on_sale,is_currently_on_sale,effective_discount_pct,discount_percentage,has_variants,category,seller");
 
       const response = await api.get("/products", { params });
       const data = response.data.data || response.data || [];
@@ -150,11 +149,11 @@ const ProductList = () => {
     setCartMessage(null);
     try {
       const result = await addToCart(productId, quantity);
-      setCartMessage({ type: "success", message: result.message || "Added to cart" });
+      setCartMessage({ type: "success", message: result.message || t("products.added_to_cart") });
       setTimeout(() => setCartMessage(null), 3000);
       return result;
     } catch (err) {
-      setCartMessage({ type: "error", message: err.message || "Failed to add to cart" });
+      setCartMessage({ type: "error", message: err.message || t("products.add_to_cart_failed") });
       setTimeout(() => setCartMessage(null), 3000);
       throw err;
     }
@@ -205,7 +204,11 @@ const ProductList = () => {
   const getCategoryName = useCallback((categoryId) => {
     const find = (cats, id) => {
       for (const cat of cats) {
-        if (cat.id == id) return cat.name_en || cat.name;
+        if (cat.id == id) {
+          return i18n.language === "my"
+            ? (cat.name_mm || cat.name_en || cat.name)
+            : (cat.name_en || cat.name_mm || cat.name);
+        }
         if (cat.children) {
           const found = find(cat.children, id);
           if (found) return found;
@@ -214,7 +217,7 @@ const ProductList = () => {
       return null;
     };
     return find(categories, categoryId) || t("products.category_id", { id: categoryId });
-  }, [categories, t]);
+  }, [categories, i18n.language, t]);
 
   const getPageTitle = useMemo(() => {
     if (searchQuery && selectedCategory)
@@ -228,13 +231,17 @@ const ProductList = () => {
 
   const metaDescription = useMemo(() => {
     if (searchQuery && selectedCategory)
-      return `Find ${searchQuery} products in ${getCategoryName(selectedCategory)} category on Pyonea. Browse ${products.length} items from trusted Myanmar suppliers.`;
+      return t("products.seo_search_category", {
+        query: searchQuery,
+        category: getCategoryName(selectedCategory),
+        count: products.length,
+      });
     if (searchQuery)
-      return `Search results for "${searchQuery}" on Pyonea. Discover ${products.length} products from verified Myanmar sellers.`;
+      return t("products.seo_search", { query: searchQuery, count: products.length });
     if (selectedCategory)
-      return `Browse ${getCategoryName(selectedCategory)} products on Pyonea. Shop wholesale items from top Myanmar suppliers.`;
-    return "Discover thousands of wholesale products on Pyonea, Myanmar's leading B2B marketplace.";
-  }, [searchQuery, selectedCategory, products.length, getCategoryName]);
+      return t("products.seo_category", { category: getCategoryName(selectedCategory) });
+    return t("products.seo_default");
+  }, [searchQuery, selectedCategory, products.length, getCategoryName, t]);
 
   const productListingSchema = useMemo(() => {
     const pageUrl = `${SITE_PUBLIC_URL}${location.pathname}${location.search}`;
@@ -255,7 +262,7 @@ const ProductList = () => {
         position: i + 1,
         item: {
           "@type": "Thing",
-          name,
+          name: name || t("productDetail.product"),
           url: `${SITE_PUBLIC_URL}/products/${path}`,
           ...(img ? { image: img } : {}),
         },
@@ -273,7 +280,7 @@ const ProductList = () => {
         itemListElement,
       },
     };
-  }, [products, location.pathname, location.search, getPageTitle, metaDescription]);
+  }, [products, location.pathname, location.search, getPageTitle, metaDescription, t]);
 
   const SeoComponent = useSEO({
     title: getPageTitle,
@@ -543,7 +550,7 @@ const ProductList = () => {
                   ))
                 : !loading && (
                     <div className="col-span-full text-center py-16">
-                      <p className="text-4xl mb-3">🔍</p>
+                      <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600 mb-3" />
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                         {t("products.no_products_found")}
                       </h3>

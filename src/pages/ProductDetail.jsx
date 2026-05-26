@@ -245,7 +245,6 @@ const ProductDetail = () => {
 
     // Reset quantity to effective MOQ whenever variant changes
     const moq  = variant?.moq ?? product?.moq ?? 1;
-    const step = variant?.quantity_step ?? product?.quantity_step ?? 1;
     // Snap initial quantity to the nearest valid step above MOQ
     setQuantity(moq);
   };
@@ -289,7 +288,7 @@ const ProductDetail = () => {
   // Stock available for the current selection
   const availableStock = selectedVariant != null
     ? (selectedVariant.quantity ?? 0)
-    : product?.total_stock ?? 0;
+    : (product?.total_stock ?? product?.quantity ?? 0);
 
   // Effective MOQ
   const effectiveMoq = selectedVariant?.moq ?? product?.moq ?? 1;
@@ -628,7 +627,7 @@ const ProductDetail = () => {
           seller_id: String(sellerId),
           sort_by: "created_at",
           sort_order: "desc",
-          fields: "id,name_en,name_mm,slug_en,price,images,average_rating,review_count,quantity,is_active,moq,min_order_unit,category_id,seller_id,is_on_sale",
+          fields: "id,name_en,name_mm,slug_en,price,selling_price,images,average_rating,review_count,quantity,total_stock,in_stock,is_active,moq,min_order_unit,quantity_unit,category_id,seller_id,is_on_sale,is_currently_on_sale,effective_discount_pct,discount_percentage,has_variants,category,seller",
         });
         const res = await api.get(`/products?${params.toString()}`);
         const data = res.data.data || res.data || [];

@@ -36,21 +36,30 @@ const CategoryBrowser = () => {
       try {
         setLoading(true);
         // Fetch categories with necessary fields
-        const response = await api.get("/categories?fields=id,name_en,name_mm,image,products_count,children&with_products_only=true");
+        const response = await api.get("/categories?fields=id,name_en,name_mm,image,products_count,parent_id,children&with_products_only=true");
 
         if (!isMounted) return;
 
         let categoriesData = response.data.data || [];
 
         // Process each category to ensure consistent structure
-        const processed = categoriesData.map(cat => ({
-          ...cat,
-          name_en: cat.name_en || cat.name,
-          name_mm: cat.name_mm || null,
-          products_count: cat.products_count || 0,
-          children_count: cat.children?.length || 0,
-          image: cat.image || null,
-        }));
+        const normalizeCategory = (cat) => {
+          const children = Array.isArray(cat.children)
+            ? cat.children.map(normalizeCategory)
+            : [];
+
+          return {
+            ...cat,
+            name_en: cat.name_en || cat.name,
+            name_mm: cat.name_mm || null,
+            products_count: Number(cat.products_count) || 0,
+            children,
+            children_count: children.length,
+            image: cat.image || null,
+          };
+        };
+
+        const processed = categoriesData.map(normalizeCategory);
 
         setCategories(processed);
       } catch (err) {
@@ -218,8 +227,8 @@ const CategoryBrowser = () => {
                 {t("categories.showing_categories", { count: filteredCategories.length })}
               </p>
               <div className="grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-3 lg:grid-cols-6">
-                {filteredCategories.map((category) => (
-                  <CategoryCard key={category.id} category={category} />
+                {filteredCategories.map((category, index) => (
+                  <CategoryCard key={category.id} category={category} priority={index < 6} />
                 ))}
               </div>
             </>

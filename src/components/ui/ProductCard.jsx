@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { PhotoIcon, ShoppingCartIcon, AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartSolid, StarIcon } from "@heroicons/react/24/solid";
 import { HeartIcon as HeartOutline } from "@heroicons/react/24/outline";
-import { motion, AnimatePresence } from "framer-motion";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 import { useAuth } from "../../context/AuthContext";
@@ -280,7 +279,7 @@ const ProductCard = ({ product, className = "", imagePriority = false }) => {
           {isUnavailable && !isOutOfStock && (
             <span className="bg-gray-400/90 text-white text-[10px] font-bold
                              px-2 py-0.5 rounded-full leading-tight">
-              N/A
+              {t('productCard.unavailable')}
             </span>
           )}
         </div>
