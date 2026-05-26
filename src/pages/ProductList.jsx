@@ -356,7 +356,7 @@ const ProductList = () => {
           <div className="absolute left-0 top-0 bottom-0 w-72 bg-gray-50 dark:bg-gray-900
                           overflow-y-auto p-4 shadow-xl">
             <div className="flex justify-between items-center mb-4">
-              <span className="font-semibold text-gray-900 dark:text-gray-100">Filters</span>
+              <span className="font-semibold text-gray-900 dark:text-gray-100">{t("products.filters")}</span>
               <button onClick={() => setSidebarOpen(false)}>
                 <XMarkIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
               </button>
@@ -510,7 +510,7 @@ const ProductList = () => {
                              text-gray-700 dark:text-gray-300"
                 >
                   <AdjustmentsHorizontalIcon className="h-4 w-4" />
-                  Filters
+                  {t("products.filters")}
                 </button>
               </div>
             </div>

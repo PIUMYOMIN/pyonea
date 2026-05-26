@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import { StarIcon, ChevronDownIcon, FunnelIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
@@ -73,7 +74,7 @@ const Sellers = () => {
   }, [t]);
 
   // Categories for filtering
-  const categories = [
+  const buildCategories = useCallback(() => [
     { id: "all", name: t("sellers.all_categories") },
     { id: "individual", name: t("sellers.individual") },
     { id: "company", name: t("sellers.company") },
@@ -81,15 +82,19 @@ const Sellers = () => {
     { id: "wholesale", name: t("sellers.wholesale") },
     { id: "manufacturer", name: t("sellers.manufacturer") },
     { id: "Uncategorized", name: t("sellers.uncategorized") },
-  ];
+  ], [t]);
+
+  const categories = useMemo(() => buildCategories(), [buildCategories]);
 
   // Sort options
-  const sortOptions = [
+  const buildSortOptions = useCallback(() => [
     { id: "rating", name: t("sellers.highest_rating") },
     { id: "reviewCount", name: t("sellers.most_reviews") },
     { id: "joined", name: t("sellers.newest") },
     { id: "name", name: t("sellers.alphabetical") },
-  ];
+  ], [t]);
+
+  const sortOptions = useMemo(() => buildSortOptions(), [buildSortOptions]);
 
   // Filter and sort sellers
   useEffect(() => {

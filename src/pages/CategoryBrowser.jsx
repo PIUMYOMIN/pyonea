@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
@@ -65,23 +66,41 @@ const CategoryBrowser = () => {
     return () => { isMounted = false; };
   }, [t]);
 
+  const localizeCategoryName = React.useCallback(
+    (cat) =>
+      i18n.language === "my"
+        ? (cat.name_mm || cat.name_en || cat.name || "Category")
+        : (cat.name_en || cat.name_mm || cat.name || "Category"),
+    [i18n.language]
+  );
+
+  const localizedCategories = useMemo(
+    () =>
+      categories.map((cat) => ({
+        ...cat,
+        display_name: localizeCategoryName(cat),
+      })),
+    [categories, localizeCategoryName]
+  );
+
   const filteredCategories = useMemo(() => {
-    if (!searchQuery.trim()) return categories;
+    if (!searchQuery.trim()) return localizedCategories;
     const query = searchQuery.toLowerCase();
-    return categories.filter((cat) => {
+    return localizedCategories.filter((cat) => {
       const nameEn = (cat.name_en || "").toLowerCase();
       const nameMm = (cat.name_mm || "").toLowerCase();
-      return nameEn.includes(query) || nameMm.includes(query);
+      return (
+        nameEn.includes(query) ||
+        nameMm.includes(query) ||
+        (cat.display_name || "").toLowerCase().includes(query)
+      );
     });
-  }, [categories, searchQuery]);
+  }, [localizedCategories, searchQuery]);
 
   const categoryListingSchema = useMemo(() => {
     const pageUrl = `${SITE_PUBLIC_URL}/categories`;
     const itemListElement = filteredCategories.slice(0, 48).map((cat, i) => {
-      const name =
-        i18n.language === "my" && cat.name_mm
-          ? cat.name_mm
-          : (cat.name_en || cat.name_mm || "Category");
+      const name = cat.display_name || "Category";
       let img;
       if (cat.image) {
         const resolved = getImageUrl(cat.image);
@@ -112,7 +131,7 @@ const CategoryBrowser = () => {
         itemListElement,
       },
     };
-  }, [filteredCategories, t, i18n.language]);
+  }, [filteredCategories, t]);
 
   const SeoComponent = useSEO({
     title: t("categories.title"),
