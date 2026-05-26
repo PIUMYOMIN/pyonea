@@ -54,7 +54,7 @@ const CategoryBrowser = () => {
         setCategories(processed);
       } catch (err) {
         console.error("Failed to fetch categories:", err);
-        if (isMounted) setError(t("categories.fetch_error") || "Failed to load categories. Please try again later.");
+        setError(t("categories.fetch_error"));
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -68,9 +68,9 @@ const CategoryBrowser = () => {
   const filteredCategories = useMemo(() => {
     if (!searchQuery.trim()) return categories;
     const query = searchQuery.toLowerCase();
-    return categories.filter(cat => {
-      const nameEn = (cat.name_en || '').toLowerCase();
-      const nameMm = (cat.name_mm || '').toLowerCase();
+    return categories.filter((cat) => {
+      const nameEn = (cat.name_en || "").toLowerCase();
+      const nameMm = (cat.name_mm || "").toLowerCase();
       return nameEn.includes(query) || nameMm.includes(query);
     });
   }, [categories, searchQuery]);
@@ -103,8 +103,8 @@ const CategoryBrowser = () => {
     return {
       "@context": "https://schema.org",
       "@type": "CollectionPage",
-      name: t("categories.title"),
-      description: t("categories.subtitle"),
+      name: t("categories.browse_categories"),
+      description: t("categories.discover_products"),
       url: pageUrl,
       mainEntity: {
         "@type": "ItemList",
@@ -155,7 +155,7 @@ const CategoryBrowser = () => {
                 {t("categories.browse_categories")}
               </h1>
               <p className="text-lg text-green-100 max-w-2xl mx-auto mb-8">
-                {t("categories.discover_products") || "Discover products across all categories"}
+                {t("categories.discover_products")}
               </p>
 
               {/* Search Bar */}
@@ -166,7 +166,7 @@ const CategoryBrowser = () => {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={t("categories.search_placeholder") || "Search categories..."}
+                    placeholder={t("categories.search_placeholder")}
                     className="w-full pl-12 pr-10 py-3 rounded-lg border-0 focus:ring-2 focus:ring-white bg-white/10 backdrop-blur-sm text-white placeholder-white/70"
                   />
                   {searchQuery && (
@@ -223,7 +223,7 @@ const CategoryBrowser = () => {
                   onClick={() => setSearchQuery("")}
                   className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
                 >
-                  {t("categories.clear_search") || "Clear search"}
+                      {t("categories.clear_search")}
                 </button>
               )}
             </div>
