@@ -26,7 +26,7 @@ const lineKey = () => (typeof crypto !== "undefined" && crypto.randomUUID ? cryp
 
 const productToLine = (p) => {
   const moq          = Math.max(1, parseInt(String(p.moq ?? 1), 10) || 1);
-  const quantityStep = Math.max(1, parseInt(String(p.quantity_step ?? 1), 10) || 1);
+  const quantityStep = resolveQuantityStep(p.quantity_step, moq);
   const basePrice    = Number(p.selling_price ?? p.price ?? 0) || 0;
   const wholesaleTiers = Array.isArray(p.wholesale_tiers) ? p.wholesale_tiers : [];
 
@@ -75,6 +75,29 @@ const productToLine = (p) => {
 const parseQty = (q) => {
   const n = parseInt(String(q).replace(/\D/g, ""), 10);
   return Number.isFinite(n) ? n : 0;
+};
+
+const toPositiveInt = (value, fallback = 1) => {
+  const parsed = parseInt(String(value ?? ""), 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+const resolveQuantityStep = (rawStep, moq) => {
+  const safeMoq = toPositiveInt(moq, 1);
+  const parsedStep = toPositiveInt(rawStep, safeMoq);
+  return parsedStep > 1 ? parsedStep : safeMoq;
+};
+
+const snapQuantityToStep = (quantity, moq, step) => {
+  const safeMoq = toPositiveInt(moq, 1);
+  const safeStep = resolveQuantityStep(step, safeMoq);
+  let q = parseQty(quantity);
+
+  if (q < safeMoq) q = safeMoq;
+  if (safeStep <= 1) return q;
+
+  const rem = (q - safeMoq) % safeStep;
+  return rem === 0 ? q : q + (safeStep - rem);
 };
 
 /** Laravel RFQ rule: `deadline` must be strictly after today. */
@@ -165,6 +188,8 @@ const BulkOrderTool = () => {
         // Normalise lines from old saved data that may be missing new fields
         const normalised = parsed.map((l) => ({
           ...l,
+          moq:             toPositiveInt(l.moq, 1),
+          quantityStep:    resolveQuantityStep(l.quantityStep, l.moq),
           variantOptions:    Array.isArray(l.variantOptions) ? l.variantOptions : [],
           variantsLoading:   false,
           selectedVariantId: l.selectedVariantId ?? null,
@@ -210,8 +235,8 @@ const BulkOrderTool = () => {
     setLines((prev) => {
       const ex = prev.find((l) => l.productId === p.id);
       if (ex) {
-        // Increment by the step, not the MOQ
-        const step = Math.max(1, parseInt(String(p.quantity_step ?? ex.quantityStep ?? 1), 10) || 1);
+        const moq = toPositiveInt(ex.moq ?? p.moq, 1);
+        const step = resolveQuantityStep(p.quantity_step ?? ex.quantityStep, moq);
         return prev.map((l) =>
           l.productId === p.id ? { ...l, quantity: String(parseQty(l.quantity) + step) } : l
         );
@@ -245,8 +270,8 @@ const BulkOrderTool = () => {
         if (l.key !== key) return l;
         const v = l.variantOptions.find((o) => String(o.id) === String(variantId));
         if (!v) return { ...l, selectedVariantId: null };
-        const moq  = v.moq ?? l.moq;
-        const step = v.quantity_step ?? l.quantityStep;
+        const moq  = toPositiveInt(v.moq ?? l.moq, 1);
+        const step = resolveQuantityStep(v.quantity_step ?? l.quantityStep, moq);
         return {
           ...l,
           selectedVariantId: variantId,
@@ -274,8 +299,8 @@ const BulkOrderTool = () => {
           label: v.label || v.sku || `Variant #${v.id}`,
           price: Number(v.price ?? 0),
           in_stock: v.in_stock ?? (v.quantity > 0),
-          moq: v.moq ?? 1,
-          quantity_step: v.quantity_step ?? 1,
+          moq: toPositiveInt(v.moq, 1),
+          quantity_step: resolveQuantityStep(v.quantity_step, v.moq),
         }));
       setLines((prev) =>
         prev.map((l) =>
@@ -289,18 +314,9 @@ const BulkOrderTool = () => {
 
   const validatedLines = useMemo(() => {
     return lines.map((l) => {
-      const step = l.quantityStep ?? 1;
-      const moq  = l.moq ?? 1;
-
-      // 1. Clamp to MOQ floor
-      let q = parseQty(l.quantity);
-      if (q < moq) q = moq;
-
-      // 2. Snap to nearest valid step above MOQ: valid = moq + n*step
-      if (step > 1) {
-        const rem = (q - moq) % step;
-        if (rem !== 0) q = q + (step - rem); // round up to next valid step
-      }
+      const moq = toPositiveInt(l.moq, 1);
+      const step = resolveQuantityStep(l.quantityStep, moq);
+      const q = snapQuantityToStep(l.quantity, moq, step);
 
       // 3. Resolve effective unit price from wholesale tiers at quantity q
       const tiers = Array.isArray(l.wholesaleTiers) ? l.wholesaleTiers : [];
@@ -314,6 +330,8 @@ const BulkOrderTool = () => {
       const subtotal = q * unitPrice;
       return {
         ...l,
+        moq,
+        quantityStep: step,
         quantityNum: q,
         unitPrice,
         activeTier: activeTier ?? null,
@@ -604,10 +622,18 @@ const BulkOrderTool = () => {
                           {sellerLabel}
                         </p>
                         <p className="text-xs text-green-700 dark:text-green-400 mt-1 font-medium">
-                          {fmtMmk(p.selling_price ?? p.price)} · MOQ {p.moq ?? 1}
-                          {(p.quantity_step ?? 1) > 1 && (p.quantity_step !== p.moq) && (
-                            <span className="ml-1 text-gray-500 dark:text-slate-400">· step {p.quantity_step}</span>
-                          )}
+                          {(() => {
+                            const moq = toPositiveInt(p.moq, 1);
+                            const step = resolveQuantityStep(p.quantity_step, moq);
+                            return (
+                              <>
+                                {fmtMmk(p.selling_price ?? p.price)} · MOQ {moq}
+                                {step > 1 && (
+                                  <span className="ml-1 text-gray-500 dark:text-slate-400">· step {step}</span>
+                                )}
+                              </>
+                            );
+                          })()}
                           {p.has_variants && (
                             <span className="ml-2 text-amber-600 dark:text-amber-400">
                               {t("bulk_order.variants_label", "(variants — cart from product page)")}
@@ -749,14 +775,15 @@ const BulkOrderTool = () => {
                               <input
                                 type="number"
                                 min={l.moq}
-                                step={l.quantityStep ?? 1}
+                                step={l.quantityStep}
                                 value={l.quantity}
                                 onChange={(e) => updateQty(l.key, e.target.value)}
+                                onBlur={() => updateQty(l.key, String(l.quantityNum))}
                                 className="w-20 border border-gray-200 dark:border-slate-600 rounded-lg px-2 py-1.5 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100"
                               />
                               <p className="text-[10px] text-gray-400 mt-0.5">
                                 MOQ {l.moq}
-                                {l.quantityStep > 1 && l.quantityStep !== l.moq && ` · step ${l.quantityStep}`}
+                                {l.quantityStep > 1 && ` · step ${l.quantityStep}`}
                                 {" "}{l.unitLabel}
                               </p>
                             </td>

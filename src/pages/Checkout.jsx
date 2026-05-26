@@ -218,6 +218,15 @@ export default function Checkout() {
   const taxFee = subtotal * taxRate;
   const shippingAndHandlingDisplay = shippingFee + taxFee;
   const total = Math.max(0, subtotal + shippingFee + taxFee - couponDiscount);
+  const hasCartIssues = cartItems.some((item) => !item.is_available || !item.is_quantity_valid);
+  const cartItemPayload = useMemo(
+    () => cartItems.map(item => ({
+      product_id: item.product_id,
+      variant_id: item.variant_id ?? null,
+      quantity: item.quantity,
+    })),
+    [cartItems],
+  );
 
   // ── Fetch seller policies ────────────────────────────────────────────────────
   useEffect(() => {
@@ -302,7 +311,7 @@ export default function Checkout() {
     try {
       const res = await api.post("/buyer/coupons/validate", {
         code,
-        items: cartItems.map(item => ({ product_id: item.product_id, quantity: item.quantity })),
+        items: cartItemPayload,
         subtotal,
       });
       const data = res.data.data;
@@ -393,6 +402,10 @@ export default function Checkout() {
 
   // ── OTP: request ─────────────────────────────────────────────────────────────
   const handleRequestOtp = async () => {
+    if (hasCartIssues) {
+      showToast('error', t("checkout.cart_quantity_issue", "Please return to your cart and update unavailable items or MOQ quantities."));
+      return;
+    }
     if (!shippingAddress.full_name || !shippingAddress.phone || !shippingAddress.address) {
       showToast('error', t("checkout.fill_required_shipping"));
       return;
@@ -417,7 +430,7 @@ export default function Checkout() {
     setOtpError('');
     try {
       const res = await api.post('/orders/request-otp', {
-        items: cartItems.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
+        items: cartItemPayload,
         shipping_address: shippingAddress,
         payment_method: paymentMethod,
       });
@@ -655,7 +668,7 @@ export default function Checkout() {
                             setLoading(true);
                             try {
                               const res = await api.post('/orders/request-otp', {
-                                items: cartItems.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
+                                items: cartItemPayload,
                                 shipping_address: shippingAddress,
                                 payment_method: paymentMethod,
                               });
@@ -1016,6 +1029,12 @@ export default function Checkout() {
                   ))}
                 </div>
 
+                {hasCartIssues && (
+                  <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800/60 dark:bg-amber-900/20 dark:text-amber-200">
+                    {t("checkout.cart_quantity_issue", "Please return to your cart and update unavailable items or MOQ quantities.")}
+                  </div>
+                )}
+
                 {/* Coupon */}
                 <div className="border-t border-gray-200 dark:border-slate-700 pt-4 mb-4">
                   <h3 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-3 flex items-center gap-2">
@@ -1213,10 +1232,10 @@ export default function Checkout() {
 
                 <button
                   onClick={handleConfirmOrder}
-                  disabled={loading || feesLoading}
+                  disabled={loading || feesLoading || hasCartIssues}
                   className={classNames(
                     "w-full mt-6 py-3 sm:py-4 px-4 sm:px-6 rounded-lg font-semibold text-white transition-all",
-                    loading || feesLoading
+                    loading || feesLoading || hasCartIssues
                       ? "bg-gray-400 dark:bg-slate-600 cursor-not-allowed"
                       : "bg-green-600 hover:bg-green-700 shadow-lg hover:shadow-xl"
                   )}

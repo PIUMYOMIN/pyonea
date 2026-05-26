@@ -142,6 +142,7 @@ const VariantTable = ({ productId, onUpdated }) => {
         quantity,
         quantity_unit: row.quantity_unit || null,
         moq:           moqVal,
+        quantity_step: moqVal,
         sku:           row.sku || null,
         is_active:     row.is_active,
       });
@@ -215,6 +216,11 @@ const VariantTable = ({ productId, onUpdated }) => {
         price:    genPrice,
         quantity: genQty,
         moq:      (() => {
+          if (!genDefaults.moq) return null;
+          const m = parseInt(genDefaults.moq, 10);
+          return Number.isNaN(m) ? null : m;
+        })(),
+        quantity_step: (() => {
           if (!genDefaults.moq) return null;
           const m = parseInt(genDefaults.moq, 10);
           return Number.isNaN(m) ? null : m;

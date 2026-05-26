@@ -79,6 +79,44 @@ const getPrimaryProductImage = (images = []) => {
   return images.find(isPrimaryImage) || images[0];
 };
 
+const toPositiveInt = (value, fallback = 1) => {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+const resolveQuantityStep = (rawStep, moq) => {
+  const safeMoq = toPositiveInt(moq, 1);
+  const parsedStep = toPositiveInt(rawStep, safeMoq);
+  return parsedStep > 1 ? parsedStep : safeMoq;
+};
+
+const snapQuantityToStep = (value, moq, step) => {
+  const safeMoq = toPositiveInt(moq, 1);
+  const safeStep = toPositiveInt(step, safeMoq);
+  const parsed = Number.parseInt(value, 10);
+  const clamped = Math.max(Number.isFinite(parsed) ? parsed : safeMoq, safeMoq);
+
+  if (safeStep <= 1) return clamped;
+
+  const remainder = (clamped - safeMoq) % safeStep;
+  return remainder === 0 ? clamped : clamped + (safeStep - remainder);
+};
+
+const getMaxValidQuantity = (availableStock, moq, step, isPhysical) => {
+  if (!isPhysical) return undefined;
+
+  const stock = Number.parseInt(availableStock, 10);
+  if (!Number.isFinite(stock) || stock <= 0) return 0;
+
+  const safeMoq = toPositiveInt(moq, 1);
+  if (stock < safeMoq) return safeMoq;
+
+  const safeStep = toPositiveInt(step, safeMoq);
+  if (safeStep <= 1) return stock;
+
+  return safeMoq + Math.floor((stock - safeMoq) / safeStep) * safeStep;
+};
+
 
 const ProductDetail = () => {
   const { t, i18n } = useTranslation();
@@ -260,7 +298,7 @@ const ProductDetail = () => {
     }
 
     // Reset quantity to effective MOQ whenever variant changes
-    const moq  = variant?.moq ?? product?.moq ?? 1;
+    const moq = toPositiveInt(variant?.moq ?? product?.moq, 1);
     // Snap initial quantity to the nearest valid step above MOQ
     setQuantity(moq);
   };
@@ -307,10 +345,20 @@ const ProductDetail = () => {
     : (product?.total_stock ?? product?.quantity ?? 0);
 
   // Effective MOQ
-  const effectiveMoq = selectedVariant?.moq ?? product?.moq ?? 1;
+  const effectiveMoq = toPositiveInt(selectedVariant?.moq ?? product?.moq, 1);
 
-  // Effective quantity step (1 = no restriction, 5 = must order 5/10/15…)
-  const effectiveStep = selectedVariant?.quantity_step ?? product?.quantity_step ?? 1;
+  // Effective quantity step. If legacy product data has step=1, MOQ is the step.
+  const effectiveStep = resolveQuantityStep(
+    selectedVariant?.quantity_step ?? product?.quantity_step,
+    effectiveMoq
+  );
+
+  const maxValidQuantity = getMaxValidQuantity(
+    availableStock,
+    effectiveMoq,
+    effectiveStep,
+    product?.product_type === "physical"
+  );
 
   // Whether the product uses the variant system
   const hasVariants = product?.has_variants || (product?.options?.length > 0);
@@ -623,8 +671,9 @@ const ProductDetail = () => {
   // so we snap it up once the product is available and no variant system is in use.
   useEffect(() => {
     if (!product) return;
-    const moq = product.moq ?? 1;
-    setQuantity(prev => Math.max(prev, moq));
+    const moq = toPositiveInt(product.moq, 1);
+    const step = resolveQuantityStep(product.quantity_step, moq);
+    setQuantity(prev => snapQuantityToStep(prev, moq, step));
   }, [product?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // More from this seller (best-effort, non-blocking)
@@ -1122,19 +1171,12 @@ const ProductDetail = () => {
                     type="number"
                     id="quantity"
                     min={effectiveMoq}
-                    max={product.product_type === "physical" ? (availableStock || undefined) : undefined}
+                    max={maxValidQuantity || undefined}
                     step={effectiveStep}
                     value={quantity}
                     onChange={(e) => {
-                      const raw = parseInt(e.target.value, 10) || effectiveMoq;
-                      const clamped = Math.max(raw, effectiveMoq);
-                      // Snap to nearest valid step
-                      if (effectiveStep > 1) {
-                        const remainder = (clamped - effectiveMoq) % effectiveStep;
-                        setQuantity(remainder === 0 ? clamped : clamped + (effectiveStep - remainder));
-                      } else {
-                        setQuantity(clamped);
-                      }
+                      const snapped = snapQuantityToStep(e.target.value, effectiveMoq, effectiveStep);
+                      setQuantity(maxValidQuantity ? Math.min(snapped, maxValidQuantity) : snapped);
                     }}
                     className="w-20 text-center px-2 py-2 border border-gray-300 dark:border-slate-600
                                bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 rounded-md"
@@ -1146,10 +1188,10 @@ const ProductDetail = () => {
                     aria-label={t("productDetail.increase_quantity")}
                     onClick={() => {
                       const next = quantity + effectiveStep;
-                      if (product.product_type === "physical" && next > availableStock) return;
+                      if (maxValidQuantity !== undefined && next > maxValidQuantity) return;
                       setQuantity(next);
                     }}
-                    disabled={product.product_type === "physical" && quantity + effectiveStep > availableStock}
+                    disabled={maxValidQuantity !== undefined && quantity + effectiveStep > maxValidQuantity}
                     className="w-8 h-8 flex items-center justify-center rounded border border-gray-300 dark:border-slate-600
                                bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-200
                                hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
