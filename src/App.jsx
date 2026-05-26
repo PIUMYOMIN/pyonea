@@ -256,6 +256,10 @@ function App() {
                           <GuestRoute>
                             <WithRC><Register /></WithRC>
                           </GuestRoute>} />
+                        <Route path="/register-seller" element={
+                          <GuestRoute>
+                            <WithRC><Register /></WithRC>
+                          </GuestRoute>} />
                         <Route path="/forgot-password" element={
                           <GuestRoute>
                             <WithRC><ForgotPassword /></WithRC>

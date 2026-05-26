@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from "react-i18next";
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
@@ -15,17 +15,28 @@ const Register = () => {
   const { t } = useTranslation();
   const { register: registerUser, setSession } = useAuth();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const refCode = searchParams.get('ref') || '';
   const [referrerName, setReferrerName] = React.useState('');
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [userType, setUserType] = useState('buyer');
+  const [userType, setUserType] = useState(() => (
+    location.pathname === '/register-seller' || searchParams.get('type') === 'seller'
+      ? 'seller'
+      : 'buyer'
+  ));
   const [agreed, setAgreed] = useState(false);
   const [agreedError, setAgreedError] = useState('');
   const { executeRecaptcha } = useGoogleReCaptcha();
   const [socialError, setSocialError] = useState("");
+
+  React.useEffect(() => {
+    if (location.pathname === '/register-seller' || searchParams.get('type') === 'seller') {
+      setUserType('seller');
+    }
+  }, [location.pathname, searchParams]);
 
   const {
     register,
