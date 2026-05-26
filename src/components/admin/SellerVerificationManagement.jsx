@@ -915,20 +915,23 @@ const SellerVerificationManagement = () => {
                   { id: "nrc",       label: "National ID (NRC)",   icon: IdentificationIcon  },
                   { id: "documents", label: "Documents",            icon: DocumentIcon        },
                   { id: "verify",    label: "Verify / Reject",      icon: ShieldCheckIcon     },
-                ].map(({ id, label, icon: Icon }) => (
-                  <button
-                    key={id}
-                    onClick={() => setActiveTab(id)}
-                    className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-colors ${
-                      activeTab === id
-                        ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-500"
-                        : "border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300"
-                    }`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {label}
-                  </button>
-                ))}
+                ].map((tabItem) => {
+                  const TabIcon = tabItem.icon;
+                  return (
+                    <button
+                      key={tabItem.id}
+                      onClick={() => setActiveTab(tabItem.id)}
+                      className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-colors ${
+                        activeTab === tabItem.id
+                          ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-500"
+                          : "border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300"
+                      }`}
+                    >
+                      <TabIcon className="h-4 w-4" />
+                      {tabItem.label}
+                    </button>
+                  );
+                })}
               </div>
 
               <div className="p-6">
@@ -955,17 +958,20 @@ const SellerVerificationManagement = () => {
                         [BuildingStorefrontIcon, selectedSeller.business_type || "Not specified",         "Business Type"],
                         [MapPinIcon,           `${selectedSeller.address || "—"}, ${selectedSeller.city || "—"}`,
                                                `${selectedSeller.state || ""} ${selectedSeller.country || "Myanmar"}`],
-                      ].map(([Icon, value, label], i) => (
-                        <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-900/40 rounded-xl">
-                          <div className="h-8 w-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center flex-shrink-0">
-                            <Icon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                      ].map(([rowIcon, value, label], i) => {
+                        const RowIcon = rowIcon;
+                        return (
+                          <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-900/40 rounded-xl">
+                            <div className="h-8 w-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center flex-shrink-0">
+                              <RowIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                            </div>
+                            <div>
+                              <div className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide">{label}</div>
+                              <div className="text-sm font-medium text-gray-900 dark:text-slate-100 mt-0.5">{value}</div>
+                            </div>
                           </div>
-                          <div>
-                            <div className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide">{label}</div>
-                            <div className="text-sm font-medium text-gray-900 dark:text-slate-100 mt-0.5">{value}</div>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     {/* Right: Store status & timestamps */}

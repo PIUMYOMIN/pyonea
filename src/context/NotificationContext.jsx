@@ -1,4 +1,5 @@
 // src/context/NotificationContext.jsx
+/* eslint-disable react-refresh/only-export-components */
 
 import React, {
   createContext, useContext, useState,
@@ -7,7 +8,7 @@ import React, {
 import { useAuth } from './AuthContext';
 import api from '../utils/api';
 
-const POLL_INTERVAL_MS = 60_000; // 60 s
+const POLL_INTERVAL_MS = 10_000; // near-real-time shared polling
 
 const NotificationContext = createContext(null);
 
@@ -15,14 +16,21 @@ export const NotificationProvider = ({ children }) => {
   const { user } = useAuth();
 
   const [unreadCount, setUnreadCount] = useState(0);
+  const [version, setVersion] = useState(0);
   const intervalRef = useRef(null);
+  const lastCountRef = useRef(0);
 
   // ── fetch unread count only ───────────────────────────────────────────────
   const refreshCount = useCallback(async () => {
     if (!user) return;
     try {
       const res = await api.get('/notifications', { params: { per_page: 1 } });
-      setUnreadCount(res.data.unread_count ?? 0);
+      const nextCount = res.data.unread_count ?? 0;
+      setUnreadCount(nextCount);
+      if (nextCount !== lastCountRef.current) {
+        lastCountRef.current = nextCount;
+        setVersion(v => v + 1);
+      }
     } catch { /* silent — network hiccups shouldn't disrupt the UI */ }
   }, [user]);
 
@@ -30,6 +38,7 @@ export const NotificationProvider = ({ children }) => {
   useEffect(() => {
     if (!user) {
       setUnreadCount(0);
+      lastCountRef.current = 0;
       clearInterval(intervalRef.current);
       return;
     }
@@ -37,7 +46,20 @@ export const NotificationProvider = ({ children }) => {
     refreshCount();
     intervalRef.current = setInterval(refreshCount, POLL_INTERVAL_MS);
 
-    return () => clearInterval(intervalRef.current);
+    const onFocus = () => refreshCount();
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') refreshCount();
+    };
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('online', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      clearInterval(intervalRef.current);
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('online', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, [user, refreshCount]);
 
   // ── optimistic action helpers ─────────────────────────────────────────────
@@ -46,13 +68,23 @@ export const NotificationProvider = ({ children }) => {
   // it can keep its own item list in sync without re-fetching everything.
 
   const decrementUnread = useCallback((wasUnread) => {
-    if (wasUnread) setUnreadCount(c => Math.max(0, c - 1));
+    if (wasUnread) {
+      setUnreadCount(c => {
+        const next = Math.max(0, c - 1);
+        lastCountRef.current = next;
+        return next;
+      });
+    }
   }, []);
 
-  const resetUnread = useCallback(() => setUnreadCount(0), []);
+  const resetUnread = useCallback(() => {
+    lastCountRef.current = 0;
+    setUnreadCount(0);
+  }, []);
 
   const value = {
     unreadCount,
+    version,
     refreshCount,
     decrementUnread,
     resetUnread,

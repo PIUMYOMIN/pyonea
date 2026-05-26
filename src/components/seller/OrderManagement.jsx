@@ -57,6 +57,9 @@ const DELIVERY_STATUS_COLOR = {
 const formatStatus = (s) => (s || "").replaceAll("_", " ");
 
 const calculatePlatformFee = (weight = 5) => 5000 + weight * 100;
+const hasDeliveryMethodChoice = (delivery) =>
+  Boolean(delivery?.tracking_number) && delivery?.status !== "pending";
+
 const parseShippingAddress = (shippingAddress) => {
   if (!shippingAddress) return {};
   if (typeof shippingAddress === "string") {
@@ -358,10 +361,10 @@ const OrderDetailsModal = ({
 
   const needsDeliveryMethod =
     order.status === "confirmed" &&
-    (!delivery || !delivery.delivery_method || delivery.delivery_method === "pending");
+    (!delivery || !hasDeliveryMethodChoice(delivery));
 
   const isPlatform = delivery?.delivery_method === "platform";
-  const isSelfDelivery = delivery?.delivery_method === "supplier";
+  const isSelfDelivery = delivery?.delivery_method === "supplier" && !needsDeliveryMethod;
 
   const handleDeliveryMethodConfirm = async (method, pickupAddress) => {
     setError(null);
@@ -947,7 +950,7 @@ const OrderManagement = () => {
 
                 const deliveryMethod = order.delivery?.delivery_method;
                 const deliveryStatus = order.delivery?.status;
-                const needsMethod = order.status === "confirmed" && (!deliveryMethod || deliveryMethod === "pending");
+                const needsMethod = order.status === "confirmed" && !hasDeliveryMethodChoice(order.delivery);
 
                 return (
                   <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/50">

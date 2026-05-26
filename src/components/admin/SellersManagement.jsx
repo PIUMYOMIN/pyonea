@@ -9,6 +9,7 @@ import {
   ClockIcon,
   EyeIcon,
   ExclamationTriangleIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import api from "../../utils/api";
 import DataTable from "../ui/DataTable";
@@ -28,6 +29,12 @@ const getStatusBadge = (status) => {
         cls: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400",
         icon: ClockIcon,
         label: "Pending",
+      };
+    case "setup_pending":
+      return {
+        cls: "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400",
+        icon: ClockIcon,
+        label: "Setup Pending",
       };
     case "rejected":
     case "suspended":
@@ -167,6 +174,7 @@ const SellersManagement = () => {
   const [statusModal, setStatusModal] = useState(null); // { seller, newStatus }
   const [statusReason, setStatusReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [bulkAction, setBulkAction] = useState("");
 
   const openStatusModal = (seller, newStatus) => {
     setStatusReason("");
@@ -223,14 +231,26 @@ const SellersManagement = () => {
 
     setSubmitting(true);
     try {
-      const payload = { status: newStatus };
-      if (statusReason.trim()) payload.reason = statusReason.trim();
+      const payload = {};
+      if (statusReason.trim()) {
+        payload.reason = statusReason.trim();
+        payload.notes = statusReason.trim();
+      }
 
-      const response = await api.put(`/admin/seller/${seller.id}/status`, payload);
+      let response;
+      if (newStatus === "approved") {
+        response = await api.put(`/admin/seller/${seller.id}/approve`, payload);
+      } else if (newStatus === "suspended") {
+        response = await api.post(`/admin/seller/${seller.id}/suspend`, payload);
+      } else if (newStatus === "active") {
+        response = await api.post(`/admin/seller/${seller.id}/reactivate`, payload);
+      } else {
+        response = await api.put(`/admin/seller/${seller.id}/status`, { ...payload, status: newStatus });
+      }
       if (response.data.success) {
         flash(`Seller status updated to ${newStatus} successfully.`);
         setSellers(prev =>
-          prev.map(s => s.id === seller.id ? { ...s, status: newStatus } : s)
+          prev.map(s => s.id === seller.id ? { ...s, ...(response.data.data || {}), status: newStatus } : s)
         );
         setStatusModal(null);
         setStatusReason("");
@@ -238,6 +258,40 @@ const SellersManagement = () => {
     } catch (error) {
       flash(error.response?.data?.message || error.message || "Failed to update seller status", "error");
       // Keep modal open so admin can retry or cancel
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleBulkAction = async () => {
+    if (!bulkAction || selectedSellers.length === 0 || submitting) return;
+
+    const actionLabel = bulkAction.replace("_", " ");
+    const ok = window.confirm(`Apply "${actionLabel}" to ${selectedSellers.length} selected seller(s)?`);
+    if (!ok) return;
+
+    setSubmitting(true);
+    try {
+      const selected = sellers.filter((seller) => selectedSellers.includes(seller.id));
+      const results = await Promise.allSettled(selected.map((seller) => {
+        if (bulkAction === "approved") return api.put(`/admin/seller/${seller.id}/approve`);
+        if (bulkAction === "suspended") return api.post(`/admin/seller/${seller.id}/suspend`, { reason: "Bulk suspended by admin" });
+        if (bulkAction === "active") return api.post(`/admin/seller/${seller.id}/reactivate`, { notes: "Bulk reactivated by admin" });
+        return api.put(`/admin/seller/${seller.id}/status`, { status: bulkAction });
+      }));
+
+      const successCount = results.filter((result) => result.status === "fulfilled" && result.value.data?.success).length;
+      const failureCount = selected.length - successCount;
+      if (successCount > 0) {
+        flash(`${successCount} seller(s) updated${failureCount ? `, ${failureCount} failed` : ""}.`, failureCount ? "error" : "success");
+      } else {
+        flash("No sellers were updated. Some sellers may be missing required approval information.", "error");
+      }
+      setSelectedSellers([]);
+      setBulkAction("");
+      await fetchSellers(currentPage, searchTerm, statusFilter);
+    } catch (error) {
+      flash(error.response?.data?.message || error.message || "Bulk action failed", "error");
     } finally {
       setSubmitting(false);
     }
@@ -338,6 +392,7 @@ const SellersManagement = () => {
             onChange={e => openStatusModal(seller, e.target.value)}
             className="text-xs border border-gray-300 dark:border-slate-600 rounded px-2 py-1 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-1 focus:ring-green-500 transition-colors"
           >
+            <option value="setup_pending">Setup Pending</option>
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>
             <option value="active">Active</option>
@@ -383,6 +438,15 @@ const SellersManagement = () => {
           <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">Seller directory</h2>
           <p className="mt-0.5 text-sm text-gray-600 dark:text-slate-400">Manage all sellers in your marketplace</p>
         </div>
+        <button
+          type="button"
+          onClick={() => fetchSellers(currentPage, searchTerm, statusFilter)}
+          disabled={loading}
+          className="inline-flex items-center gap-2 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-600 disabled:opacity-60"
+        >
+          <ArrowPathIcon className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+          Refresh
+        </button>
       </div>
 
       {/* Filters */}
@@ -412,6 +476,7 @@ const SellersManagement = () => {
               className={inputCls}
             >
               <option value="all">All Statuses</option>
+              <option value="setup_pending">Setup Pending</option>
               <option value="pending">Pending</option>
               <option value="approved">Approved</option>
               <option value="active">Active</option>
@@ -434,10 +499,44 @@ const SellersManagement = () => {
         </div>
 
         {pagination && (
-          <div className="mt-4 flex items-center space-x-4 text-sm text-gray-500 dark:text-slate-400">
-            <span>Total: {pagination.total}</span>
-            <span>•</span>
-            <span>Showing {pagination.from}–{pagination.to}</span>
+          <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-slate-400">
+              <span>Total: {pagination.total}</span>
+              <span>•</span>
+              <span>Showing {pagination.from}–{pagination.to}</span>
+              {selectedSellers.length > 0 && (
+                <>
+                  <span>•</span>
+                  <span className="font-medium text-green-700 dark:text-green-400">{selectedSellers.length} selected</span>
+                </>
+              )}
+            </div>
+
+            {selectedSellers.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <select
+                  value={bulkAction}
+                  onChange={(e) => setBulkAction(e.target.value)}
+                  className="rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-gray-900 dark:text-slate-100"
+                >
+                  <option value="">Bulk action</option>
+                  <option value="approved">Approve selected</option>
+                  <option value="active">Reactivate selected</option>
+                  <option value="suspended">Suspend selected</option>
+                  <option value="pending">Move to pending</option>
+                  <option value="setup_pending">Move to setup pending</option>
+                  <option value="closed">Close selected</option>
+                </select>
+                <button
+                  type="button"
+                  onClick={handleBulkAction}
+                  disabled={!bulkAction || submitting}
+                  className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {submitting ? "Applying..." : "Apply"}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -54,7 +54,6 @@ function classNames(...classes) {
 
 const SellerDashboard = () => {
   const location = useLocation();
-  const { state } = location;
   const { t } = useTranslation();
   const { user } = useAuth();
   const [selectedTab, setSelectedTab] = useState(0);
@@ -77,7 +76,8 @@ const SellerDashboard = () => {
     message: "",
     requiredActions: [],
     nextStep: "",
-    ctaLabel: "Complete Setup"
+    ctaLabel: "Complete Setup",
+    setupProgress: null
   });
 
   // ---------- Shared data-fetch logic (no loading state) ----------
@@ -318,13 +318,21 @@ const SellerDashboard = () => {
   useEffect(() => {
     if (!storeData) return;
 
+    const setupProgress = storeData.setup_progress || onboardingStatus?.setup_progress || null;
+    const incompleteSetupItems = setupProgress?.items?.filter((item) => !item.complete) || [];
+    const requiredActions = incompleteSetupItems.map((item) => item.label);
+    const nextStep = setupProgress?.next_action?.action_step || incompleteSetupItems[0]?.action_step || "my-store";
+
     if (storeData.status === "pending") {
       setSetupNotificationData({
         title: "Store Pending Approval",
-        message: "Your store is under review. You can add products and set up your store while waiting for approval.",
-        requiredActions: ["Complete store setup", "Add products", "Set up delivery zone"],
-        nextStep: "my-store",
-        ctaLabel: "Review Setup"
+        message: setupProgress?.is_complete
+          ? "Your store is under review. You can add products while waiting for approval."
+          : "Your store is under review. Complete the remaining setup items so you are ready when approved.",
+        requiredActions: requiredActions.length ? requiredActions : ["Add products", "Set up delivery zone"],
+        nextStep,
+        ctaLabel: setupProgress?.is_complete ? "Review Store" : "Continue Setup",
+        setupProgress
       });
       setShowSetupNotification(true);
       return;
@@ -334,9 +342,10 @@ const SellerDashboard = () => {
       setSetupNotificationData({
         title: "Complete Store Setup",
         message: "Your store setup is incomplete. Complete the setup to start selling.",
-        requiredActions: ["Add store logo", "Complete business details", "Set up payment methods"],
-        nextStep: "my-store",
-        ctaLabel: "Complete Setup"
+        requiredActions: requiredActions.length ? requiredActions : ["Complete store profile", "Set up delivery zone", "Upload required documents"],
+        nextStep,
+        ctaLabel: "Complete Setup",
+        setupProgress
       });
       setShowSetupNotification(true);
       return;
@@ -345,10 +354,26 @@ const SellerDashboard = () => {
     if (storeData.verification_status === "pending" || storeData.verification_status === "under_review") {
       setSetupNotificationData({
         title: "Verification Required",
-        message: "Your account needs verification to access all seller features.",
-        requiredActions: ["Upload required documents", "Complete identity verification"],
-        nextStep: "my-store",
-        ctaLabel: "Continue Verification"
+        message: setupProgress?.is_complete
+          ? "Your account is waiting for admin verification to access all seller features."
+          : "Your account needs a few more setup items before admin verification can be completed.",
+        requiredActions: requiredActions.length ? requiredActions : ["Upload required documents", "Complete identity verification"],
+        nextStep,
+        ctaLabel: setupProgress?.is_complete ? "Review Store" : "Continue Setup",
+        setupProgress
+      });
+      setShowSetupNotification(true);
+      return;
+    }
+
+    if (setupProgress && !setupProgress.is_complete) {
+      setSetupNotificationData({
+        title: "Improve Store Setup",
+        message: "Complete these items to improve buyer trust and keep your store ready for approval.",
+        requiredActions,
+        nextStep,
+        ctaLabel: "Update Store",
+        setupProgress
       });
       setShowSetupNotification(true);
       return;
@@ -368,20 +393,15 @@ const SellerDashboard = () => {
         message: "Your store profile is incomplete. Please complete the items below.",
         requiredActions: missingInfo,
         nextStep: "my-store",
-        ctaLabel: "Update Profile"
+        ctaLabel: "Update Profile",
+        setupProgress
       });
       setShowSetupNotification(true);
       return;
     }
 
     setShowSetupNotification(false);
-  }, [storeData]);
-
-  // ---------- Dismiss notification ----------
-  const handleDismissNotification = () => {
-    setShowSetupNotification(false);
-    localStorage.setItem('seller_setup_notification_dismissed', 'true');
-  };
+  }, [storeData, onboardingStatus]);
 
   // ---------- Start setup ----------
   const handleStartSetup = () => {
@@ -390,6 +410,18 @@ const SellerDashboard = () => {
       const myStoreIndex = navigation.findIndex(item => item.key === "my_store");
       if (myStoreIndex !== -1) setSelectedTab(myStoreIndex);
       navigate('/seller/dashboard?tab=my-store&view=edit', { replace: true });
+    } else if (setupNotificationData.nextStep === "delivery_zones") {
+      const deliveryIndex = navigation.findIndex(item => item.key === "delivery_zones");
+      if (deliveryIndex !== -1) setSelectedTab(deliveryIndex);
+      navigate('/seller/dashboard?tab=delivery-zones', { replace: true });
+    } else if (setupNotificationData.nextStep === "products") {
+      const productsIndex = navigation.findIndex(item => item.key === "products");
+      if (productsIndex !== -1) setSelectedTab(productsIndex);
+      navigate('/seller/dashboard?tab=products', { replace: true });
+    } else if (setupNotificationData.nextStep === "settings") {
+      const settingsIndex = navigation.findIndex(item => item.key === "settings");
+      if (settingsIndex !== -1) setSelectedTab(settingsIndex);
+      navigate('/seller/dashboard?tab=settings', { replace: true });
     } else if (onboardingStatus?.needs_onboarding || !onboardingStatus?.onboarding_complete) {
       navigate(`/seller/onboarding/${setupNotificationData.nextStep || 'store-basic'}`);
     } else if (setupNotificationData.nextStep === "verification") {
@@ -535,6 +567,24 @@ const SellerDashboard = () => {
                     <div className="flex-1">
                       <h4 className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-1">{setupNotificationData.title}</h4>
                       <p className="text-xs text-amber-700 dark:text-amber-400 mb-2">{setupNotificationData.message}</p>
+
+                      {setupNotificationData.setupProgress && (
+                        <div className="mb-3">
+                          <div className="flex items-center justify-between text-[11px] font-medium text-amber-800 dark:text-amber-300 mb-1">
+                            <span>Store setup</span>
+                            <span>{Math.round(setupNotificationData.setupProgress.percentage || 0)}%</span>
+                          </div>
+                          <div className="h-2 rounded-full bg-amber-100 dark:bg-amber-950 overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-300"
+                              style={{ width: `${Math.min(100, Math.max(0, setupNotificationData.setupProgress.percentage || 0))}%` }}
+                            />
+                          </div>
+                          <p className="mt-1 text-[11px] text-amber-700 dark:text-amber-400">
+                            {setupNotificationData.setupProgress.completed_count || 0} of {setupNotificationData.setupProgress.total_count || 0} completed
+                          </p>
+                        </div>
+                      )}
 
                       {setupNotificationData.requiredActions?.length > 0 && (
                         <ul className="mb-3 space-y-1.5">

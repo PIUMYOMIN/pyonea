@@ -11,10 +11,12 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import {
   BellIcon, CheckCircleIcon, TrashIcon,
   ShoppingBagIcon, StarIcon, BuildingStorefrontIcon,
   InformationCircleIcon, XMarkIcon, ExclamationTriangleIcon,
+  TruckIcon,
 } from '@heroicons/react/24/outline';
 import { BellAlertIcon } from '@heroicons/react/24/solid';
 import api from '../../utils/api';
@@ -28,9 +30,18 @@ const typeIcon = (type) => {
     case 'order_placed':
     case 'order_status_changed':
     case 'new_order':       return <ShoppingBagIcon           className={`${cls} text-blue-500`} />;
+    case 'delivery_status_changed':
+    case 'order_delivered_thank_you': return <TruckIcon       className={`${cls} text-orange-500`} />;
     case 'product_review':  return <StarIcon                  className={`${cls} text-yellow-500`} />;
     case 'seller_approved': return <BuildingStorefrontIcon    className={`${cls} text-green-500`} />;
     case 'seller_rejected': return <XMarkIcon                 className={`${cls} text-red-500`} />;
+    case 'subscription_request':
+    case 'subscription_approved': return <CheckCircleIcon      className={`${cls} text-green-500`} />;
+    case 'subscription_rejected': return <XMarkIcon            className={`${cls} text-red-500`} />;
+    case 'rfq_created':
+    case 'rfq_quote_received':
+    case 'rfq_quote_accepted':
+    case 'rfq_quote_rejected': return <InformationCircleIcon   className={`${cls} text-indigo-500`} />;
     case 'welcome':         return <BellIcon                  className={`${cls} text-green-400`} />;
     default:                return <InformationCircleIcon     className={`${cls} text-gray-400`} />;
   }
@@ -53,7 +64,8 @@ const PER_PAGE = 20;
 
 const NotificationsPanel = () => {
   const { t } = useTranslation();
-  const { unreadCount, decrementUnread, resetUnread } = useNotifications();
+  const navigate = useNavigate();
+  const { unreadCount, version, decrementUnread, resetUnread } = useNotifications();
 
   const [items,        setItems]        = useState([]);
   const [loading,      setLoading]      = useState(true);
@@ -86,6 +98,12 @@ const NotificationsPanel = () => {
   // Re-fetch from page 1 whenever the filter changes
   useEffect(() => { fetchPage(1, true); }, [fetchPage]);
 
+  // Keep the open panel live when the shared notification context detects
+  // a count change from another dashboard area or from the server.
+  useEffect(() => {
+    if (version > 0) fetchPage(1, true);
+  }, [version, fetchPage]);
+
   // ── actions ───────────────────────────────────────────────────────────────
 
   const markRead = async (id) => {
@@ -117,6 +135,24 @@ const NotificationsPanel = () => {
     setItems([]);
     resetUnread();
     setConfirmClear(false);
+  };
+
+  const notificationPath = (data) => {
+    if (data.type === 'new_order') return '/seller/dashboard?tab=orders';
+    if (data.type?.startsWith('subscription_')) return '/seller/dashboard?tab=subscription';
+    if (data.type?.startsWith('rfq_')) return '/rfq';
+    if (data.order_number && data.type?.includes('delivery')) {
+      return `/order-tracking?order=${encodeURIComponent(data.order_number)}`;
+    }
+    if (data.order_number || data.order_id) return '/buyer/dashboard?tab=orders';
+    return null;
+  };
+
+  const openNotification = async (notification, data) => {
+    const path = notificationPath(data);
+    if (!path) return;
+    if (!notification.read_at) await markRead(notification.id);
+    navigate(path);
   };
 
   // ── derived state ─────────────────────────────────────────────────────────
@@ -232,7 +268,17 @@ const NotificationsPanel = () => {
               const isUnread = !n.read_at;
               return (
                 <div key={n.id}
+                  role={notificationPath(data) ? 'button' : undefined}
+                  tabIndex={notificationPath(data) ? 0 : undefined}
+                  onClick={() => openNotification(n, data)}
+                  onKeyDown={(event) => {
+                    if ((event.key === 'Enter' || event.key === ' ') && notificationPath(data)) {
+                      event.preventDefault();
+                      openNotification(n, data);
+                    }
+                  }}
                   className={`flex items-start gap-3 p-4 transition-colors
+                    ${notificationPath(data) ? 'cursor-pointer' : ''}
                     ${isUnread
                       ? 'bg-green-50/60 dark:bg-green-900/10 hover:bg-green-50 dark:hover:bg-green-900/20'
                       : 'hover:bg-gray-50 dark:hover:bg-slate-700/50'}`}>
@@ -264,14 +310,14 @@ const NotificationsPanel = () => {
                   {/* actions */}
                   <div className="flex items-center gap-1 flex-shrink-0">
                     {isUnread && (
-                      <button onClick={() => markRead(n.id)}
+                      <button onClick={(event) => { event.stopPropagation(); markRead(n.id); }}
                         title={t('notifications.mark_as_read')}
                         className="p-1.5 text-green-500 hover:text-green-700 dark:hover:text-green-400
                                    hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors">
                         <CheckCircleIcon className="h-4 w-4" />
                       </button>
                     )}
-                    <button onClick={() => remove(n.id)}
+                    <button onClick={(event) => { event.stopPropagation(); remove(n.id); }}
                       title={t('notifications.remove')}
                       className="p-1.5 text-gray-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400
                                  hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">

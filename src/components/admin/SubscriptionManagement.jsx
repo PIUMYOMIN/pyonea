@@ -14,6 +14,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   Cog6ToothIcon,
+  ShieldCheckIcon,
 } from '@heroicons/react/24/outline';
 import api from '../../utils/api';
 
@@ -194,6 +195,40 @@ const PlanEditorModal = ({ plan, onSave, onCancel, saving }) => {
   );
 };
 
+const RejectRequestModal = ({ subscription, onSave, onCancel, loading }) => {
+  const [reason, setReason] = useState('');
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
+        <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">
+          Reject {subscription.plan?.name} Request
+        </h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Seller: {subscription.seller?.store ?? subscription.seller?.email ?? `User #${subscription.user_id}`}
+        </p>
+        <textarea
+          rows={3}
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="Explain why the payment/request is rejected..."
+          className="w-full px-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-red-500 outline-none text-sm resize-none"
+        />
+        <div className="flex gap-3 pt-1">
+          <button onClick={onCancel} disabled={loading}
+            className="flex-1 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium transition-colors">
+            Cancel
+          </button>
+          <button onClick={() => onSave(reason)} disabled={loading || !reason.trim()}
+            className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors">
+            {loading ? 'Rejecting...' : 'Reject Request'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ── Main Component ────────────────────────────────────────────────────────────
 
 const SubscriptionManagement = () => {
@@ -208,6 +243,7 @@ const SubscriptionManagement = () => {
   const [planFilter, setPlanFilter] = useState('');
   const [page,     setPage]         = useState(1);
   const [modal,    setModal]        = useState(null);
+  const [rejectModal, setRejectModal] = useState(null);
   const [saving,   setSaving]       = useState(false);
   const [toast,    setToast]        = useState('');
 
@@ -264,6 +300,36 @@ const SubscriptionManagement = () => {
     } catch (e) {
       showToast(e.response?.data?.message ?? 'Failed to update plan.');
     } finally { setSaving(false); }
+  };
+
+  const handleApproveRequest = async (subscription) => {
+    setSaving(true);
+    try {
+      await api.post(`/admin/subscriptions/requests/${subscription.id}/approve`, {
+        notes: 'Approved from admin subscription dashboard',
+      });
+      showToast('Subscription request approved.');
+      loadSubs();
+    } catch (e) {
+      showToast(e.response?.data?.message ?? 'Failed to approve subscription request.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleRejectRequest = async (reason) => {
+    if (!rejectModal) return;
+    setSaving(true);
+    try {
+      await api.post(`/admin/subscriptions/requests/${rejectModal.id}/reject`, { reason });
+      setRejectModal(null);
+      showToast('Subscription request rejected.');
+      loadSubs();
+    } catch (e) {
+      showToast(e.response?.data?.message ?? 'Failed to reject subscription request.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handlePlanSave = async (payload) => {
@@ -339,7 +405,14 @@ const SubscriptionManagement = () => {
             </button>
           </div>
 
-          <p className="text-xs text-gray-400">{meta.total} subscription{meta.total !== 1 ? 's' : ''} found</p>
+          <p className="text-xs text-gray-400">
+            {meta.total} subscription{meta.total !== 1 ? 's' : ''} found
+            {subs.some((s) => s.status === 'pending_payment') && (
+              <span className="ml-2 text-amber-600 dark:text-amber-400 font-medium">
+                Payment approvals waiting
+              </span>
+            )}
+          </p>
 
           {/* Table */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -347,7 +420,7 @@ const SubscriptionManagement = () => {
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-                    {['Seller', 'Plan', 'Status', 'Started', 'Expires', 'Paid (MMK)', 'Actions'].map(h => (
+                    {['Seller', 'Plan', 'Status', 'Started', 'Expires', 'Paid (MMK)', 'Payment Ref', 'Actions'].map(h => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -355,12 +428,12 @@ const SubscriptionManagement = () => {
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                   {loading ? (
                     [...Array(5)].map((_, i) => (
-                      <tr key={i}><td colSpan={7} className="px-4 py-3">
+                      <tr key={i}><td colSpan={8} className="px-4 py-3">
                         <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded animate-pulse" />
                       </td></tr>
                     ))
                   ) : subs.length === 0 ? (
-                    <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">No subscriptions found.</td></tr>
+                    <tr><td colSpan={8} className="px-4 py-10 text-center text-gray-400">No subscriptions found.</td></tr>
                   ) : subs.map((s) => (
                     <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                       <td className="px-4 py-3">
@@ -387,11 +460,30 @@ const SubscriptionManagement = () => {
                         ) : <span className="text-gray-400">No expiry</span>}
                       </td>
                       <td className="px-4 py-3 text-gray-700 dark:text-gray-200 font-medium">{fmtMMK(s.amount_paid_mmk)}</td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                        {s.payment_reference ? (
+                          <span className="font-mono text-xs">{s.payment_reference}</span>
+                        ) : '—'}
+                      </td>
                       <td className="px-4 py-3">
-                        <button onClick={() => setModal(s)}
-                          className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-medium transition-colors">
-                          <PencilSquareIcon className="w-3.5 h-3.5" /> Override
-                        </button>
+                        <div className="flex flex-wrap gap-2">
+                          {s.status === 'pending_payment' && (
+                            <>
+                              <button onClick={() => handleApproveRequest(s)} disabled={saving}
+                                className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-medium transition-colors">
+                                <ShieldCheckIcon className="w-3.5 h-3.5" /> Approve
+                              </button>
+                              <button onClick={() => setRejectModal(s)} disabled={saving}
+                                className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-700 dark:text-red-300 font-medium transition-colors">
+                                <XCircleIcon className="w-3.5 h-3.5" /> Reject
+                              </button>
+                            </>
+                          )}
+                          <button onClick={() => setModal(s)}
+                            className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-medium transition-colors">
+                            <PencilSquareIcon className="w-3.5 h-3.5" /> Override
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -449,6 +541,7 @@ const SubscriptionManagement = () => {
 
       {/* Modals */}
       {modal     && <AssignModal     seller={modal}    plans={plans.length ? plans : []} onSave={handleAssign}   onCancel={() => setModal(null)}      loading={saving} />}
+      {rejectModal && <RejectRequestModal subscription={rejectModal} onSave={handleRejectRequest} onCancel={() => setRejectModal(null)} loading={saving} />}
       {planModal && <PlanEditorModal plan={planModal}                                    onSave={handlePlanSave} onCancel={() => setPlanModal(null)}   saving={planSaving} />}
     </div>
   );

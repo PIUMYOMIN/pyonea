@@ -179,7 +179,11 @@ const SellerSubscription = () => {
 
       const res = await api.post('/seller/subscription/upgrade', payload);
       if (res.data.success) {
-        setSuccess(t('subscription.upgrade_msg', { action: plan.price_mmk === 0 ? 'downgraded' : 'upgraded', name: plan.name }));
+        setSuccess(
+          plan.price_mmk === 0
+            ? t('subscription.upgrade_msg', { action: 'downgraded', name: plan.name })
+            : (res.data.message || t('subscription.request_submitted', { name: plan.name, defaultValue: `${plan.name} request submitted for admin approval.` }))
+        );
         setModal(null);
         await load();
         await refetchSubscription();
@@ -216,6 +220,7 @@ const SellerSubscription = () => {
   }
 
   const currentPlanSlug = current?.plan?.slug ?? 'basic';
+  const pendingRequest = current?.pending_request || null;
   const colors = PLAN_COLORS[currentPlanSlug] ?? PLAN_COLORS.basic;
 
   // ── Render ────────────────────────────────────────────────────────────
@@ -234,6 +239,18 @@ const SellerSubscription = () => {
         <div className="flex items-start gap-2 p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-300 text-sm">
           <CheckBadgeIcon className="w-4 h-4 flex-shrink-0 mt-0.5" />
           {success}
+        </div>
+      )}
+      {pendingRequest && (
+        <div className="flex items-start gap-2 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-300 text-sm">
+          <ExclamationTriangleIcon className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold">Upgrade pending admin approval</p>
+            <p className="mt-0.5">
+              {pendingRequest.plan?.name} is waiting for payment confirmation.
+              {pendingRequest.payment_reference ? ` Reference: ${pendingRequest.payment_reference}` : ''}
+            </p>
+          </div>
         </div>
       )}
 
@@ -316,6 +333,7 @@ const SellerSubscription = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {plans.map((plan) => {
             const isCurrent = plan.is_current;
+            const isPending = plan.is_pending || pendingRequest?.plan?.slug === plan.slug;
             const c = PLAN_COLORS[plan.slug] ?? PLAN_COLORS.basic;
             const isPaid = plan.price_mmk > 0;
 
@@ -330,6 +348,13 @@ const SellerSubscription = () => {
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className={`text-xs font-bold px-3 py-1 rounded-full shadow-sm ${c.badge}`}>
                       {t('subscription.current_plan', 'Current Plan')}
+                    </span>
+                  </div>
+                )}
+                {isPending && !isCurrent && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="text-xs font-bold px-3 py-1 rounded-full shadow-sm bg-amber-500 text-white">
+                      Pending Approval
                     </span>
                   </div>
                 )}
@@ -368,7 +393,7 @@ const SellerSubscription = () => {
                 {/* CTA */}
                 <button
                   onClick={() => !isCurrent && openUpgrade(plan)}
-                  disabled={isCurrent || upgrading}
+                  disabled={isCurrent || isPending || upgrading}
                   className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all
                     ${isCurrent
                       ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-default'
@@ -379,6 +404,8 @@ const SellerSubscription = () => {
                     <>
                       <CheckCircleIcon className="w-4 h-4" /> {t('subscription.your_current_plan', 'Your Current Plan')}
                     </>
+                  ) : isPending ? (
+                    'Waiting for Approval'
                   ) : plan.price_mmk < (current?.plan?.price_mmk ?? 0) ? (
                       t('subscription.downgrade', 'Downgrade')
                   ) : (
