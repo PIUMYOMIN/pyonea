@@ -140,12 +140,9 @@ const BlogDetail = () => {
                   <span>{new Date(post.published_at).toLocaleDateString(i18n.language === "my" ? "my-MM" : "en-GB", { day: "2-digit", month: "short", year: "numeric" })}</span>
                 )}
               </div>
-              <h1 className="mt-4 text-3xl font-bold leading-tight text-gray-950 dark:text-white sm:text-5xl">
+              <h1 className="mt-4 mb-2 text-3xl font-bold leading-tight text-gray-950 dark:text-white sm:text-5xl">
                 {displayTitle}
               </h1>
-              <p className="mt-5 text-lg leading-8 text-gray-600 dark:text-slate-400">
-                {loc(post.excerpt_en, post.excerpt_mm)}
-              </p>
             </div>
           </div>
 
