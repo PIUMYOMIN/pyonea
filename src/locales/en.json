@@ -580,6 +580,11 @@
     "not_found_subtitle": "The article may have been moved, archived, or unpublished.",
     "back_to_blog": "Back to Blog",
     "related": "Related Guides",
+    "share_article": "Share this guide",
+    "share_text": "Read \"{{title}}\" on Pyonea.",
+    "share_on": "Share on",
+    "copy_link": "Copy link",
+    "copied": "Copied",
     "seo": {
       "title": "Wholesale Myanmar Blog & Business Guides | Pyonea",
       "description": "Read Pyonea guides for Myanmar wholesale buying, supplier sourcing, online shops, B2B marketplace selling, MOQ, delivery, and business growth."

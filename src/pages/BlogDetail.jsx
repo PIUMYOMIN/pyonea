@@ -1,12 +1,30 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CheckIcon,
+  LinkIcon,
+  ShareIcon,
+} from "@heroicons/react/24/outline";
 import api from "../utils/api";
 import useSEO from "../hooks/useSEO";
-import { SITE_PUBLIC_URL } from "../config";
+import { IMAGE_BASE_URL, SITE_PUBLIC_URL } from "../config";
 
 const fallbackImage = "/og-image.png";
+
+const toAbsoluteUrl = (url) => {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  return `${SITE_PUBLIC_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+};
+
+const resolveImageUrl = (image) => {
+  if (!image) return fallbackImage;
+  if (/^https?:\/\//i.test(image) || image.startsWith("/")) return image;
+  return `${IMAGE_BASE_URL.replace(/\/+$/, "")}/${String(image).replace(/^\/+/, "")}`;
+};
 
 const paragraphize = (text = "") =>
   String(text)
@@ -26,6 +44,7 @@ const BlogDetail = () => {
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const loc = (en, mm) => (i18n.language === "my" ? (mm || en) : (en || mm));
 
@@ -58,11 +77,73 @@ const BlogDetail = () => {
   const content = post ? loc(post.content_en, post.content_mm) : "";
   const paragraphs = useMemo(() => paragraphize(content), [content]);
   const minutes = readingTime(content);
+  const heroImage = resolveImageUrl(post?.featured_image);
+  const absoluteHeroImage = toAbsoluteUrl(heroImage);
+  const articleUrl = post ? `${SITE_PUBLIC_URL}/blog/${post.slug}` : `${SITE_PUBLIC_URL}/blog/${slug}`;
+  const shareText = post ? t("blog_page.share_text", { title: displayTitle }) : "";
+  const shareLinks = useMemo(() => {
+    if (!post) return [];
+    const enc = encodeURIComponent;
+    const url = articleUrl;
+
+    return [
+      {
+        label: "Facebook",
+        icon: "f",
+        href: `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`,
+        className: "hover:border-blue-200 hover:bg-blue-50 dark:hover:border-blue-900/60 dark:hover:bg-blue-900/20",
+      },
+      {
+        label: "WhatsApp",
+        icon: "W",
+        href: `https://wa.me/?text=${enc(`${shareText} ${url}`)}`,
+        className: "hover:border-green-200 hover:bg-green-50 dark:hover:border-green-900/60 dark:hover:bg-green-900/20",
+      },
+      {
+        label: "Telegram",
+        icon: "T",
+        href: `https://t.me/share/url?url=${enc(url)}&text=${enc(shareText)}`,
+        className: "hover:border-sky-200 hover:bg-sky-50 dark:hover:border-sky-900/60 dark:hover:bg-sky-900/20",
+      },
+      {
+        label: "LinkedIn",
+        icon: "in",
+        href: `https://www.linkedin.com/sharing/share-offsite/?url=${enc(url)}`,
+        className: "hover:border-blue-200 hover:bg-blue-50 dark:hover:border-blue-900/60 dark:hover:bg-blue-900/20",
+      },
+      {
+        label: "X",
+        icon: "X",
+        href: `https://x.com/intent/tweet?text=${enc(shareText)}&url=${enc(url)}`,
+        className: "hover:border-gray-300 hover:bg-gray-100 dark:hover:border-slate-600 dark:hover:bg-slate-800",
+      },
+    ];
+  }, [articleUrl, post, shareText]);
+
+  const handleNativeShare = async () => {
+    if (!post) return;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: displayTitle, text: shareText, url: articleUrl });
+        return;
+      } catch {
+        // User cancelled or the platform rejected the share payload.
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(articleUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2200);
+    } catch {
+      // Clipboard may be unavailable in older browsers or insecure contexts.
+    }
+  };
 
   const SeoComponent = useSEO({
     title: post ? `${title} | Pyonea Blog` : t("blog_page.title"),
     description,
-    image: post?.featured_image || fallbackImage,
+    image: absoluteHeroImage || fallbackImage,
     imageAlt: post ? `${displayTitle} - Myanmar B2B wholesale guide` : undefined,
     url: post ? `/blog/${post.slug}` : `/blog/${slug}`,
     type: "article",
@@ -71,7 +152,7 @@ const BlogDetail = () => {
       "@type": "Article",
       headline: displayTitle,
       description,
-      image: post.featured_image || `${SITE_PUBLIC_URL}${fallbackImage}`,
+      image: absoluteHeroImage || `${SITE_PUBLIC_URL}${fallbackImage}`,
       datePublished: post.published_at,
       dateModified: post.updated_at,
       author: {
@@ -86,7 +167,7 @@ const BlogDetail = () => {
           url: `${SITE_PUBLIC_URL}/logo.png`,
         },
       },
-      mainEntityOfPage: `${SITE_PUBLIC_URL}/blog/${post.slug}`,
+      mainEntityOfPage: articleUrl,
     } : null,
   });
 
@@ -148,14 +229,56 @@ const BlogDetail = () => {
 
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <img
-              src={post.featured_image || fallbackImage}
+              src={heroImage}
               alt={`${displayTitle} - Pyonea Myanmar business guide`}
               className="aspect-[16/7] w-full rounded-lg object-cover"
-              onError={(event) => { event.currentTarget.src = fallbackImage; }}
+              width="1200"
+              height="525"
+              sizes="(min-width: 1024px) 1152px, calc(100vw - 32px)"
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+              onError={(event) => {
+                if (event.currentTarget.src !== toAbsoluteUrl(fallbackImage)) {
+                  event.currentTarget.src = fallbackImage;
+                }
+              }}
             />
           </div>
 
           <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+            <div className="mb-8 flex flex-col gap-3 border-b border-gray-100 pb-6 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-slate-300">
+                <ShareIcon className="h-4 w-4" />
+                {t("blog_page.share_article")}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {shareLinks.map((link) => (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${t("blog_page.share_on")} ${link.label}`}
+                    className={`inline-flex h-9 items-center gap-2 rounded-md border border-gray-200 px-3 text-sm font-semibold text-gray-700 transition dark:border-slate-700 dark:text-slate-200 ${link.className}`}
+                  >
+                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-gray-100 px-1 text-[10px] font-bold text-gray-800 dark:bg-slate-700 dark:text-slate-100">
+                      {link.icon}
+                    </span>
+                    <span>{link.label}</span>
+                  </a>
+                ))}
+                <button
+                  type="button"
+                  onClick={handleNativeShare}
+                  className="inline-flex h-9 items-center gap-2 rounded-md border border-gray-200 px-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  {copied ? <CheckIcon className="h-4 w-4 text-green-600" /> : <LinkIcon className="h-4 w-4" />}
+                  {copied ? t("blog_page.copied") : t("blog_page.copy_link")}
+                </button>
+              </div>
+            </div>
+
             <div className="prose prose-gray max-w-none dark:prose-invert">
               {paragraphs.map((paragraph, index) => (
                 <p key={index} className="whitespace-pre-line text-base leading-8 text-gray-700 dark:text-slate-300">
