@@ -16,11 +16,11 @@ import {
   SparklesIcon // added for discount column
 } from "@heroicons/react/24/solid";
 import {
-  ChevronUpDownIcon,
   MagnifyingGlassIcon
 } from "@heroicons/react/24/outline";
 import api from "../../utils/api";
 import ProductDiscountModal from "./ProductDiscountModal";
+import ProductManagementTable from "../Shared/ProductManagementTable";
 
 const ProductManagement = () => {
   const { t, i18n } = useTranslation();
@@ -397,6 +397,143 @@ const ProductManagement = () => {
     };
   };
 
+  const sellerColumns = [
+    {
+      key: "product",
+      header: "Product",
+      nowrap: false,
+      render: (product) => (
+        <div className="flex items-center">
+          <div className="h-12 w-12 flex-shrink-0 relative group">
+            <img
+              loading="lazy"
+              className="h-12 w-12 rounded-lg object-cover cursor-pointer"
+              src={getPrimaryImage(product)}
+              alt={loc(product.name_en, product.name_mm) || "Product"}
+              onClick={() => openImageGallery(product)}
+              onError={(e) => { e.target.src = "/placeholder-product.jpg"; }}
+            />
+            {isProductOnSale(product) && (
+              <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                {getSaleBadge(product)}
+              </div>
+            )}
+            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200">
+              <PhotoIcon className="h-5 w-5 text-white" />
+            </div>
+          </div>
+          <div className="ml-4">
+            <div className="text-sm font-medium text-gray-900 dark:text-slate-100">
+              {loc(product.name_en, product.name_mm) || "Unnamed Product"}
+            </div>
+            <div className="flex items-center space-x-2">
+              {isProductOnSale(product) ? (
+                <>
+                  <span className="text-sm font-bold text-red-600 dark:text-red-400">{formatPrice(getCurrentPrice(product))}</span>
+                  <span className="text-sm text-gray-400 dark:text-slate-500 line-through">{formatPrice(product.price)}</span>
+                </>
+              ) : (
+                <span className="text-sm font-medium text-gray-900 dark:text-slate-100">{formatPrice(product.price)}</span>
+              )}
+            </div>
+            {product.sku && <div className="text-xs text-gray-500 dark:text-slate-400 mt-1">SKU: {product.sku}</div>}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "category",
+      header: "Category",
+      sortable: true,
+      render: (product) => loc(product.category?.name_en, product.category?.name_mm) || "Uncategorized",
+    },
+    {
+      key: "price",
+      header: "Price",
+      sortable: true,
+      render: (product) => isProductOnSale(product) ? (
+        <div className="space-y-1">
+          <div className="text-red-600 dark:text-red-400 font-bold">{formatPrice(getCurrentPrice(product))}</div>
+          <div className="text-xs text-gray-500 dark:text-slate-400 line-through">{formatPrice(product.price)}</div>
+        </div>
+      ) : formatPrice(product.price),
+    },
+    {
+      key: "total_stock",
+      header: "Stock",
+      sortable: true,
+      render: (product) => {
+        const stockStatus = getStockStatus(product);
+        return (
+          <div className="flex flex-col gap-0.5">
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium w-fit ${stockStatus.color}`}>
+              {stockStatus.text}
+            </span>
+            {product.total_stock != null && (
+              <span className="text-xs text-gray-500 dark:text-slate-400 pl-1">
+                {product.total_stock.toLocaleString()} units
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: "discount",
+      header: "Discount",
+      render: (product) => getDiscountInfo(product).display,
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (product) => (
+        <button
+          onClick={() => confirmStatusToggle(product)}
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(product.is_active)}`}
+        >
+          {getStatusText(product.is_active)}
+        </button>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      align: "right",
+      render: (product) => (
+        <div className="flex justify-end space-x-2">
+          <button
+            onClick={() => navigate(`/products/${product.id}`)}
+            className="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400 p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/30"
+            title="View Product"
+          >
+            <ArrowTopRightOnSquareIcon className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => handleOpenDiscountModal(product)}
+            className={`p-1 rounded ${isProductOnSale(product) ? 'text-yellow-600 hover:text-yellow-900 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/30' : 'text-blue-600 hover:text-blue-900 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30'}`}
+            title={isProductOnSale(product) ? "Edit Discount" : "Add Discount"}
+          >
+            <TagIcon className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => navigate(`/seller/products/${product.id}/edit`)}
+            className="text-green-600 hover:text-green-900 dark:hover:text-green-400 p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/30"
+            title="Edit Product"
+          >
+            <PencilIcon className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => confirmDelete(product)}
+            className="text-red-600 hover:text-red-900 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30"
+            title="Delete Product"
+          >
+            <TrashIcon className="h-5 w-5" />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -573,166 +710,28 @@ const ProductManagement = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white dark:bg-slate-800 shadow rounded-lg overflow-hidden border border-gray-200 dark:border-slate-700">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
-            <thead className="bg-gray-50 dark:bg-slate-700">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Product</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer" onClick={() => requestSort("category")}>
-                  <div className="flex items-center">Category <ChevronUpDownIcon className="ml-1 h-4 w-4" /></div>
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer" onClick={() => requestSort("price")}>
-                  <div className="flex items-center">Price <ChevronUpDownIcon className="ml-1 h-4 w-4" /></div>
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer" onClick={() => requestSort("total_stock")}>
-                  <div className="flex items-center">Stock <ChevronUpDownIcon className="ml-1 h-4 w-4" /></div>
-                </th>
-                {/* NEW Discount Column */}
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
-                  Discount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">
-              {sortedProducts.length === 0 ? (
-                <tr>
-                  <td colSpan="7" className="px-6 py-12 text-center text-sm text-gray-500 dark:text-slate-400">
-                    <div className="flex flex-col items-center">
-                      <CubeIcon className="h-16 w-16 text-gray-400 dark:text-slate-600 mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100 mb-2">No products found</h3>
-                      <p className="text-gray-600 dark:text-slate-400 mb-4 max-w-md mx-auto">
-                        {searchTerm || statusFilter !== "all" || categoryFilter !== "all"
-                          ? "No products match your filters. Try adjusting your search criteria."
-                          : "You haven't added any products yet. Start by creating your first product listing."}
-                      </p>
-                      {!searchTerm && statusFilter === "all" && categoryFilter === "all" && (
-                        <button onClick={() => navigate("/seller/products/create")} className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700">
-                          Add Your First Product
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                sortedProducts.map((product) => {
-                  const stockStatus = getStockStatus(product);
-                  const discountInfo = getDiscountInfo(product);
-                  return (
-                    <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-slate-700">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center">
-                          <div className="h-12 w-12 flex-shrink-0 relative group">
-                            <img loading="lazy"
-                              className="h-12 w-12 rounded-lg object-cover cursor-pointer"
-                              src={getPrimaryImage(product)}
-                              alt={product.name}
-                              onClick={() => openImageGallery(product)}
-                              onError={(e) => { e.target.src = "/placeholder-product.jpg"; }}
-                            />
-                            {isProductOnSale(product) && (
-                              <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                                {getSaleBadge(product)}
-                              </div>
-                            )}
-                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200">
-                              <PhotoIcon className="h-5 w-5 text-white" />
-                            </div>
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900 dark:text-slate-100">{loc(product.name_en, product.name_mm) || "Unnamed Product"}</div>
-                            <div className="flex items-center space-x-2">
-                              {isProductOnSale(product) ? (
-                                <>
-                                  <span className="text-sm font-bold text-red-600 dark:text-red-400">{formatPrice(getCurrentPrice(product))}</span>
-                                  <span className="text-sm text-gray-400 dark:text-slate-500 line-through">{formatPrice(product.price)}</span>
-                                </>
-                              ) : (
-                                <span className="text-sm font-medium text-gray-900 dark:text-slate-100">{formatPrice(product.price)}</span>
-                              )}
-                            </div>
-                            {product.sku && <div className="text-xs text-gray-500 dark:text-slate-400 mt-1">SKU: {product.sku}</div>}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500 dark:text-slate-400">{loc(product.category?.name_en, product.category?.name_mm) || "Uncategorized"}</td>
-                      <td className="px-6 py-4 font-medium text-gray-900 dark:text-slate-100">
-                        {isProductOnSale(product) ? (
-                          <div className="space-y-1">
-                            <div className="text-red-600 dark:text-red-400 font-bold">{formatPrice(getCurrentPrice(product))}</div>
-                            <div className="text-xs text-gray-500 dark:text-slate-400 line-through">{formatPrice(product.price)}</div>
-                          </div>
-                        ) : (
-                          formatPrice(product.price)
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col gap-0.5">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium w-fit ${stockStatus.color}`}>
-                            {stockStatus.text}
-                          </span>
-                          {product.total_stock != null && (
-                            <span className="text-xs text-gray-500 dark:text-slate-400 pl-1">
-                              {product.total_stock.toLocaleString()} units
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      {/* NEW Discount Column Data */}
-                      <td className="px-6 py-4">
-                        {discountInfo.display}
-                      </td>
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => confirmStatusToggle(product)}
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(product.is_active)}`}
-                        >
-                          {getStatusText(product.is_active)}
-                        </button>
-                      </td>
-                      <td className="px-6 py-4 text-right text-sm font-medium">
-                        <div className="flex justify-end space-x-2">
-                          <button
-                            onClick={() => navigate(`/products/${product.id}`)}
-                            className="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400 p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/30"
-                            title="View Product"
-                          >
-                            <ArrowTopRightOnSquareIcon className="h-5 w-5" />
-                          </button>
-                          <button
-                            onClick={() => handleOpenDiscountModal(product)}
-                            className={`p-1 rounded ${isProductOnSale(product) ? 'text-yellow-600 hover:text-yellow-900 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/30' : 'text-blue-600 hover:text-blue-900 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30'}`}
-                            title={isProductOnSale(product) ? "Edit Discount" : "Add Discount"}
-                          >
-                            <TagIcon className="h-5 w-5" />
-                          </button>
-                          <button
-                            onClick={() => navigate(`/seller/products/${product.id}/edit`)}
-                            className="text-green-600 hover:text-green-900 dark:hover:text-green-400 p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/30"
-                            title="Edit Product"
-                          >
-                            <PencilIcon className="h-5 w-5" />
-                          </button>
-                          <button
-                            onClick={() => confirmDelete(product)}
-                            className="text-red-600 hover:text-red-900 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30"
-                            title="Delete Product"
-                          >
-                            <TrashIcon className="h-5 w-5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <ProductManagementTable
+        products={sortedProducts}
+        columns={sellerColumns}
+        sortKey={sortConfig.key}
+        onSort={requestSort}
+        emptyState={(
+          <div className="flex flex-col items-center">
+            <CubeIcon className="h-16 w-16 text-gray-400 dark:text-slate-600 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100 mb-2">No products found</h3>
+            <p className="text-gray-600 dark:text-slate-400 mb-4 max-w-md mx-auto">
+              {searchTerm || statusFilter !== "all" || categoryFilter !== "all"
+                ? "No products match your filters. Try adjusting your search criteria."
+                : "You haven't added any products yet. Start by creating your first product listing."}
+            </p>
+            {!searchTerm && statusFilter === "all" && categoryFilter === "all" && (
+              <button onClick={() => navigate("/seller/products/create")} className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700">
+                Add Your First Product
+              </button>
+            )}
+          </div>
+        )}
+      />
 
       {/* Modals (unchanged) */}
       {deleteModalOpen && selectedProduct && (

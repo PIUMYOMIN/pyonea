@@ -1,9 +1,8 @@
 ﻿// pages/Seller/products/ProductForm.jsx
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import api from "../../../utils/api";
-import { useAuth } from "../../../context/AuthContext";
 import ProductOptionsEditor from "../../../components/seller/ProductOptionsEditor";
 import VariantTable from "../../../components/seller/VariantTable";
 import WholesaleTiersEditor from "../../../components/seller/WholesaleTiersEditor";
@@ -64,9 +63,9 @@ const PRODUCT_CONDITIONS = [
 
 // ?? helpers ???????????????????????????????????????????????????????????????????
 
-const validateImageFile = (file) => {
-  const allowed = ["image/jpeg", "image/png", "image/jpg", "image/gif", "image/webp"];
-  if (!allowed.includes(file.type)) return { valid: false, message: tf("images.invalid_format", "Invalid format. Use JPEG, PNG, GIF, or WebP.") };
+const validateImageFile = (file, tf) => {
+  const allowed = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+  if (!allowed.includes(file.type)) return { valid: false, message: tf("images.invalid_format", "Invalid format. Use JPEG, PNG, or WebP.") };
   if (file.size > 5 * 1024 * 1024)  return { valid: false, message: tf("images.too_large", "Image must be under 5 MB.") };
   return { valid: true, message: "" };
 };
@@ -144,9 +143,8 @@ const STEPS = [
 
 // ?? component ?????????????????????????????????????????????????????????????????
 
-const ProductForm = ({ product = null, onSuccess, onCancel }) => {
+const ProductForm = ({ product = null, mode = "seller", onSuccess, onCancel }) => {
   const { t, i18n } = useTranslation();
-  const { user } = useAuth();
   const navigate  = useNavigate();
   const fileInputRef = useRef(null);
   const isMounted    = useRef(true);
@@ -162,16 +160,22 @@ const ProductForm = ({ product = null, onSuccess, onCancel }) => {
   const conditionLabel = (c) => tf(`conditions.${c.value}.label`, c.label);
   const conditionDescription = (c) => tf(`conditions.${c.value}.description`, c.description);
   const imageAngleLabel = (a) => tf(`image_angles.${a.value}`, a.label);
+  const isAdminMode = mode === "admin";
+  const productApiBase = isAdminMode ? "/admin/products" : "/seller/products";
+  const steps = useMemo(() => (isAdminMode ? STEPS.slice(0, 4) : STEPS), [isAdminMode]);
 
   // ?? form state ???????????????????????????????????????????????????????????????
   const [formData, setFormData] = useState(() => {
     if (product) {
-      const { images, ...rest } = product;
+      const rest = { ...product };
+      delete rest.images;
       return { ...DEFAULT_FORM, ...rest };
     }
     const saved = localStorage.getItem(STORAGE_KEYS.PRODUCT_DRAFT);
     if (saved) {
-      try { return { ...DEFAULT_FORM, ...JSON.parse(saved) }; } catch {}
+      try { return { ...DEFAULT_FORM, ...JSON.parse(saved) }; } catch {
+        // Ignore malformed local drafts and fall back to defaults.
+      }
     }
     return DEFAULT_FORM;
   });
@@ -239,7 +243,7 @@ const ProductForm = ({ product = null, onSuccess, onCancel }) => {
     const validFiles = [];
     const errors     = [];
     files.forEach((file) => {
-      const v = validateImageFile(file);
+      const v = validateImageFile(file, tf);
       v.valid ? validFiles.push(file) : errors.push(`${file.name}: ${v.message}`);
     });
 
@@ -256,7 +260,10 @@ const ProductForm = ({ product = null, onSuccess, onCancel }) => {
       fd.append("image", file);
       fd.append("angle", "default");
       try {
-        const res = await api.post("/seller/products/upload-image", fd, {
+        const uploadUrl = isAdminMode && product?.id
+          ? `${productApiBase}/${product.id}/upload-image`
+          : "/seller/products/upload-image";
+        const res = await api.post(uploadUrl, fd, {
           headers: { "Content-Type": "multipart/form-data" },
           onUploadProgress: (pe) => {
             uploadedBytes[index] = pe.loaded;
@@ -331,7 +338,7 @@ const ProductForm = ({ product = null, onSuccess, onCancel }) => {
   const nextStep = () => {
     if (validateStep(currentStep)) {
       setCompletedSteps((prev) => new Set(prev).add(currentStep));
-      setCurrentStep((prev) => Math.min(prev + 1, STEPS.length));
+      setCurrentStep((prev) => Math.min(prev + 1, steps.length));
     }
   };
 
@@ -404,8 +411,12 @@ const ProductForm = ({ product = null, onSuccess, onCancel }) => {
 
       let response;
       if (product) {
-        response = await api.put(`/seller/products/${product.id}`, payload);
-        setSuccessMessage(tf("messages.updated", "Product updated! Now set up your variants in Step 5."));
+        response = await api.put(`${productApiBase}/${product.id}`, payload);
+        setSuccessMessage(
+          isAdminMode
+            ? tf("messages.admin_updated", "Product updated successfully.")
+            : tf("messages.updated", "Product updated! Now set up your variants in Step 5.")
+        );
         setCreatedProductId(product.id);
       } else {
         response = await api.post("/seller/products", payload);
@@ -420,6 +431,12 @@ const ProductForm = ({ product = null, onSuccess, onCancel }) => {
 
       localStorage.removeItem(STORAGE_KEYS.PRODUCT_DRAFT);
       localStorage.removeItem(STORAGE_KEYS.IMAGE_PREVIEWS);
+
+      if (isAdminMode) {
+        setCompletedSteps(new Set([1, 2, 3, 4]));
+        setShowSuccessPopup(true);
+        return;
+      }
 
       // Mark steps 1-4 complete and advance to step 5
       setCompletedSteps(new Set([1, 2, 3, 4]));
@@ -456,7 +473,7 @@ const ProductForm = ({ product = null, onSuccess, onCancel }) => {
     const loadProduct = async () => {
       if (!product?.id) return;
       try {
-        const res = await api.get(`/seller/products/${product.id}/edit`);
+        const res = await api.get(`${productApiBase}/${product.id}/edit`);
         const data = sanitizeProductData(res.data.data);
         const images = (res.data.data.images || []).map((img, idx) => {
           // `img.url` is the absolute display URL built by the backend.
@@ -476,7 +493,8 @@ const ProductForm = ({ product = null, onSuccess, onCancel }) => {
           };
         });
         setImagePreviews(images);
-        const { images: _, ...rest } = data;
+        const rest = { ...data };
+        delete rest.images;
         setFormData((prev) => ({ ...prev, ...rest }));
         setCreatedProductId(product.id);
       } catch { setError(tf("errors.load_product", "Failed to load product details.")); }
@@ -486,10 +504,12 @@ const ProductForm = ({ product = null, onSuccess, onCancel }) => {
       loadProduct();
     } else {
       const saved = localStorage.getItem(STORAGE_KEYS.IMAGE_PREVIEWS);
-      if (saved) { try { setImagePreviews(JSON.parse(saved)); } catch {} }
+      if (saved) { try { setImagePreviews(JSON.parse(saved)); } catch {
+        // Ignore malformed local image preview drafts.
+      } }
     }
     fetchCategories();
-  }, [product, fetchCategories]);
+  }, [product, fetchCategories, productApiBase]);
 
   // Auto-save draft
   useEffect(() => {
@@ -498,7 +518,9 @@ const ProductForm = ({ product = null, onSuccess, onCancel }) => {
       const draft = { ...formData };
       delete draft.seller_id;
       localStorage.setItem(STORAGE_KEYS.PRODUCT_DRAFT, JSON.stringify(draft));
-    } catch {}
+    } catch {
+      // Ignore localStorage write failures, such as private browsing limits.
+    }
   }, [formData, product]);
 
   useEffect(() => {
@@ -506,7 +528,9 @@ const ProductForm = ({ product = null, onSuccess, onCancel }) => {
     try {
       const toSave = imagePreviews.map((p) => ({ url: p.url, is_primary: p.is_primary, angle: p.angle, isExisting: p.isExisting }));
       localStorage.setItem(STORAGE_KEYS.IMAGE_PREVIEWS, JSON.stringify(toSave));
-    } catch {}
+    } catch {
+      // Ignore localStorage write failures, such as private browsing limits.
+    }
   }, [imagePreviews, product]);
 
   useEffect(() => {
@@ -1161,11 +1185,11 @@ const ProductForm = ({ product = null, onSuccess, onCancel }) => {
             {/* Mobile */}
             <div className="sm:hidden">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-gray-800 dark:text-slate-200">{stepTitle(STEPS[currentStep - 1])}</span>
-                <span className="text-xs font-bold text-green-700 dark:text-green-400">{tf("steps.count", "Step {{current}} of {{total}}", { current: currentStep, total: STEPS.length })}</span>
+                <span className="text-sm font-semibold text-gray-800 dark:text-slate-200">{stepTitle(steps[currentStep - 1])}</span>
+                <span className="text-xs font-bold text-green-700 dark:text-green-400">{tf("steps.count", "Step {{current}} of {{total}}", { current: currentStep, total: steps.length })}</span>
               </div>
               <div className="flex gap-1.5">
-                {STEPS.map((step) => (
+                {steps.map((step) => (
                   <button key={step.id} onClick={() => goToStep(step.id)}
                     className={`flex-1 h-2 rounded-full transition-all ${
                       currentStep === step.id ? "bg-green-500" : completedSteps.has(step.id) ? "bg-green-400" : "bg-gray-200 dark:bg-slate-600"
@@ -1176,10 +1200,10 @@ const ProductForm = ({ product = null, onSuccess, onCancel }) => {
 
             {/* Desktop */}
             <div className="hidden sm:flex items-start">
-              {STEPS.map((step, index) => {
+              {steps.map((step, index) => {
                 const done    = completedSteps.has(step.id);
                 const current = currentStep === step.id;
-                const last    = index === STEPS.length - 1;
+                const last    = index === steps.length - 1;
                 return (
                   <React.Fragment key={step.id}>
                     <button onClick={() => goToStep(step.id)} className="flex flex-col items-center flex-shrink-0 group">
@@ -1244,7 +1268,7 @@ const ProductForm = ({ product = null, onSuccess, onCancel }) => {
                     {loading ? (
                       <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />{product ? tf("actions.updating", "Updating...") : tf("actions.creating", "Creating...")}</>
                     ) : (
-                      <><CheckCircleIcon className="h-4 w-4" />{product ? tf("actions.update_continue", "Update & Continue") : tf("actions.save_continue", "Save & Continue")}</>
+                      <><CheckCircleIcon className="h-4 w-4" />{isAdminMode ? tf("actions.update", "Update") : product ? tf("actions.update_continue", "Update & Continue") : tf("actions.save_continue", "Save & Continue")}</>
                     )}
                   </button>
                 ) : (

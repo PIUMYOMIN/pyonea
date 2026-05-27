@@ -1,23 +1,26 @@
-// pages/seller/ProductEdit.jsx
 import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import ProductForm from "./ProductForm";
 
-const ProductEdit = () => {
+const ProductEdit = ({ mode }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAdminMode = mode === "admin" || location.pathname.startsWith("/admin/");
+  const returnPath = isAdminMode ? "/admin/dashboard" : "/seller/dashboard";
 
   const handleSuccess = () => {
-    navigate("/seller/dashboard");
+    navigate(returnPath);
   };
 
   const handleCancel = () => {
-    navigate("/seller/dashboard");
+    navigate(returnPath);
   };
 
   return (
     <ProductForm
       product={{ id: parseInt(id, 10) }}
+      mode={isAdminMode ? "admin" : "seller"}
       onSuccess={handleSuccess}
       onCancel={handleCancel}
     />

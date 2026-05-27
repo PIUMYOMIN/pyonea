@@ -17,7 +17,7 @@ import {
 import api from "../../utils/api";
 import { IMAGE_BASE_URL, DEFAULT_PLACEHOLDER } from "../../config";
 import { useNavigate } from "react-router-dom";
-import DataTable from "../ui/DataTable";
+import ProductManagementTable from "../Shared/ProductManagementTable";
 
 const ProductManagement = () => {
   const { t, i18n } = useTranslation();
@@ -325,11 +325,7 @@ const ProductManagement = () => {
   };
 
   // Client‑side sorting (could be moved to server)
-  const filteredProducts = products
-    .filter(product => {
-      // Client‑side filtering is minimal; we rely on server‑side filtering.
-      return true;
-    })
+  const filteredProducts = [...products]
     .sort((a, b) => {
       const aValue = a[sortField] ?? "";
       const bValue = b[sortField] ?? "";
@@ -773,6 +769,13 @@ const ProductManagement = () => {
     };
   });
 
+  const adminTableColumns = columns.map((column) => ({
+    key: column.accessor,
+    header: column.header,
+    align: column.accessor === "actions" ? "right" : undefined,
+    render: (row) => row[column.accessor],
+  }));
+
   return (
     <div className="space-y-6">
 
@@ -948,7 +951,6 @@ const ProductManagement = () => {
                 if (!primary) return (
                   <div className="h-48 bg-gray-100 dark:bg-slate-700 rounded-lg flex items-center justify-center text-gray-400 dark:text-slate-500 text-sm">{t("admin.productManagement.modals.noImage")}</div>
                 );
-                const src = primary.url || primary.path || DEFAULT_PLACEHOLDER;
                 return (
                   <div className="flex gap-3 overflow-x-auto pb-1">
                     {imgs.map((img, idx) => {
@@ -1276,11 +1278,9 @@ const ProductManagement = () => {
       {!loading && !error && (
         <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
           {filteredProducts.length > 0 ? (
-            <DataTable
-              columns={columns}
-              data={productData}
-              striped={true}
-              hoverable={true}
+            <ProductManagementTable
+              products={productData}
+              columns={adminTableColumns}
             />
           ) : (
             <div className="p-12 text-center">

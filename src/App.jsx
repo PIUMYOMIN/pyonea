@@ -343,6 +343,7 @@ function App() {
                         <Route path="/admin/dashboard" element={<ProtectedRoute roles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
                         <Route path="/admin/categories/create" element={<ProtectedRoute roles={["admin"]}><CategoryCreate /></ProtectedRoute>} />
                           <Route path="/admin/categories/:id/edit" element={<ProtectedRoute roles={["admin"]}><CategoryEdit /></ProtectedRoute>} />
+                        <Route path="/admin/products/:id/edit" element={<ProtectedRoute roles={["admin"]}><ProductEdit mode="admin" /></ProtectedRoute>} />
                           
                           <Route path="/admin/financial-reports" element={
                           <ProtectedRoute roles={["admin"]}>
