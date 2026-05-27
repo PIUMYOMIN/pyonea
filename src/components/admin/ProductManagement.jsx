@@ -1,5 +1,5 @@
 // components/admin/ProductManagement.jsx
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   MagnifyingGlassIcon,
@@ -21,6 +21,8 @@ import ProductManagementTable from "../Shared/ProductManagementTable";
 
 const ProductManagement = () => {
   const { t, i18n } = useTranslation();
+  const controlClass = "h-10 w-full rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 text-sm text-gray-900 dark:text-slate-100 shadow-sm transition-colors focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500";
+  const iconButtonClass = "inline-flex h-10 items-center justify-center rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 text-sm font-medium text-gray-700 dark:text-slate-300 shadow-sm transition-colors hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800";
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -75,7 +77,7 @@ const ProductManagement = () => {
   };
 
   // Fetch products (admin endpoint)
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -103,10 +105,10 @@ const ProductManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [approvalFilter, categoryFilter, searchTerm, statusFilter, t]);
 
   // Fetch categories for filter
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const response = await api.get("/categories?per_page=50");
       if (response.data.success) {
@@ -115,17 +117,16 @@ const ProductManagement = () => {
     } catch (err) {
       console.error("Failed to fetch categories:", err);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchProducts();
     fetchCategories();
-  }, []);
+  }, [fetchCategories]);
 
   // Re-fetch when filters change
   useEffect(() => {
     fetchProducts();
-  }, [searchTerm, statusFilter, approvalFilter, categoryFilter]);
+  }, [fetchProducts]);
 
   // Handle product status change (active/inactive)
   const handleProductStatus = async (productId, isActive, productName) => {
@@ -1136,10 +1137,10 @@ const ProductManagement = () => {
       )}
 
       {/* Filters */}
-      <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-4">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 shadow-sm p-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-6">
           {/* Search */}
-          <div>
+          <div className="sm:col-span-2 xl:col-span-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
               {t("admin.productManagement.filters.searchProducts")}
             </label>
@@ -1148,7 +1149,7 @@ const ProductManagement = () => {
               <input
                 type="text"
                 placeholder={t("admin.productManagement.filters.searchPlaceholder")}
-                className="block w-full rounded-md border border-gray-300 dark:border-slate-600 pl-10 pr-3 py-2 text-gray-900 dark:text-slate-100 bg-white dark:bg-slate-700 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 sm:text-sm"
+                className={`${controlClass} pl-10 placeholder:text-gray-400 dark:placeholder:text-slate-500`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -1163,7 +1164,7 @@ const ProductManagement = () => {
             <select
               value={approvalFilter}
               onChange={(e) => setApprovalFilter(e.target.value)}
-              className="block w-full rounded-md border border-gray-300 dark:border-slate-600 px-3 py-2 text-gray-900 dark:text-slate-100 bg-white dark:bg-slate-700 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 sm:text-sm"
+              className={controlClass}
             >
               <option value="all">{t("admin.productManagement.filters.allStatuses")}</option>
               <option value="pending">{t("admin.productManagement.table.pending")}</option>
@@ -1180,7 +1181,7 @@ const ProductManagement = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="block w-full rounded-md border border-gray-300 dark:border-slate-600 px-3 py-2 text-gray-900 dark:text-slate-100 bg-white dark:bg-slate-700 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 sm:text-sm"
+              className={controlClass}
             >
               <option value="all">{t("admin.productManagement.filters.all")}</option>
               <option value="active">{t("admin.productManagement.table.active")}</option>
@@ -1196,12 +1197,12 @@ const ProductManagement = () => {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="block w-full rounded-md border border-gray-300 dark:border-slate-600 px-3 py-2 text-gray-900 dark:text-slate-100 bg-white dark:bg-slate-700 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 sm:text-sm"
+              className={controlClass}
             >
               <option value="all">{t("admin.productManagement.filters.allCategories")}</option>
               {categories.map(category => (
                 <option key={category.id} value={category.id}>
-                  {category.name_en}
+                  {i18n.language === "my" ? (category.name_mm || category.name_en) : (category.name_en || category.name_mm)}
                 </option>
               ))}
             </select>
@@ -1216,7 +1217,7 @@ const ProductManagement = () => {
                 setApprovalFilter("all");
                 setCategoryFilter("all");
               }}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-slate-600 text-sm font-medium rounded-md text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 w-full justify-center"
+              className={`${iconButtonClass} w-full`}
             >
               <FunnelIcon className="h-4 w-4 mr-2" />
               {t("admin.productManagement.filters.resetFilters")}

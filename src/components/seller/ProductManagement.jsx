@@ -25,6 +25,8 @@ import ProductManagementTable from "../Shared/ProductManagementTable";
 const ProductManagement = () => {
   const { t, i18n } = useTranslation();
   const loc = (en, mm) => i18n.language === 'my' ? (mm || en) : (en || mm);
+  const controlClass = "h-10 w-full rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 text-sm text-gray-900 dark:text-slate-100 shadow-sm transition-colors focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500";
+  const iconButtonClass = "inline-flex h-10 items-center justify-center rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 text-sm font-medium text-gray-700 dark:text-slate-300 shadow-sm transition-colors hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900";
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -57,15 +59,15 @@ const ProductManagement = () => {
       if (response.data.success) {
         setProducts(response.data.data || []);
       } else {
-        setError(response.data.message || "Failed to fetch products");
+        setError(response.data.message || t("seller.product.errors.fetch_failed"));
       }
     } catch (err) {
       console.error("Error fetching products:", err);
-      setError(err.response?.data?.message || err.message || "Failed to fetch products");
+      setError(err.response?.data?.message || err.message || t("seller.product.errors.fetch_failed"));
     } finally {
       if (showLoading) setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -114,7 +116,7 @@ const ProductManagement = () => {
     } catch (error) {
       console.error("Delete error:", error);
       fetchProducts(true);
-      setError(error.response?.data?.message || "Failed to delete product");
+      setError(error.response?.data?.message || t("seller.product.errors.delete_failed"));
     }
   };
 
@@ -146,7 +148,7 @@ const ProductManagement = () => {
       console.error("Status update error:", error);
       // Revert
       updateProductInState(originalProduct);
-      setError(error.response?.data?.message || "Failed to update product status");
+      setError(error.response?.data?.message || t("seller.product.errors.status_failed"));
     }
   };
 
@@ -192,7 +194,7 @@ const ProductManagement = () => {
       console.error("Error setting primary image:", err);
       // Revert
       updateProductInState({ ...product, images: originalImages });
-      setError(err.response?.data?.message || "Failed to set primary image");
+      setError(err.response?.data?.message || t("seller.product.errors.primary_image_failed"));
     }
   };
 
@@ -216,7 +218,7 @@ const ProductManagement = () => {
     } catch (err) {
       console.error("Error deleting image:", err);
       updateProductInState({ ...product, images: originalImages });
-      setError(err.response?.data?.message || "Failed to delete image");
+      setError(err.response?.data?.message || t("seller.product.errors.delete_image_failed"));
     }
   };
 
@@ -235,7 +237,7 @@ const ProductManagement = () => {
       }
     } catch (err) {
       console.error("Error uploading images:", err);
-      setError(err.response?.data?.message || "Failed to upload images");
+      setError(err.response?.data?.message || t("seller.product.errors.upload_images_failed"));
     }
   };
 
@@ -346,7 +348,7 @@ const ProductManagement = () => {
       const percent = Math.round((discount / product.price) * 100);
       return `-${percent}%`;
     }
-    return "Sale";
+    return t("seller.product.sale");
   };
 
   const getCurrentPrice = (product) => {
@@ -365,16 +367,16 @@ const ProductManagement = () => {
   // per-variant rather than at the product level. `total_stock` is the sum
   // across all active variants and is only non-null for physical products.
   const getStockStatus = (product) => {
-    if (!product.in_stock) return { text: "Out of Stock", color: "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300" };
+    if (!product.in_stock) return { text: t("seller.product.stock.out_of_stock"), color: "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300" };
     const total = product.total_stock;
-    if (total != null && total <= 10) return { text: "Low Stock", color: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300" };
-    return { text: "In Stock", color: "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300" };
+    if (total != null && total <= 10) return { text: t("seller.product.stock.low_stock"), color: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300" };
+    return { text: t("seller.product.stock.in_stock"), color: "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300" };
   };
 
   // NEW: Helper to get discount info for display
   const getDiscountInfo = (product) => {
     if (!isProductOnSale(product)) {
-      return { display: <span className="text-gray-400 text-xs">No discount</span>, badge: null };
+      return { display: <span className="text-gray-400 text-xs">{t("seller.product.discount.no_discount")}</span>, badge: null };
     }
     const badge = getSaleBadge(product);
     let details = "";
@@ -400,7 +402,7 @@ const ProductManagement = () => {
   const sellerColumns = [
     {
       key: "product",
-      header: "Product",
+      header: t("seller.product.table.product"),
       nowrap: false,
       render: (product) => (
         <div className="flex items-center">
@@ -409,7 +411,7 @@ const ProductManagement = () => {
               loading="lazy"
               className="h-12 w-12 rounded-lg object-cover cursor-pointer"
               src={getPrimaryImage(product)}
-              alt={loc(product.name_en, product.name_mm) || "Product"}
+              alt={loc(product.name_en, product.name_mm) || t("seller.product.table.product")}
               onClick={() => openImageGallery(product)}
               onError={(e) => { e.target.src = "/placeholder-product.jpg"; }}
             />
@@ -424,7 +426,7 @@ const ProductManagement = () => {
           </div>
           <div className="ml-4">
             <div className="text-sm font-medium text-gray-900 dark:text-slate-100">
-              {loc(product.name_en, product.name_mm) || "Unnamed Product"}
+              {loc(product.name_en, product.name_mm) || t("seller.product.table.unnamed_product")}
             </div>
             <div className="flex items-center space-x-2">
               {isProductOnSale(product) ? (
@@ -443,13 +445,13 @@ const ProductManagement = () => {
     },
     {
       key: "category",
-      header: "Category",
+      header: t("seller.product.table.category"),
       sortable: true,
-      render: (product) => loc(product.category?.name_en, product.category?.name_mm) || "Uncategorized",
+      render: (product) => loc(product.category?.name_en, product.category?.name_mm) || t("seller.product.table.uncategorized"),
     },
     {
       key: "price",
-      header: "Price",
+      header: t("seller.product.table.price"),
       sortable: true,
       render: (product) => isProductOnSale(product) ? (
         <div className="space-y-1">
@@ -460,7 +462,7 @@ const ProductManagement = () => {
     },
     {
       key: "total_stock",
-      header: "Stock",
+      header: t("seller.product.table.stock"),
       sortable: true,
       render: (product) => {
         const stockStatus = getStockStatus(product);
@@ -471,7 +473,7 @@ const ProductManagement = () => {
             </span>
             {product.total_stock != null && (
               <span className="text-xs text-gray-500 dark:text-slate-400 pl-1">
-                {product.total_stock.toLocaleString()} units
+                {t("seller.product.stock.units", { count: product.total_stock.toLocaleString() })}
               </span>
             )}
           </div>
@@ -480,52 +482,52 @@ const ProductManagement = () => {
     },
     {
       key: "discount",
-      header: "Discount",
+      header: t("seller.product.table.discount"),
       render: (product) => getDiscountInfo(product).display,
     },
     {
       key: "status",
-      header: "Status",
+      header: t("seller.product.table.status"),
       render: (product) => (
         <button
           onClick={() => confirmStatusToggle(product)}
           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(product.is_active)}`}
         >
-          {getStatusText(product.is_active)}
+          {t(`seller.product.status.${getStatusText(product.is_active)}`)}
         </button>
       ),
     },
     {
       key: "actions",
-      header: "Actions",
+      header: t("seller.product.table.actions"),
       align: "right",
       render: (product) => (
         <div className="flex justify-end space-x-2">
           <button
             onClick={() => navigate(`/products/${product.id}`)}
             className="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400 p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/30"
-            title="View Product"
+            title={t("seller.product.actions.view")}
           >
             <ArrowTopRightOnSquareIcon className="h-5 w-5" />
           </button>
           <button
             onClick={() => handleOpenDiscountModal(product)}
             className={`p-1 rounded ${isProductOnSale(product) ? 'text-yellow-600 hover:text-yellow-900 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/30' : 'text-blue-600 hover:text-blue-900 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30'}`}
-            title={isProductOnSale(product) ? "Edit Discount" : "Add Discount"}
+            title={isProductOnSale(product) ? t("seller.product.actions.edit_discount") : t("seller.product.actions.add_discount")}
           >
             <TagIcon className="h-5 w-5" />
           </button>
           <button
             onClick={() => navigate(`/seller/products/${product.id}/edit`)}
             className="text-green-600 hover:text-green-900 dark:hover:text-green-400 p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/30"
-            title="Edit Product"
+            title={t("seller.product.actions.edit")}
           >
             <PencilIcon className="h-5 w-5" />
           </button>
           <button
             onClick={() => confirmDelete(product)}
             className="text-red-600 hover:text-red-900 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30"
-            title="Delete Product"
+            title={t("seller.product.actions.delete")}
           >
             <TrashIcon className="h-5 w-5" />
           </button>
@@ -571,22 +573,22 @@ const ProductManagement = () => {
       {deleteImageTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl p-6 max-w-sm w-full mx-4 border border-gray-200 dark:border-slate-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2">Delete Image</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2">{t("seller.product.modals.delete_image")}</h3>
             <p className="text-sm text-gray-600 dark:text-slate-400 mb-6">
-              Are you sure you want to delete this image? This cannot be undone.
+              {t("seller.product.modals.delete_image_confirm")}
             </p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setDeleteImageTarget(null)}
                 className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700"
               >
-                Cancel
+                {t("seller.product.modals.cancel")}
               </button>
               <button
                 onClick={confirmDeleteImage}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"
               >
-                Delete
+                {t("seller.product.modals.delete")}
               </button>
             </div>
           </div>
@@ -599,19 +601,19 @@ const ProductManagement = () => {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100">{t("seller.product_management")}</h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{t("seller.manage_your_products")}</p>
         </div>
-        <div className="mt-4 md:mt-0 flex space-x-3">
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row md:mt-0">
           <button
             onClick={() => fetchProducts(true)}
-            className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700"
+            className={iconButtonClass}
           >
-            <ArrowPathIcon className="-ml-1 mr-2 h-5 w-5" />
+            <ArrowPathIcon className="mr-2 h-4 w-4" />
             {t("seller.product.refresh")}
           </button>
           <button
             onClick={() => navigate("/seller/products/create")}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
+            className="inline-flex h-10 items-center justify-center rounded-md border border-transparent bg-green-600 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
           >
-            <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
+            <PlusIcon className="mr-2 h-4 w-4" />
             {t("seller.product.add_product")}
           </button>
         </div>
@@ -619,40 +621,46 @@ const ProductManagement = () => {
 
       {/* Filters */}
       <div className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Search Products</label>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          <div className="sm:col-span-2 xl:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+              {t("seller.product.filters.search_products")}
+            </label>
             <div className="relative">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
               <input
                 type="text"
-                placeholder="Search by name, SKU, or description..."
+                placeholder={t("seller.product.filters.search_placeholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-full border border-gray-300 dark:border-slate-600 rounded-md py-2 px-3 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400 focus:border-transparent"
+                className={`${controlClass} pl-10 placeholder:text-gray-400 dark:placeholder:text-slate-500`}
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Status</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+              {t("seller.product.filters.status")}
+            </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full border border-gray-300 dark:border-slate-600 rounded-md py-2 px-3 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400 focus:border-transparent"
+              className={controlClass}
             >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option value="all">{t("seller.product.filters.all_statuses")}</option>
+              <option value="active">{t("seller.product.status.active")}</option>
+              <option value="inactive">{t("seller.product.status.inactive")}</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Category</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+              {t("seller.product.filters.category")}
+            </label>
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full border border-gray-300 dark:border-slate-600 rounded-md py-2 px-3 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400 focus:border-green-500 dark:focus:border-green-400 hover:border-gray-400 dark:hover:border-slate-500 transition-colors"
+              className={controlClass}
             >
-              <option value="all">All Categories</option>
+              <option value="all">{t("seller.product.filters.all_categories")}</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>{loc(category.name_en, category.name_mm)}</option>
               ))}
@@ -661,10 +669,10 @@ const ProductManagement = () => {
           <div className="flex items-end">
             <button
               onClick={() => { setSearchTerm(""); setStatusFilter("all"); setCategoryFilter("all"); }}
-              className="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700"
+              className={`${iconButtonClass} w-full`}
             >
               <XMarkIcon className="mr-2 h-4 w-4" />
-              Clear Filters
+              {t("seller.product.filters.clear_filters")}
             </button>
           </div>
         </div>
@@ -676,7 +684,7 @@ const ProductManagement = () => {
           <div className="flex items-center">
             <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-lg mr-4"><CubeIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" /></div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-slate-400">Total Products</p>
+              <p className="text-sm text-gray-500 dark:text-slate-400">{t("seller.product.summary.total_products")}</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{products.length}</p>
             </div>
           </div>
@@ -685,7 +693,7 @@ const ProductManagement = () => {
           <div className="flex items-center">
             <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded-lg mr-4"><CheckCircleIcon className="h-6 w-6 text-green-600 dark:text-green-400" /></div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-slate-400">Active Products</p>
+              <p className="text-sm text-gray-500 dark:text-slate-400">{t("seller.product.summary.active_products")}</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{products.filter(p => p.is_active).length}</p>
             </div>
           </div>
@@ -694,7 +702,7 @@ const ProductManagement = () => {
           <div className="flex items-center">
             <div className="bg-yellow-100 dark:bg-yellow-900/30 p-3 rounded-lg mr-4"><TagIcon className="h-6 w-6 text-yellow-600 dark:text-yellow-400" /></div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-slate-400">On Sale</p>
+              <p className="text-sm text-gray-500 dark:text-slate-400">{t("seller.product.summary.on_sale")}</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{products.filter(p => isProductOnSale(p)).length}</p>
             </div>
           </div>
@@ -703,7 +711,7 @@ const ProductManagement = () => {
           <div className="flex items-center">
             <div className="bg-red-100 dark:bg-red-900/30 p-3 rounded-lg mr-4"><CubeIcon className="h-6 w-6 text-red-600 dark:text-red-400" /></div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-slate-400">Out of Stock</p>
+              <p className="text-sm text-gray-500 dark:text-slate-400">{t("seller.product.summary.out_of_stock")}</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{products.filter(p => !p.in_stock).length}</p>
             </div>
           </div>
@@ -718,15 +726,15 @@ const ProductManagement = () => {
         emptyState={(
           <div className="flex flex-col items-center">
             <CubeIcon className="h-16 w-16 text-gray-400 dark:text-slate-600 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100 mb-2">No products found</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100 mb-2">{t("seller.product.empty.title")}</h3>
             <p className="text-gray-600 dark:text-slate-400 mb-4 max-w-md mx-auto">
               {searchTerm || statusFilter !== "all" || categoryFilter !== "all"
-                ? "No products match your filters. Try adjusting your search criteria."
-                : "You haven't added any products yet. Start by creating your first product listing."}
+                ? t("seller.product.empty.filtered")
+                : t("seller.product.empty.no_products")}
             </p>
             {!searchTerm && statusFilter === "all" && categoryFilter === "all" && (
               <button onClick={() => navigate("/seller/products/create")} className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700">
-                Add Your First Product
+                {t("seller.product.empty.add_first")}
               </button>
             )}
           </div>
@@ -737,11 +745,13 @@ const ProductManagement = () => {
       {deleteModalOpen && selectedProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6 w-full max-w-md border border-gray-200 dark:border-slate-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">Confirm Delete</h3>
-            <p className="text-sm text-gray-600 dark:text-slate-400 mb-6">Are you sure you want to delete "{selectedProduct.name}"? This action cannot be undone.</p>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">{t("seller.product.modals.confirm_delete")}</h3>
+            <p className="text-sm text-gray-600 dark:text-slate-400 mb-6">
+              {t("seller.product.modals.delete_confirm", { name: selectedProduct.name })}
+            </p>
             <div className="flex justify-end space-x-3">
-              <button onClick={() => setDeleteModalOpen(false)} className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-300 bg-gray-200 dark:bg-slate-700 rounded-md hover:bg-gray-300 dark:hover:bg-slate-600">Cancel</button>
-              <button onClick={handleDelete} className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">Delete</button>
+              <button onClick={() => setDeleteModalOpen(false)} className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-300 bg-gray-200 dark:bg-slate-700 rounded-md hover:bg-gray-300 dark:hover:bg-slate-600">{t("seller.product.modals.cancel")}</button>
+              <button onClick={handleDelete} className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">{t("seller.product.modals.delete")}</button>
             </div>
           </div>
         </div>
@@ -750,16 +760,16 @@ const ProductManagement = () => {
       {statusModalOpen && selectedProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6 w-full max-w-md border border-gray-200 dark:border-slate-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">Confirm Status Change</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">{t("seller.product.modals.confirm_status")}</h3>
             <p className="text-sm text-gray-600 dark:text-slate-400 mb-6">
               {statusTarget
-                ? `Are you sure you want to activate "${selectedProduct.name}"? The product will be visible to customers.`
-                : `Are you sure you want to deactivate "${selectedProduct.name}"? The product will be hidden from customers.`}
+                ? t("seller.product.modals.activate_confirm", { name: selectedProduct.name })
+                : t("seller.product.modals.deactivate_confirm", { name: selectedProduct.name })}
             </p>
             <div className="flex justify-end space-x-3">
-              <button onClick={() => setStatusModalOpen(false)} className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-300 bg-gray-200 dark:bg-slate-700 rounded-md hover:bg-gray-300 dark:hover:bg-slate-600">Cancel</button>
+              <button onClick={() => setStatusModalOpen(false)} className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-300 bg-gray-200 dark:bg-slate-700 rounded-md hover:bg-gray-300 dark:hover:bg-slate-600">{t("seller.product.modals.cancel")}</button>
               <button onClick={handleProductStatus} className={`px-4 py-2 text-sm font-medium text-white rounded-md ${statusTarget ? 'bg-green-600 hover:bg-green-700' : 'bg-yellow-600 hover:bg-yellow-700'}`}>
-                {statusTarget ? 'Activate' : 'Deactivate'}
+                {statusTarget ? t("seller.product.modals.activate") : t("seller.product.modals.deactivate")}
               </button>
             </div>
           </div>
@@ -778,24 +788,26 @@ const ProductManagement = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
             <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-slate-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">{selectedProduct.name} - Images</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
+                {t("seller.product.modals.product_images", { name: selectedProduct.name })}
+              </h3>
               <button onClick={() => setImageModalOpen(false)} className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300"><XMarkIcon className="h-6 w-6" /></button>
             </div>
             <div className="p-4 overflow-y-auto max-h-96">
               {selectedImages.length === 0 ? (
-                <div className="text-center py-8"><PhotoIcon className="h-12 w-12 text-gray-400 dark:text-slate-500 mx-auto mb-4" /><p className="text-gray-500 dark:text-slate-400">No images available for this product.</p></div>
+                <div className="text-center py-8"><PhotoIcon className="h-12 w-12 text-gray-400 dark:text-slate-500 mx-auto mb-4" /><p className="text-gray-500 dark:text-slate-400">{t("seller.product.modals.no_images")}</p></div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {selectedImages.map((image, index) => (
                     <div key={index} className="relative group">
-                      <img loading="lazy" src={image.url} alt={`Product image ${index + 1}`} className="w-full h-48 object-cover rounded-lg" onError={(e) => { e.target.src = "/placeholder-product.jpg"; }} />
-                      {image.is_primary && <div className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full">Primary</div>}
+                      <img loading="lazy" src={image.url} alt={t("seller.product.modals.product_image_alt", { number: index + 1 })} className="w-full h-48 object-cover rounded-lg" onError={(e) => { e.target.src = "/placeholder-product.jpg"; }} />
+                      {image.is_primary && <div className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full">{t("seller.product.modals.primary")}</div>}
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200">
                         <div className="flex space-x-2">
                           {!image.is_primary && (
-                            <button onClick={() => setPrimaryImage(selectedProduct, index)} className="bg-white text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-100">Set Primary</button>
+                            <button onClick={() => setPrimaryImage(selectedProduct, index)} className="bg-white text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-100">{t("seller.product.modals.set_primary")}</button>
                           )}
-                          <button onClick={() => deleteImage(selectedProduct, index)} className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">Delete</button>
+                          <button onClick={() => deleteImage(selectedProduct, index)} className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">{t("seller.product.modals.delete")}</button>
                         </div>
                       </div>
                     </div>
@@ -805,13 +817,13 @@ const ProductManagement = () => {
             </div>
             <div className="p-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
               <div className="flex justify-between items-center">
-                <p className="text-sm text-gray-500 dark:text-slate-400">{selectedImages.length} image(s)</p>
+                <p className="text-sm text-gray-500 dark:text-slate-400">{t("seller.product.modals.image_count", { count: selectedImages.length })}</p>
                 <div className="flex space-x-2">
                   <label className="cursor-pointer bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700">
-                    Add Images
+                    {t("seller.product.modals.add_images")}
                     <input type="file" multiple accept="image/*" className="hidden" onChange={(e) => handleImageUpload(selectedProduct, Array.from(e.target.files))} />
                   </label>
-                  <button onClick={() => setImageModalOpen(false)} className="px-4 py-2 text-sm text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-md hover:bg-gray-50 dark:hover:bg-slate-700">Close</button>
+                  <button onClick={() => setImageModalOpen(false)} className="px-4 py-2 text-sm text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-md hover:bg-gray-50 dark:hover:bg-slate-700">{t("seller.product.modals.close")}</button>
                 </div>
               </div>
             </div>
