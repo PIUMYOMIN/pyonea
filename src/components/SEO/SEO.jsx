@@ -23,7 +23,7 @@ const SEO = ({
     ? title.includes("Pyonea")
       ? title
       : `${title} | Pyonea`
-    : "Pyonea Marketplace";
+    : "Pyonea | Myanmar B2B Wholesale Marketplace";
 
   const absoluteImage = safeImage.startsWith("http")
     ? safeImage

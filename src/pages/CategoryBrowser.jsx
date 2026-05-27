@@ -143,8 +143,8 @@ const CategoryBrowser = () => {
   }, [filteredCategories, t]);
 
   const SeoComponent = useSEO({
-    title: t("categories.title"),
-    description: t("categories.subtitle"),
+    title: t("seo.categories.title"),
+    description: t("seo.categories.description"),
     url: "/categories",
     type: "website",
     schema: categoryListingSchema,

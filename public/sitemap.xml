@@ -111,6 +111,24 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://pyonea.com/blog?lang=en</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pyonea.com/blog?lang=en" />
+    <xhtml:link rel="alternate" hreflang="my" href="https://pyonea.com/blog?lang=my" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pyonea.com/blog?lang=en" />
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pyonea.com/blog?lang=my</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pyonea.com/blog?lang=en" />
+    <xhtml:link rel="alternate" hreflang="my" href="https://pyonea.com/blog?lang=my" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pyonea.com/blog?lang=en" />
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://pyonea.com/pricing?lang=en</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://pyonea.com/pricing?lang=en" />
     <xhtml:link rel="alternate" hreflang="my" href="https://pyonea.com/pricing?lang=my" />

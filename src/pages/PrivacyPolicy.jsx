@@ -8,7 +8,7 @@ const PrivacyPolicy = () => {
 
   const SeoComponent = useSEO({
     title: t('privacyPolicy.title'),
-    description: t('privacyPolicy.subtitle'),
+    description: t('privacyPolicy.seo.description'),
     url: '/privacy-policy',
   });
 

@@ -140,8 +140,8 @@ const Sellers = () => {
   const paginate = pageNumber => setCurrentPage(pageNumber);
 
   const SeoComponent = useSEO({
-    title: t("sellers.title"),
-    description: t("sellers.subtitle"),
+    title: t("seo.sellers.title"),
+    description: t("seo.sellers.description"),
     url: "/sellers"
   });
 

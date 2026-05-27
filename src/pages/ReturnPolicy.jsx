@@ -8,7 +8,7 @@ const ReturnPolicy = () => {
 
   const SeoComponent = useSEO({
     title: t('returnPolicy.title'),
-    description: t('returnPolicy.subtitle'),
+    description: t('returnPolicy.seo.description'),
     url: '/return-policy',
   });
 

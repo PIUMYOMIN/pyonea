@@ -52,6 +52,7 @@ import FinancialReports from "../../components/admin/FinancialReports";
 import SEO from "../../components/SEO/SEO";
 import DashboardRFQSection from "../../components/Shared/DashboardRFQSection";
 import SubscriptionManagement from '../../components/admin/SubscriptionManagement';
+import BlogManagement from "../../components/admin/BlogManagement";
 
 // ── Admin personal profile tab ────────────────────────────────────────────────
 const inputCls =
@@ -406,6 +407,11 @@ const AdminDashboard = () => {
       name: "Announcements",
       icon: MegaphoneIcon,
       component: <AnnouncementManagement />,
+    },
+    {
+      name: "Blog",
+      icon: DocumentTextIcon,
+      component: <BlogManagement />,
     },
     {
       name: "Commission Rules",

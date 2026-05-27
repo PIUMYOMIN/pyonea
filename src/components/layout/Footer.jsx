@@ -63,6 +63,11 @@ const Footer = () => {
                   {t("footer.bulk_order_tool")}
                 </Link>
               </li>
+              <li>
+                <Link to="/blog" className={linkClass}>
+                  {t("footer.blog")}
+                </Link>
+              </li>
             </ul>
           </div>
 

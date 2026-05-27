@@ -708,9 +708,17 @@ const ProductDetail = () => {
 
     return () => { cancelled = true; };
   }, [product?.id, product?.seller_id, product?.seller?.id]);
-  const pageTitle       = product ? (loc(product.name_en, product.name_mm) || t("productDetail.product")) : fallbackTitle;
+  const productDisplayName = product ? (loc(product.name_en, product.name_mm) || t("productDetail.product")) : "";
+  const productAltText = product
+    ? `${productDisplayName} wholesale Myanmar product on Pyonea`
+    : undefined;
+  const pageTitle = product
+    ? `${productDisplayName} | Wholesale Myanmar | Pyonea`
+    : fallbackTitle;
   const pageDescription = product
-    ? ((loc(product.description_en, product.description_mm) || "").slice(0, 155) || t("productDetail.description_meta"))
+    ? (
+        `${productDisplayName} wholesale in Myanmar. Check MOQ ${effectiveMoq || 1}, bulk price, supplier details, and secure ordering on Pyonea.`
+      ).slice(0, 160)
     : fallbackDescription;
   const pageUrl   = product ? `/products/${product.slug_en || product.slug || slug}` : `/products/${slug}`;
 
@@ -788,7 +796,7 @@ const ProductDetail = () => {
     title:       pageTitle,
     description: pageDescription,
     image:       primaryProductImageUrl,
-    imageAlt:    product ? (loc(product.name_en, product.name_mm) || t("productDetail.product")) : undefined,
+    imageAlt:    productAltText,
     url:         pageUrl,
     type:        "product",
     schema:      pageSchema,
@@ -894,7 +902,7 @@ const ProductDetail = () => {
               <ProductImageGallery
                 images={product.images}
                 getImageUrl={(img) => getImageUrl(img) || DEFAULT_PLACEHOLDER}
-                alt={loc(product.name_en, product.name_mm) || t("productDetail.product")}
+                alt={productAltText}
                 initialIndex={activeImage}
                 onIndexChange={setActiveImage}
                 priority={true}

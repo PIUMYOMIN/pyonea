@@ -1,32 +1,32 @@
 {
   "seo": {
     "home": {
-      "title": "Pyonea | Myanmar B2B Marketplace",
-      "description": "Pyonea connects Myanmar businesses with verified suppliers. Buy wholesale products, find trusted sellers, and grow your business."
+      "title": "Pyonea | Myanmar's B2B Wholesale Marketplace & Suppliers",
+      "description": "Pyonea connects Myanmar businesses with verified suppliers. Find wholesale products, MOQ pricing, bulk orders, and trusted sellers across Myanmar."
     },
     "products": {
-      "title": "Products | Pyonea",
-      "description": "Browse wholesale products from Myanmar suppliers across all categories."
+      "title": "Wholesale Products in Myanmar | Pyonea",
+      "description": "Browse wholesale products from verified Myanmar suppliers. Compare MOQ, prices, seller profiles, and order securely on Pyonea."
     },
     "product": {
-      "title": "{{name}}",
-      "description": "Buy {{name}} at wholesale price from verified Myanmar suppliers. Check MOQ, reviews, and order securely on Pyonea."
+      "title": "{{name}} | Wholesale Myanmar",
+      "description": "Buy {{name}} at wholesale price from verified Myanmar suppliers. Check MOQ, bulk pricing, reviews, and order securely on Pyonea."
     },
     "sellers": {
-      "title": "Sellers | Pyonea",
-      "description": "Discover verified sellers on Pyonea. Connect with trusted suppliers and grow your business."
+      "title": "Verified Myanmar Suppliers & Sellers | Pyonea",
+      "description": "Discover verified Myanmar suppliers on Pyonea. View seller profiles, product lists, ratings, and wholesale business information."
     },
     "seller": {
-      "title": "{{name}} Store | Pyonea",
-      "description": "Shop from {{name}} on Pyonea. View products, ratings, and contact the seller directly."
+      "title": "{{name}} Supplier Store | Pyonea Myanmar",
+      "description": "Shop wholesale products from {{name}} on Pyonea. View product lists, MOQ, ratings, and supplier details in Myanmar."
     },
     "categories": {
-      "title": "Categories | Pyonea",
-      "description": "Browse product categories on Pyonea – electronics, fashion, home & more."
+      "title": "Wholesale Categories in Myanmar | Pyonea",
+      "description": "Browse Myanmar wholesale product categories on Pyonea including fashion, books, electronics, home goods, and business supplies."
     },
     "category": {
-      "title": "{{name}} | Pyonea",
-      "description": "Browse {{name}} products from Myanmar suppliers. Wholesale prices, bulk orders, and verified sellers."
+      "title": "Wholesale {{name}} in Myanmar | Pyonea",
+      "description": "Browse wholesale {{name}} products from verified Myanmar suppliers. Compare MOQ, bulk prices, and seller profiles on Pyonea."
     },
     "auth": {
       "title": "Login / Register | Pyonea",
@@ -37,8 +37,8 @@
       "description": "Browse active coupon offers from verified Myanmar sellers by region. Save on wholesale orders and support local businesses."
     },
     "default": {
-      "title": "Pyonea",
-      "description": "Myanmar's trusted B2B marketplace for wholesale trade."
+      "title": "Pyonea | Myanmar B2B Wholesale Marketplace",
+      "description": "Myanmar's trusted B2B wholesale marketplace for suppliers, bulk buyers, and business trade."
     }
   },
   "app_name": "Pyonea",
@@ -562,6 +562,28 @@
     },
     "from": "From",
     "under": "Under"
+  },
+  "blog_page": {
+    "label": "Business Guides",
+    "title": "Wholesale Myanmar Blog & Business Guides",
+    "subtitle": "Practical guides for Myanmar buyers, sellers, online shops, wholesalers, and SMEs using Pyonea.",
+    "search_placeholder": "Search guides...",
+    "all_categories": "All categories",
+    "featured": "Featured",
+    "read_article": "Read article",
+    "min_read": "min read",
+    "empty_title": "No blog posts found",
+    "empty_subtitle": "New buyer and seller guides will appear here once published.",
+    "fetch_error": "Blog posts could not be loaded. Please try again later.",
+    "detail_fetch_error": "This blog post could not be loaded.",
+    "not_found": "Blog post not found",
+    "not_found_subtitle": "The article may have been moved, archived, or unpublished.",
+    "back_to_blog": "Back to Blog",
+    "related": "Related Guides",
+    "seo": {
+      "title": "Wholesale Myanmar Blog & Business Guides | Pyonea",
+      "description": "Read Pyonea guides for Myanmar wholesale buying, supplier sourcing, online shops, B2B marketplace selling, MOQ, delivery, and business growth."
+    }
   },
   "compare": {
     "title": "Product Comparison",
@@ -1593,6 +1615,9 @@
   "returnPolicy": {
     "title": "Return Policy",
     "subtitle": "How returns work on Pyonea",
+    "seo": {
+      "description": "Learn how returns, exchanges, refunds, seller policies, buyer responsibilities, and dispute support work on Pyonea's Myanmar B2B marketplace."
+    },
     "platformPolicy": {
       "title": "Platform Policy",
       "description": "Pyonea is a marketplace where independent sellers offer their products. Each seller may have their own return, exchange, and refund policy. By placing an order, you agree to the seller’s policy as displayed on the product page and during checkout.",
@@ -1636,6 +1661,9 @@
   "privacyPolicy": {
     "title": "Privacy Policy",
     "subtitle": "How Pyonea collects, uses, and protects your information",
+    "seo": {
+      "description": "Read how Pyonea protects buyer, seller, order, payment, delivery, and verification data on Myanmar's B2B wholesale marketplace."
+    },
     "lastUpdated": "Last updated: {{date}}",
     "intro": "Pyonea is a B2B marketplace. We collect only the information we need to run the platform—verify sellers, process orders, support shipping and payments, prevent fraud, and improve the buying and selling experience.",
     "dataCollection": {

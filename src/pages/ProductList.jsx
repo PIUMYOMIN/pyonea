@@ -221,12 +221,12 @@ const ProductList = () => {
 
   const getPageTitle = useMemo(() => {
     if (searchQuery && selectedCategory)
-      return t("products.search_results_category", { query: searchQuery, category: getCategoryName(selectedCategory) });
+      return `${t("products.search_results_category", { query: searchQuery, category: getCategoryName(selectedCategory) })} | Wholesale Myanmar`;
     if (searchQuery)
-      return t("products.search_results", { query: searchQuery });
+      return `${t("products.search_results", { query: searchQuery })} | Wholesale Myanmar`;
     if (selectedCategory)
-      return t("products.category_products", { category: getCategoryName(selectedCategory) });
-    return t("products.all_products");
+      return `${t("products.category_products", { category: getCategoryName(selectedCategory) })} | Myanmar Suppliers`;
+    return t("seo.products.title");
   }, [searchQuery, selectedCategory, getCategoryName, t]);
 
   const metaDescription = useMemo(() => {

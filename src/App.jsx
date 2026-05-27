@@ -60,6 +60,8 @@ const FAQ                     = lazy(() => import("./pages/FAQ"));
 const ShippingInfo            = lazy(() => import("./pages/ShippingInfo"));
 const Contact                 = lazy(() => import("./pages/Contact"));
 const LocalDeals              = lazy(() => import("./pages/LocalDeals"));
+const Blog                    = lazy(() => import("./pages/Blog"));
+const BlogDetail              = lazy(() => import("./pages/BlogDetail"));
 const RFQManager              = lazy(() => import("./pages/RFQManager"));
 const OrderTracking           = lazy(() => import("./pages/OrderTracking"));
 const OrderTrackingPage       = lazy(() => import("./pages/OrderTrackingPage"));
@@ -214,6 +216,8 @@ function App() {
                         <Route path="/page-not-found" element={<Error />} />
                         <Route path="/reset-password" element={<WithRC><ResetPassword /></WithRC>} />
                         <Route path="/local-deals" element={<LocalDeals />} />
+                        <Route path="/blog" element={<Blog />} />
+                        <Route path="/blog/:slug" element={<BlogDetail />} />
                         <Route
                           path="/verify-email/:id/:hash"
                           element={
