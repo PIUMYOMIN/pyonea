@@ -41,7 +41,7 @@ const CategoryForm = ({ mode = "create", category: initialCategory = null, onSuc
     if (categoriesFetched) return;
     try {
       setLoading(true);
-      const response = await api.get("/categories");
+      const response = await api.get("/admin/categories");
       if (response.data.success) {
         setCategories(response.data.data);
         setCategoriesFetched(true);
@@ -158,11 +158,11 @@ const CategoryForm = ({ mode = "create", category: initialCategory = null, onSuc
 
       if (mode === "edit") {
         submitData.append("_method", "PUT");
-        await api.post(`/categories/${id}`, submitData, {
+        await api.post(`/admin/categories/${id}`, submitData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
-        await api.post("/categories", submitData, {
+        await api.post("/admin/categories", submitData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       }

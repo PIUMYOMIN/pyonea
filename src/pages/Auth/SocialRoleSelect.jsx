@@ -98,13 +98,13 @@ const SocialRoleSelect = () => {
       setSession({ token, user });
       sessionStorage.removeItem("social_pending");
 
-      if (user?.email && !user?.email_verified_at) {
+      if (user?.email && !user?.email_verified_at && role === "seller") {
         navigate("/verify-email", { replace: true });
         return;
       }
 
       if (role === "seller") navigate("/seller", { replace: true });
-      else navigate("/", { replace: true });
+      else navigate("/products", { replace: true });
     } catch (e) {
       setError(e.response?.data?.message || "Failed to complete registration. Please try again.");
     } finally {

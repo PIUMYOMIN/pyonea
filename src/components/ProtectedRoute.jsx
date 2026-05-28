@@ -20,8 +20,14 @@ const ProtectedRoute = ({ children, roles = [] }) => {
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
-  // Accounts with an email must verify it before any protected area (dashboards, cart, etc.)
-  if (user?.email && !user?.email_verified_at) {
+  const userRoles = Array.isArray(user?.roles) ? user.roles : [];
+  const isBuyer = userRoles.includes('buyer') || user?.role === 'buyer' || user?.type === 'buyer';
+  const isSeller = userRoles.includes('seller') || user?.role === 'seller' || user?.type === 'seller';
+  const isAdmin = userRoles.includes('admin') || user?.role === 'admin' || user?.type === 'admin';
+
+  // Sellers/admins must verify email before protected areas. Buyers can shop
+  // immediately and get a dashboard reminder instead of a hard redirect.
+  if (user?.email && !user?.email_verified_at && (isSeller || isAdmin)) {
     return (
       <Navigate
         to="/verify-email"

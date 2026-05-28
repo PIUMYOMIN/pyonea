@@ -177,7 +177,16 @@ const Login = () => {
       const user = r.data?.data?.user;
       setSession({ token, user });
 
-      if (user?.email && !user?.email_verified_at) {
+      const roles = Array.isArray(user?.roles) ? user.roles : [];
+      const isSellerOrAdmin =
+        roles.includes("seller") ||
+        roles.includes("admin") ||
+        user?.type === "seller" ||
+        user?.role === "seller" ||
+        user?.type === "admin" ||
+        user?.role === "admin";
+
+      if (user?.email && !user?.email_verified_at && isSellerOrAdmin) {
         navigate("/verify-email", {
           replace: true,
           state: { returnTo: location.state?.from || "/" },

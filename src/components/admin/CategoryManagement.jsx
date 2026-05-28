@@ -78,7 +78,7 @@ const CategoryManagement = () => {
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     try {
-      await api.delete(`/categories/${deleteTarget}`);
+      await api.delete(`/admin/categories/${deleteTarget}`);
       flash("Category deleted successfully.");
       setDeleteTarget(null);
       fetchCategories();
@@ -94,7 +94,7 @@ const CategoryManagement = () => {
       updateCategoryRecursively(prev, categoryId, { is_active: newStatus })
     );
     try {
-      await api.put(`/categories/${categoryId}`, { is_active: newStatus });
+      await api.put(`/admin/categories/${categoryId}`, { is_active: newStatus });
       flash(`Category ${newStatus ? "activated" : "deactivated"} successfully.`);
     } catch (err) {
       setCategories((prev) =>

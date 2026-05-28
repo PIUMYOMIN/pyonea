@@ -15,7 +15,7 @@ const CategoryEdit = () => {
       setLoading(true);
       setError("");
       
-      const response = await api.get(`/categories/${id}`);
+      const response = await api.get(`/admin/categories/${id}`);
       if (response.data.success) {
         setCategory(response.data.data);
       } else {

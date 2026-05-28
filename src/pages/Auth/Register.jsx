@@ -122,7 +122,16 @@ const Register = () => {
       const user = r.data?.data?.user;
       setSession({ token, user });
 
-      if (user?.email && !user?.email_verified_at) {
+      const roles = Array.isArray(user?.roles) ? user.roles : [];
+      const isSellerOrAdmin =
+        roles.includes("seller") ||
+        roles.includes("admin") ||
+        user?.type === "seller" ||
+        user?.role === "seller" ||
+        user?.type === "admin" ||
+        user?.role === "admin";
+
+      if (user?.email && !user?.email_verified_at && isSellerOrAdmin) {
         navigate("/verify-email", { replace: true });
         return;
       }
@@ -175,14 +184,13 @@ const Register = () => {
       });
 
       if (result.success) {
-        // Only send to email verification if the user provided an email address.
-        // Phone-only registrations have nothing to verify — go straight to the app.
-        if (result.user?.email) {
+        // Buyers can shop immediately. Sellers still verify before onboarding.
+        if (result.user?.email && result.user?.type === 'seller') {
           navigate('/verify-email');
         } else if (result.user?.type === 'seller') {
           navigate('/seller');
         } else {
-          navigate('/');
+          navigate('/products');
         }
       } else {
         setError(result.message || t('register.error'));

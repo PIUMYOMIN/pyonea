@@ -544,6 +544,8 @@ const OrderDetailsModal = ({ order, isOpen, onClose }) => {
 // ─── Dashboard Tab ────────────────────────────────────────────────────────────
 const DashboardTab = ({ user, orders, onViewDetails, onCancel, navigate }) => {
   const { t } = useTranslation();
+  const [resendingVerification, setResendingVerification] = useState(false);
+  const [verificationMessage, setVerificationMessage] = useState("");
   const totalSpent  = useMemo(() => orders.reduce((s, o) => s + (o.total_amount || 0), 0), [orders]);
   const recentOrders = orders.slice(0, 4);
 
@@ -554,6 +556,19 @@ const DashboardTab = ({ user, orders, onViewDetails, onCancel, navigate }) => {
     { label: t("buyer_dashboard.total_spent"),   value: formatMMK(totalSpent),                                             color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-50 dark:bg-purple-900/30", Icon: CreditCardIcon   },
   ];
 
+  const handleResendVerification = async () => {
+    setResendingVerification(true);
+    setVerificationMessage("");
+    try {
+      await api.post("/email/resend");
+      setVerificationMessage(t("buyer_dashboard.email_verification_sent", "Verification email sent. Please check your inbox."));
+    } catch (error) {
+      setVerificationMessage(error.response?.data?.message || t("buyer_dashboard.email_verification_failed", "Could not send verification email. Please try again later."));
+    } finally {
+      setResendingVerification(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-6 text-white">
@@ -561,7 +576,38 @@ const DashboardTab = ({ user, orders, onViewDetails, onCancel, navigate }) => {
         <p className="text-green-100 text-sm">{t("buyer_dashboard.overview_subtitle")}</p>
       </div>
 
-
+      {user?.email && !user?.email_verified_at && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="rounded-xl bg-amber-100 dark:bg-amber-900/40 p-2 flex-shrink-0">
+                <EnvelopeIcon className="h-5 w-5 text-amber-700 dark:text-amber-300" />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-amber-900 dark:text-amber-100">
+                  {t("buyer_dashboard.verify_email_title", "Confirm your email address")}
+                </h2>
+                <p className="text-sm text-amber-800/80 dark:text-amber-200/80 mt-1">
+                  {t("buyer_dashboard.verify_email_desc", "You can keep shopping now, but verifying your email helps protect your account and order updates.")}
+                </p>
+                {verificationMessage && (
+                  <p className="text-xs text-amber-700 dark:text-amber-200 mt-2">{verificationMessage}</p>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleResendVerification}
+              disabled={resendingVerification}
+              className="inline-flex justify-center items-center px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:opacity-60 text-white rounded-xl text-sm font-semibold"
+            >
+              {resendingVerification
+                ? t("buyer_dashboard.sending", "Sending...")
+                : t("buyer_dashboard.resend_verification_email", "Resend email")}
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="flex gap-2">
         <a href="https://t.me/pyonea_community" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-12 h-12 bg-sky-500 hover:bg-sky-600 rounded-2xl shadow-sm dark:shadow-slate-900/50 transition-colors p-3 group">
