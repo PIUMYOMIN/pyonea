@@ -16,6 +16,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon as CheckCircleSolid } from "@heroicons/react/24/solid";
 import api from "../../utils/api";
+import i18n from "../../i18n";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -29,7 +30,7 @@ const escapeHtml = (str) =>
     .replace(/'/g, "&#39;");
 
 const formatMMK = (amount) =>
-  new Intl.NumberFormat("en-MM", { style: "currency", currency: "MMK", minimumFractionDigits: 0 }).format(amount || 0);
+  `${new Intl.NumberFormat("en-MM", { maximumFractionDigits: 0 }).format(amount || 0)} ${i18n.t("common.currency.mmk", "MMK")}`;
 
 const formatDate = (d) =>
   new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
@@ -54,7 +55,8 @@ const DELIVERY_STATUS_COLOR = {
   cancelled:        "bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-slate-300",
 };
 
-const formatStatus = (s) => (s || "").replaceAll("_", " ");
+const formatStatus = (s, t) =>
+  t(`seller.order.statuses.${s}`, (s || "").replaceAll("_", " "));
 
 const calculatePlatformFee = (weight = 5) => 5000 + weight * 100;
 const hasDeliveryMethodChoice = (delivery) =>
@@ -74,6 +76,8 @@ const parseShippingAddress = (shippingAddress) => {
 
 // ─── Delivery Method Modal ─────────────────────────────────────────────────────
 const DeliveryMethodModal = ({ order, onConfirm, onClose, loading }) => {
+  const { t } = useTranslation();
+
   if (!order) return null;
   return (
     <div
@@ -85,10 +89,10 @@ const DeliveryMethodModal = ({ order, onConfirm, onClose, loading }) => {
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-slate-700">
           <div>
             <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-              Set Delivery Method
+              {t("seller.order.delivery.set_method", "Set Delivery Method")}
             </h2>
             <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-              Order #{order.order_number || order.id}
+              {t("seller.order.order_number", { number: order.order_number || order.id })}
             </p>
           </div>
           <button
@@ -112,6 +116,7 @@ const DeliveryMethodModal = ({ order, onConfirm, onClose, loading }) => {
 // Shown inline inside the Order Details modal when the order is confirmed
 // and no delivery method has been set yet.
 const DeliveryMethodPanel = ({ order, onConfirm, loading }) => {
+  const { t } = useTranslation();
   const [method, setMethod]             = useState("supplier");
   const [pickupAddress, setPickupAddress] = useState("");
   const [addressError, setAddressError] = useState("");
@@ -122,7 +127,7 @@ const DeliveryMethodPanel = ({ order, onConfirm, loading }) => {
   const handleConfirm = () => {
     // Pickup address required for platform logistics; optional for self-delivery
     if (method === "platform" && !pickupAddress.trim()) {
-      setAddressError("Pickup address is required for platform logistics");
+      setAddressError(t("seller.order.delivery.pickup_required", "Pickup address is required for platform logistics"));
       return;
     }
     onConfirm(method, pickupAddress.trim());
@@ -133,9 +138,11 @@ const DeliveryMethodPanel = ({ order, onConfirm, loading }) => {
       <div className="flex items-start gap-2">
         <ExclamationCircleIcon className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
         <div>
-          <p className="text-sm font-medium text-amber-900 dark:text-amber-300">Choose Delivery Method</p>
+          <p className="text-sm font-medium text-amber-900 dark:text-amber-300">
+            {t("seller.order.delivery.choose_method", "Choose Delivery Method")}
+          </p>
           <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
-            Select how this order will be delivered to the customer before marking it as shipped.
+            {t("seller.order.delivery.choose_method_desc", "Select how this order will be delivered to the customer before marking it as shipped.")}
           </p>
         </div>
       </div>
@@ -157,14 +164,18 @@ const DeliveryMethodPanel = ({ order, onConfirm, loading }) => {
               <TruckIcon className="h-5 w-5 text-gray-600 dark:text-slate-300" />
             </div>
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white text-sm">Self Delivery</p>
-              <p className="text-xs text-green-600 font-medium">Free</p>
+              <p className="font-semibold text-gray-900 dark:text-white text-sm">
+                {t("seller.order.delivery.self", "Self Delivery")}
+              </p>
+              <p className="text-xs text-green-600 font-medium">
+                {t("seller.order.delivery.free", "Free")}
+              </p>
             </div>
           </div>
           <ul className="text-xs text-gray-500 dark:text-slate-400 space-y-0.5 pl-1">
-            <li>• You arrange and track delivery</li>
-            <li>• No platform fee charged</li>
-            <li>• Full control over the process</li>
+            <li>{t("seller.order.delivery.self_point_1", "You arrange and track delivery")}</li>
+            <li>{t("seller.order.delivery.self_point_2", "No platform fee charged")}</li>
+            <li>{t("seller.order.delivery.self_point_3", "Full control over the process")}</li>
           </ul>
         </button>
 
@@ -183,14 +194,18 @@ const DeliveryMethodPanel = ({ order, onConfirm, loading }) => {
               <BuildingStorefrontIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <p className="font-semibold text-gray-900 dark:text-white text-sm">Platform Logistics</p>
-              <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">{formatMMK(platformFee)} fee</p>
+              <p className="font-semibold text-gray-900 dark:text-white text-sm">
+                {t("seller.order.delivery.platform", "Platform Logistics")}
+              </p>
+              <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                {t("seller.order.delivery.fee", { amount: formatMMK(platformFee) })}
+              </p>
             </div>
           </div>
           <ul className="text-xs text-gray-500 dark:text-slate-400 space-y-0.5 pl-1">
-            <li>• Courier collects from your address</li>
-            <li>• Real-time tracking for customer</li>
-            <li>• Platform handles communication</li>
+            <li>{t("seller.order.delivery.platform_point_1", "Courier collects from your address")}</li>
+            <li>{t("seller.order.delivery.platform_point_2", "Real-time tracking for customer")}</li>
+            <li>{t("seller.order.delivery.platform_point_3", "Platform handles communication")}</li>
           </ul>
         </button>
       </div>
@@ -199,14 +214,16 @@ const DeliveryMethodPanel = ({ order, onConfirm, loading }) => {
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
           {method === "platform" ? (
-            <>Pickup Address <span className="text-red-500">*</span>
+            <>{t("seller.order.delivery.pickup_address", "Pickup Address")} <span className="text-red-500">*</span>
               <span className="text-xs text-gray-500 dark:text-slate-400 font-normal ml-1">
-                (where the courier collects the package)
+                {t("seller.order.delivery.pickup_hint", "(where the courier collects the package)")}
               </span>
             </>
           ) : (
-            <>Your Warehouse / Store Address
-              <span className="text-xs text-gray-500 dark:text-slate-400 font-normal ml-1">(optional)</span>
+            <>{t("seller.order.delivery.store_address", "Your Warehouse / Store Address")}
+              <span className="text-xs text-gray-500 dark:text-slate-400 font-normal ml-1">
+                {t("seller.order.optional", "(optional)")}
+              </span>
             </>
           )}
         </label>
@@ -218,8 +235,8 @@ const DeliveryMethodPanel = ({ order, onConfirm, loading }) => {
             onChange={(e) => { setPickupAddress(e.target.value); setAddressError(""); }}
             placeholder={
               method === "platform"
-                ? "e.g. No. 12, Merchant St, Yangon"
-                : "e.g. Your store address (optional)"
+                ? t("seller.order.delivery.pickup_placeholder", "e.g. No. 12, Merchant St, Yangon")
+                : t("seller.order.delivery.store_placeholder", "e.g. Your store address (optional)")
             }
             className={`w-full pl-9 pr-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 ${
               addressError ? "border-red-400 focus:ring-red-400" : "border-gray-300 dark:border-slate-600 focus:ring-green-500"
@@ -237,9 +254,13 @@ const DeliveryMethodPanel = ({ order, onConfirm, loading }) => {
         className="w-full py-2.5 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
       >
         {loading ? (
-          <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />Saving...</>
+          <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />{t("seller.order.saving", "Saving...")}</>
         ) : (
-          <>Confirm {method === "supplier" ? "Self Delivery" : "Platform Logistics"}</>
+          <>{t("seller.order.delivery.confirm_method", {
+            method: method === "supplier"
+              ? t("seller.order.delivery.self", "Self Delivery")
+              : t("seller.order.delivery.platform", "Platform Logistics")
+          })}</>
         )}
       </button>
     </div>
@@ -248,6 +269,8 @@ const DeliveryMethodPanel = ({ order, onConfirm, loading }) => {
 
 // ─── Platform Tracking Timeline ───────────────────────────────────────────────
 const DeliveryTracking = ({ delivery, onRefresh, refreshing }) => {
+  const { t } = useTranslation();
+
   if (!delivery || delivery.delivery_method !== "platform") return null;
 
   const TIMELINE = [
@@ -265,7 +288,7 @@ const DeliveryTracking = ({ delivery, onRefresh, refreshing }) => {
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm font-semibold text-blue-900 dark:text-blue-300 flex items-center gap-2">
           <TruckIcon className="h-4 w-4" />
-          Platform Logistics Tracking
+          {t("seller.order.delivery.platform_tracking", "Platform Logistics Tracking")}
         </p>
         <button
           onClick={onRefresh}
@@ -273,7 +296,7 @@ const DeliveryTracking = ({ delivery, onRefresh, refreshing }) => {
           className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-xs flex items-center gap-1 disabled:opacity-50"
         >
           <ArrowPathIcon className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
-          Refresh
+          {t("seller.order.refresh", "Refresh")}
         </button>
       </div>
 
@@ -282,7 +305,7 @@ const DeliveryTracking = ({ delivery, onRefresh, refreshing }) => {
         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
           DELIVERY_STATUS_COLOR[delivery.status] ?? "bg-gray-100 text-gray-700"
         }`}>
-          {formatStatus(delivery.status)}
+          {formatStatus(delivery.status, t)}
         </span>
         {delivery.tracking_number && (
           <span className="ml-2 text-xs text-blue-700 font-mono">#{delivery.tracking_number}</span>
@@ -306,7 +329,7 @@ const DeliveryTracking = ({ delivery, onRefresh, refreshing }) => {
                   }
                 </div>
                 <span className="text-[10px] text-center mt-1 text-gray-600 dark:text-slate-400 leading-tight max-w-[60px]">
-                  {step.label}
+                  {formatStatus(step.status, t)}
                 </span>
               </div>
               {idx < TIMELINE.length - 1 && (
@@ -320,7 +343,7 @@ const DeliveryTracking = ({ delivery, onRefresh, refreshing }) => {
       {/* Courier info */}
       {delivery.platformCourier && (
         <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800 text-xs text-blue-800 dark:text-blue-300">
-          <span className="font-medium">Courier:</span> {delivery.platformCourier.name}
+          <span className="font-medium">{t("seller.order.delivery.courier", "Courier")}:</span> {delivery.platformCourier.name}
           {delivery.assigned_driver_phone && (
             <span className="ml-2">· {delivery.assigned_driver_phone}</span>
           )}
@@ -329,7 +352,7 @@ const DeliveryTracking = ({ delivery, onRefresh, refreshing }) => {
 
       {delivery.pickup_address && (
         <div className="mt-2 text-xs text-blue-700 dark:text-blue-400">
-          <span className="font-medium">Pickup from:</span> {delivery.pickup_address}
+          <span className="font-medium">{t("seller.order.delivery.pickup_from", "Pickup from")}:</span> {delivery.pickup_address}
         </div>
       )}
     </div>
@@ -345,6 +368,7 @@ const OrderDetailsModal = ({
   onDeliveryMethodSet,
   actionLoading,
 }) => {
+  const { t } = useTranslation();
   const [delivery, setDelivery]         = useState(order.delivery || null);
   const [refreshing, setRefreshing]     = useState(false);
   const [error, setError]               = useState(null);
@@ -404,10 +428,10 @@ const OrderDetailsModal = ({
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Order #{order.order_number || order.id}
+                  {t("seller.order.order_number", { number: order.order_number || order.id })}
                 </h3>
                 <span className={`inline-flex items-center gap-1 mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_COLOR[order.status] ?? "bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-slate-300"}`}>
-                  <span className="capitalize">{order.status}</span>
+                  <span>{formatStatus(order.status, t)}</span>
                 </span>
               </div>
               <button onClick={onClose} className="text-gray-400 dark:text-slate-500 hover:text-gray-500 dark:hover:text-slate-300">
@@ -431,7 +455,7 @@ const OrderDetailsModal = ({
               {/* Order Items */}
               <div>
                 <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
-                  Items ({order.items?.length || 0})
+                  {t("seller.order.order_items", { count: order.items?.length || 0 })}
                 </h4>
                 <div className="space-y-2">
                   {order.items?.map((item, i) => (
@@ -446,7 +470,9 @@ const OrderDetailsModal = ({
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 dark:text-slate-100 line-clamp-2">{item.product_name}</p>
-                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Qty: {item.quantity} · {formatMMK(item.price)} each</p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                          {t("seller.order.qty_each", { quantity: item.quantity, price: formatMMK(item.price) })}
+                        </p>
                       </div>
                       <p className="text-sm font-semibold text-gray-900 dark:text-slate-100 flex-shrink-0">{formatMMK(item.subtotal)}</p>
                     </div>
@@ -459,7 +485,9 @@ const OrderDetailsModal = ({
 
                 {/* Shipping address */}
                 <div>
-                  <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-2">Delivery Address</h4>
+                  <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
+                    {t("seller.order.delivery_address", "Delivery Address")}
+                  </h4>
                   <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg p-3 text-sm text-gray-700 dark:text-slate-300 space-y-0.5">
                     <p className="font-medium">{shippingAddress?.full_name}</p>
                     {shippingAddress?.phone && <p>📞 {shippingAddress.phone}</p>}
@@ -472,26 +500,28 @@ const OrderDetailsModal = ({
 
                 {/* Order summary */}
                 <div>
-                  <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-2">Order Summary</h4>
+                  <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
+                    {t("seller.order.order_summary", "Order Summary")}
+                  </h4>
                   <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg p-3 text-sm space-y-1.5">
                     <div className="flex justify-between text-gray-600 dark:text-slate-400">
-                      <span>Subtotal</span><span>{formatMMK(order.subtotal_amount)}</span>
+                      <span>{t("seller.order.subtotal", "Subtotal")}</span><span>{formatMMK(order.subtotal_amount)}</span>
                     </div>
                     <div className="flex justify-between text-gray-600 dark:text-slate-400">
-                      <span>Shipping</span><span>{formatMMK(order.shipping_fee)}</span>
+                      <span>{t("seller.order.shipping", "Shipping")}</span><span>{formatMMK(order.shipping_fee)}</span>
                     </div>
                     {order.tax_amount > 0 && (
                       <div className="flex justify-between text-gray-600 dark:text-slate-400">
-                        <span>Tax</span><span>{formatMMK(order.tax_amount)}</span>
+                        <span>{t("seller.order.tax", "Tax")}</span><span>{formatMMK(order.tax_amount)}</span>
                       </div>
                     )}
                     {order.coupon_discount_amount > 0 && (
                       <div className="flex justify-between text-red-600 dark:text-red-400">
-                        <span>Coupon</span><span>-{formatMMK(order.coupon_discount_amount)}</span>
+                        <span>{t("seller.order.coupon", "Coupon")}</span><span>-{formatMMK(order.coupon_discount_amount)}</span>
                       </div>
                     )}
                     <div className="flex justify-between font-bold text-base pt-1.5 border-t border-gray-200 dark:border-slate-600 dark:text-white">
-                      <span>Total</span>
+                      <span>{t("seller.order.total", "Total")}</span>
                       <span className="text-green-600 dark:text-green-400">{formatMMK(order.total_amount)}</span>
                     </div>
                   </div>
@@ -513,24 +543,24 @@ const OrderDetailsModal = ({
                   <div className="border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 rounded-xl p-4">
                     <p className="text-sm font-semibold text-green-900 dark:text-green-300 flex items-center gap-2 mb-2">
                       <TruckIcon className="h-4 w-4" />
-                      Self Delivery
+                      {t("seller.order.delivery.self", "Self Delivery")}
                     </p>
                     <div className="space-y-1 text-xs text-green-800 dark:text-green-300">
                       <p>
-                        <span className="font-medium">Status:</span>{" "}
+                        <span className="font-medium">{t("seller.order.status", "Status")}:</span>{" "}
                         <span className={`inline-flex px-2 py-0.5 rounded-full ${DELIVERY_STATUS_COLOR[delivery.status] ?? "bg-gray-100 text-gray-700"}`}>
-                          {formatStatus(delivery.status)}
+                          {formatStatus(delivery.status, t)}
                         </span>
                       </p>
                       {delivery.pickup_address && (
-                        <p><span className="font-medium">Pickup:</span> {delivery.pickup_address}</p>
+                        <p><span className="font-medium">{t("seller.order.pickup", "Pickup")}:</span> {delivery.pickup_address}</p>
                       )}
                       {delivery.tracking_number && (
-                        <p><span className="font-medium">Tracking:</span> {delivery.tracking_number}</p>
+                        <p><span className="font-medium">{t("seller.order.tracking", "Tracking")}:</span> {delivery.tracking_number}</p>
                       )}
                     </div>
                     <p className="text-xs text-green-700 dark:text-green-400 mt-2">
-                      You manage this delivery. Use the "Mark as Shipped" button below when dispatched.
+                      {t("seller.order.delivery.self_delivery_note", "You manage this delivery. Use the \"Mark as Shipped\" button below when dispatched.")}
                     </p>
                   </div>
                 )}
@@ -561,7 +591,7 @@ const OrderDetailsModal = ({
                 disabled={actionLoading === order.id}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
               >
-                Confirm Order
+                {t("seller.order.confirm_order", "Confirm Order")}
               </button>
             )}
 
@@ -576,14 +606,14 @@ const OrderDetailsModal = ({
                 disabled={actionLoading === order.id}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
               >
-                Mark as Shipped
+                {t("seller.order.mark_as_shipped", "Mark as Shipped")}
               </button>
             )}
 
             {/* Platform: no ship button — courier handles it */}
             {order.status === "confirmed" && isPlatform && (
               <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg text-xs">
-                Waiting for platform courier to collect
+                {t("seller.order.delivery.waiting_for_courier", "Waiting for platform courier to collect")}
               </div>
             )}
 
@@ -591,7 +621,7 @@ const OrderDetailsModal = ({
               onClick={onClose}
               className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm font-medium text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700"
             >
-              Close
+              {t("seller.order.close", "Close")}
             </button>
           </div>
         </div>
@@ -631,11 +661,11 @@ const OrderManagement = () => {
       setOrders(response.data.data || []);
     } catch (err) {
       console.error("Failed to fetch orders:", err);
-      setError(err.response?.data?.message || "Failed to load orders");
+      setError(err.response?.data?.message || t("seller.order.errors.load_failed", "Failed to load orders"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
@@ -665,10 +695,10 @@ const OrderManagement = () => {
         }
         return true;
       }
-      setError(res.data?.message || "Failed to update order");
+      setError(res.data?.message || t("seller.order.errors.update_failed", "Failed to update order"));
       return false;
     } catch (err) {
-      setError(err.response?.data?.message || `Failed to update order status`);
+      setError(err.response?.data?.message || t("seller.order.errors.status_update_failed", "Failed to update order status"));
       return false;
     } finally {
       setActionLoading(null);
@@ -703,11 +733,11 @@ const OrderManagement = () => {
         }
         return true;
       } else {
-        setError(res.data.message || "Failed to set delivery method");
+        setError(res.data.message || t("seller.order.errors.delivery_method_failed", "Failed to set delivery method"));
         return false;
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to set delivery method");
+      setError(err.response?.data?.message || t("seller.order.errors.delivery_method_failed", "Failed to set delivery method"));
       return false;
     } finally {
       setActionLoading(null);
@@ -717,6 +747,17 @@ const OrderManagement = () => {
   const filteredOrders = selectedStatus === "all"
     ? orders
     : orders.filter((o) => o.status === selectedStatus);
+
+  const tableHeaders = [
+    t("seller.order.order_id", "Order ID"),
+    t("seller.order.date", "Date"),
+    t("seller.order.customer", "Customer"),
+    t("seller.order.items", "Items"),
+    t("seller.order.amount", "Amount"),
+    t("seller.order.status", "Status"),
+    t("seller.order.delivery.label", "Delivery"),
+    t("seller.order.actions", "Actions"),
+  ];
 
   if (loading) {
     return (
@@ -739,8 +780,8 @@ const OrderManagement = () => {
       const items = (order.items ?? []).map(item => `
         <tr style="border-bottom:1px solid #f3f4f6;">
           <td style="padding:10px 8px;">
-            <div style="font-weight:500;">${escapeHtml(item.product_name ?? 'Product')}</div>
-            <div style="font-size:11px;color:#6b7280;">SKU: ${escapeHtml(item.product_sku ?? item.sku ?? 'N/A')}</div>
+            <div style="font-weight:500;">${escapeHtml(item.product_name ?? t("seller.order.slip.product", "Product"))}</div>
+            <div style="font-size:11px;color:#6b7280;">${escapeHtml(t("seller.order.slip.sku", "SKU"))}: ${escapeHtml(item.product_sku ?? item.sku ?? t("seller.order.not_available", "N/A"))}</div>
           </td>
           <td style="padding:10px 8px;text-align:center;">${item.quantity ?? 0}</td>
           <td style="padding:10px 8px;text-align:right;">${formatMMK(item.unit_price ?? item.price ?? 0)}</td>
@@ -773,10 +814,10 @@ const OrderManagement = () => {
               <div style="font-size:11px;color:#6b7280;">support@pyonea.com · +95 9 792 115 547</div>
             </div>
             <div style="text-align:right;">
-              <div style="font-size:16px;font-weight:700;color:#111827;">ORDER SLIP</div>
+              <div style="font-size:16px;font-weight:700;color:#111827;">${escapeHtml(t("seller.order.slip.title", "ORDER SLIP"))}</div>
               <div style="font-size:20px;font-weight:800;font-family:monospace;color:#16a34a;margin-top:4px;">${escapeHtml(order.order_number)}</div>
               <div style="margin-top:6px;display:inline-block;background:${statusColor}20;color:${statusColor};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;">
-                ${escapeHtml(order.status)}
+                ${escapeHtml(formatStatus(order.status, t))}
               </div>
             </div>
           </div>
@@ -784,14 +825,14 @@ const OrderManagement = () => {
           <!-- Meta row -->
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
             <div>
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#9ca3af;margin-bottom:8px;">Customer</div>
-              <div style="font-weight:600;">${escapeHtml(address.full_name ?? 'N/A')}</div>
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#9ca3af;margin-bottom:8px;">${escapeHtml(t("seller.order.customer", "Customer"))}</div>
+              <div style="font-weight:600;">${escapeHtml(address.full_name ?? t("seller.order.not_available", "N/A"))}</div>
               <div style="color:#6b7280;">${escapeHtml(address.phone ?? '')}</div>
               <div style="color:#6b7280;font-size:12px;">${escapeHtml(address.email ?? '')}</div>
             </div>
             <div>
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#9ca3af;margin-bottom:8px;">Shipping Address</div>
-              <div>${escapeHtml(address.address ?? 'N/A')}</div>
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#9ca3af;margin-bottom:8px;">${escapeHtml(t("seller.order.slip.shipping_address", "Shipping Address"))}</div>
+              <div>${escapeHtml(address.address ?? t("seller.order.not_available", "N/A"))}</div>
               <div style="color:#6b7280;">${escapeHtml([address.city, address.state].filter(Boolean).join(', '))}</div>
               <div style="color:#6b7280;">${escapeHtml(address.country ?? 'Myanmar')}</div>
             </div>
@@ -799,19 +840,19 @@ const OrderManagement = () => {
 
           <!-- Order dates -->
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;background:#f9fafb;border-radius:8px;padding:12px 16px;margin-bottom:24px;font-size:12px;">
-            <div><span style="color:#9ca3af;">Order Date</span><br/><strong>${new Date(order.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}</strong></div>
-            <div><span style="color:#9ca3af;">Payment</span><br/><strong>${escapeHtml((order.payment_method ?? '').replace(/_/g,' ').toUpperCase() || 'N/A')}</strong></div>
-            <div><span style="color:#9ca3af;">Payment Status</span><br/><strong style="color:${order.payment_status==='paid'?'#16a34a':'#d97706'}">${escapeHtml((order.payment_status ?? 'pending').toUpperCase())}</strong></div>
+            <div><span style="color:#9ca3af;">${escapeHtml(t("seller.order.slip.order_date", "Order Date"))}</span><br/><strong>${new Date(order.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}</strong></div>
+            <div><span style="color:#9ca3af;">${escapeHtml(t("seller.order.slip.payment", "Payment"))}</span><br/><strong>${escapeHtml((order.payment_method ?? '').replace(/_/g,' ').toUpperCase() || t("seller.order.not_available", "N/A"))}</strong></div>
+            <div><span style="color:#9ca3af;">${escapeHtml(t("seller.order.slip.payment_status", "Payment Status"))}</span><br/><strong style="color:${order.payment_status==='paid'?'#16a34a':'#d97706'}">${escapeHtml(formatStatus(order.payment_status ?? 'pending', t).toUpperCase())}</strong></div>
           </div>
 
           <!-- Items table -->
           <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
             <thead>
               <tr style="border-bottom:2px solid #e5e7eb;">
-                <th style="text-align:left;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600;">Item</th>
-                <th style="text-align:center;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600;">Qty</th>
-                <th style="text-align:right;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600;">Unit Price</th>
-                <th style="text-align:right;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600;">Subtotal</th>
+                <th style="text-align:left;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600;">${escapeHtml(t("seller.order.slip.item", "Item"))}</th>
+                <th style="text-align:center;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600;">${escapeHtml(t("seller.order.slip.qty", "Qty"))}</th>
+                <th style="text-align:right;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600;">${escapeHtml(t("seller.order.slip.unit_price", "Unit Price"))}</th>
+                <th style="text-align:right;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600;">${escapeHtml(t("seller.order.subtotal", "Subtotal"))}</th>
               </tr>
             </thead>
             <tbody>${items}</tbody>
@@ -820,26 +861,26 @@ const OrderManagement = () => {
           <!-- Totals -->
           <div style="margin-left:auto;max-width:260px;font-size:13px;">
             <div style="display:flex;justify-content:space-between;padding:6px 0;color:#6b7280;">
-              <span>Subtotal</span><span>${formatMMK(subtotal)}</span>
+              <span>${escapeHtml(t("seller.order.subtotal", "Subtotal"))}</span><span>${formatMMK(subtotal)}</span>
             </div>
             <div style="display:flex;justify-content:space-between;padding:6px 0;color:#6b7280;">
-              <span>Shipping</span><span>${formatMMK(shipping)}</span>
+              <span>${escapeHtml(t("seller.order.shipping", "Shipping"))}</span><span>${formatMMK(shipping)}</span>
             </div>
             <div style="display:flex;justify-content:space-between;padding:6px 0;color:#6b7280;">
-              <span>Tax</span><span>${formatMMK(tax)}</span>
+              <span>${escapeHtml(t("seller.order.tax", "Tax"))}</span><span>${formatMMK(tax)}</span>
             </div>
             ${discount > 0 ? `<div style="display:flex;justify-content:space-between;padding:6px 0;color:#16a34a;">
-              <span>Discount</span><span>-${formatMMK(discount)}</span>
+              <span>${escapeHtml(t("seller.order.discount", "Discount"))}</span><span>-${formatMMK(discount)}</span>
             </div>` : ''}
             <div style="display:flex;justify-content:space-between;padding:10px 0;border-top:2px solid #e5e7eb;font-weight:700;font-size:15px;">
-              <span>Total</span><span style="color:#16a34a;">${formatMMK(total)}</span>
+              <span>${escapeHtml(t("seller.order.total", "Total"))}</span><span style="color:#16a34a;">${formatMMK(total)}</span>
             </div>
           </div>
 
           <!-- Footer -->
           <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb;text-align:center;color:#9ca3af;font-size:11px;">
-            <div>Generated by Pyonea Marketplace · ${new Date().toLocaleString('en-GB')}</div>
-            <div style="margin-top:4px;">This is a computer-generated document. No signature required.</div>
+            <div>${escapeHtml(t("seller.order.slip.generated_by", "Generated by Pyonea Marketplace"))} · ${new Date().toLocaleString('en-GB')}</div>
+            <div style="margin-top:4px;">${escapeHtml(t("seller.order.slip.no_signature", "This is a computer-generated document. No signature required."))}</div>
           </div>
         </div>
       `;
@@ -894,7 +935,7 @@ const OrderManagement = () => {
           {t("seller.order.order_management", "Order Management")}
         </h2>
         <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-          Confirm orders and choose how each order will be delivered
+          {t("seller.order.manage_delivery_subtitle", "Confirm orders and choose how each order will be delivered")}
         </p>
       </div>
 
@@ -937,7 +978,7 @@ const OrderManagement = () => {
           <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
             <thead className="bg-gray-50 dark:bg-slate-700/50">
               <tr>
-                {["Order ID", "Date", "Customer", "Items", "Amount", "Status", "Delivery", "Actions"].map((h) => (
+                {tableHeaders.map((h) => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
                     {h}
                   </th>
@@ -961,7 +1002,7 @@ const OrderManagement = () => {
                       {formatDate(order.created_at)}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-slate-100">
-                      {shippingAddress?.full_name || "N/A"}
+                      {shippingAddress?.full_name || t("seller.order.not_available", "N/A")}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
                       {order.items?.length || 0}
@@ -971,7 +1012,7 @@ const OrderManagement = () => {
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLOR[order.status] ?? "bg-gray-100 text-gray-800"}`}>
-                        <span className="capitalize">{order.status}</span>
+                        <span>{formatStatus(order.status, t)}</span>
                       </span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-xs">
@@ -983,35 +1024,37 @@ const OrderManagement = () => {
                                      dark:bg-amber-900/30 dark:hover:bg-amber-800/50
                                      text-amber-800 dark:text-amber-300 gap-1
                                      transition-colors cursor-pointer"
-                          title="Click to set delivery method"
+                          title={t("seller.order.delivery.set_delivery_title", "Click to set delivery method")}
                         >
                           <ExclamationCircleIcon className="h-3.5 w-3.5" />
-                          Set delivery
+                          {t("seller.order.delivery.set_delivery", "Set delivery")}
                         </button>
                       ) : deliveryMethod ? (
                         <div className="space-y-0.5">
                           <span className={`inline-flex px-2 py-0.5 rounded-full text-xs ${
                             deliveryMethod === "platform" ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300" : "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
                           }`}>
-                            {deliveryMethod === "platform" ? "Platform" : "Self"}
+                            {deliveryMethod === "platform"
+                              ? t("seller.order.delivery.platform_short", "Platform")
+                              : t("seller.order.delivery.self_short", "Self")}
                           </span>
                           {deliveryStatus && (
                             <div>
                               <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] ${DELIVERY_STATUS_COLOR[deliveryStatus] ?? "bg-gray-100 text-gray-700"}`}>
-                                {formatStatus(deliveryStatus)}
+                                {formatStatus(deliveryStatus, t)}
                               </span>
                             </div>
                           )}
                         </div>
                       ) : (
-                        <span className="text-gray-400 dark:text-slate-500">—</span>
+                        <span className="text-gray-400 dark:text-slate-500">{t("seller.order.no_value", "-")}</span>
                       )}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400 space-x-2">
                       <button
                         onClick={() => { setSelectedOrder(order); setIsModalOpen(true); }}
                         className="text-green-600 hover:text-green-900 dark:hover:text-green-400"
-                        title="View details"
+                        title={t("seller.order.view_details", "View details")}
                       >
                         <EyeIcon className="h-5 w-5" />
                       </button>
@@ -1019,7 +1062,7 @@ const OrderManagement = () => {
                         onClick={() => downloadOrderSlip(order)}
                         disabled={downloadingSlip === order.id}
                         className="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400 disabled:opacity-40 disabled:cursor-wait"
-                        title="Download order slip"
+                        title={t("seller.order.download_order_slip", "Download order slip")}
                       >
                         {downloadingSlip === order.id
                           ? <ArrowPathIcon className="h-5 w-5 animate-spin" />
@@ -1031,7 +1074,7 @@ const OrderManagement = () => {
                           disabled={actionLoading === order.id}
                           className="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400 text-xs font-medium disabled:opacity-50"
                         >
-                          {actionLoading === order.id ? "..." : "Confirm"}
+                          {actionLoading === order.id ? "..." : t("seller.order.confirm", "Confirm")}
                         </button>
                       )}
                       {needsMethod && (
@@ -1042,10 +1085,10 @@ const OrderManagement = () => {
                                      bg-amber-500 hover:bg-amber-600 active:bg-amber-700
                                      text-white text-xs font-semibold
                                      shadow-sm transition-colors disabled:opacity-50"
-                          title="Set delivery method"
+                          title={t("seller.order.delivery.set_method", "Set Delivery Method")}
                         >
                           <TruckIcon className="h-3.5 w-3.5" />
-                          Set Delivery
+                          {t("seller.order.delivery.set_delivery_action", "Set Delivery")}
                         </button>
                       )}
                     </td>
@@ -1059,13 +1102,17 @@ const OrderManagement = () => {
         {filteredOrders.length === 0 && (
           <div className="text-center py-12">
             <ShoppingBagIcon className="h-14 w-14 text-gray-300 dark:text-slate-600 mx-auto mb-3" />
-            <h3 className="text-base font-medium text-gray-900 dark:text-white mb-1">No orders found</h3>
-            <p className="text-sm text-gray-500 dark:text-slate-400">No orders match the selected status filter.</p>
+            <h3 className="text-base font-medium text-gray-900 dark:text-white mb-1">
+              {t("seller.order.no_orders", "No orders found")}
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-slate-400">
+              {t("seller.order.no_orders_filter", "No orders match the selected status filter.")}
+            </p>
           </div>
         )}
 
         <div className="bg-gray-50 dark:bg-slate-700/50 px-4 py-3 text-sm text-gray-500 dark:text-slate-400 border-t border-gray-200 dark:border-slate-700">
-          Showing {filteredOrders.length} of {orders.length} orders
+          {t("seller.order.showing_count", { shown: filteredOrders.length, total: orders.length })}
         </div>
       </div>
 
@@ -1101,3 +1148,4 @@ const OrderManagement = () => {
 };
 
 export default OrderManagement;
+

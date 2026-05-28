@@ -120,6 +120,7 @@ const getMaxValidQuantity = (availableStock, moq, step, isPhysical) => {
 
 const ProductDetail = () => {
   const { t, i18n } = useTranslation();
+  const currencyLabel = t("common.currency.mmk", "MMK");
 
   const loc = (en, mm) => i18n.language === "my" ? (mm || en) : (en || mm);
   const { slug } = useParams();
@@ -975,10 +976,10 @@ const ProductDetail = () => {
                     </div>
                     <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
                       <h2 className="min-w-0 break-words text-2xl font-bold text-red-600">
-                        {parseFloat(displayPrice).toLocaleString()} MMK
+                        {parseFloat(displayPrice).toLocaleString()} {currencyLabel}
                       </h2>
                       <span className="text-base text-gray-400 line-through dark:text-slate-600 sm:text-lg">
-                        {parseFloat(baseComparePrice || product.price).toLocaleString()} MMK
+                        {parseFloat(baseComparePrice || product.price).toLocaleString()} {currencyLabel}
                       </span>
                     </div>
                     {displayDiscountSaved > 0 && (
@@ -990,7 +991,7 @@ const ProductDetail = () => {
                 ) : (
                   <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
                     <h2 className="min-w-0 break-words text-2xl font-semibold text-green-600">
-                      {parseFloat(displayPrice).toLocaleString()} MMK
+                      {parseFloat(displayPrice).toLocaleString()} {currencyLabel}
                     </h2>
                     {activeTier && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-900/40 px-2.5 py-1 text-xs font-semibold text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700 animate-pulse">
@@ -1639,7 +1640,7 @@ const ProductDetail = () => {
           <div className="min-w-0">
             <p className="text-xs text-gray-500 dark:text-slate-500 truncate">{t("productDetail.price")}</p>
             <p className="text-sm font-bold text-gray-900 dark:text-slate-100 truncate">
-              {parseFloat(displayPrice).toLocaleString()} MMK
+              {parseFloat(displayPrice).toLocaleString()} {currencyLabel}
             </p>
           </div>
           {stockIsOut ? (

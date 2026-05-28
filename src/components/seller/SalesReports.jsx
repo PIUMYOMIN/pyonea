@@ -19,6 +19,7 @@ import {
   ResponsiveContainer
 } from "recharts";
 import api from "../../utils/api";
+import i18n from "../../i18n";
 import { exportToExcel, mmkCell, todayStr } from "../../utils/exportExcel";
 import PlanFeatureGate from "./PlanFeatureGate";
 
@@ -30,7 +31,7 @@ const fmtK = (n) => {
   if (v >= 1_000)         return (v / 1_000).toFixed(1).replace(/\.0$/, "") + "k";
   return v.toLocaleString();
 };
-const fmtMMK = (n) => `${fmtK(n)} MMK`;
+const fmtMMK = (n) => `${fmtK(n)} ${i18n.t("common.currency.mmk", "MMK")}`;
 
 const SalesReports = ({ refreshData }) => {
   const { t } = useTranslation();
@@ -405,7 +406,7 @@ const SalesReports = ({ refreshData }) => {
                   />
                   <YAxis tick={{ fill: '#9ca3af' }} />
                   <Tooltip
-                    formatter={(value) => [`${value.toLocaleString()} MMK`, t("seller.sales.revenue")]}
+                    formatter={(value) => [`${value.toLocaleString()} ${t("common.currency.mmk", "MMK")}`, t("seller.sales.revenue")]}
                     contentStyle={{
                       backgroundColor: '#1e293b',
                       border: '1px solid #334155',
@@ -493,7 +494,7 @@ const SalesReports = ({ refreshData }) => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900 dark:text-slate-100">
-                        {product.revenue.toLocaleString()} MMK
+                        {product.revenue.toLocaleString()} {t("common.currency.mmk", "MMK")}
                       </div>
                       <div className="text-sm text-gray-500 dark:text-slate-400">
                         revenue

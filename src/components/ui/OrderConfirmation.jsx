@@ -10,14 +10,11 @@ import {
   MapPinIcon,
   PhoneIcon
 } from "@heroicons/react/24/outline";
+import i18n from "../../i18n";
 
 // Utility function to format currency
 function formatMMK(amount) {
-  return amount.toLocaleString("en-MM", {
-    style: "currency",
-    currency: "MMK",
-    minimumFractionDigits: 0
-  });
+  return `${amount.toLocaleString("en-MM", { maximumFractionDigits: 0 })} ${i18n.t("common.currency.mmk", "MMK")}`;
 }
 
 const OrderConfirmation = () => {

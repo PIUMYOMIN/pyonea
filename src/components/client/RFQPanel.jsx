@@ -105,6 +105,7 @@ const AlertBanner = ({ type = "error", children, onClose }) => (
 // ── CreateRFQForm ─────────────────────────────────────────────────────────────
 const CreateRFQForm = ({ onSuccess, onCancel }) => {
   const { t, i18n } = useTranslation();
+  const currencyLabel = t("common.currency.mmk", "MMK");
   const [form, setForm] = useState({
     product_name: "", category_id: "", category: "", quantity: "", unit: "pcs",
     specifications: "", budget_min: "", budget_max: "",
@@ -251,14 +252,14 @@ const CreateRFQForm = ({ onSuccess, onCancel }) => {
           <div>
             <label className={labelCls}>{t("rfq.form.budget_min")}</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">MMK</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">{currencyLabel}</span>
               <input type="number" className={inputCls + " pl-12"} placeholder="0" value={form.budget_min} onChange={set("budget_min")} />
             </div>
           </div>
           <div>
             <label className={labelCls}>{t("rfq.form.budget_max")}</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">MMK</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">{currencyLabel}</span>
               <input type="number" className={inputCls + " pl-12"} placeholder="0" value={form.budget_max} onChange={set("budget_max")} />
             </div>
           </div>

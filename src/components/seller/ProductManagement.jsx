@@ -36,8 +36,6 @@ const ProductManagement = () => {
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [categories, setCategories] = useState([]);
 
   // Modal states
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -69,21 +67,9 @@ const ProductManagement = () => {
     }
   }, [t]);
 
-  const fetchCategories = useCallback(async () => {
-    try {
-      const response = await api.get("/categories/all");
-      if (response.data.success) {
-        setCategories(response.data.data || []);
-      }
-    } catch (err) {
-      console.error("Error fetching categories:", err);
-    }
-  }, []);
-
   useEffect(() => {
     fetchProducts(true);
-    fetchCategories();
-  }, [fetchProducts, fetchCategories]);
+  }, [fetchProducts]);
 
   // --------------------- Optimistic updates helpers ---------------------------
   const updateProductInState = (updatedProduct) => {
@@ -294,14 +280,6 @@ const ProductManagement = () => {
     if (statusFilter !== "all") {
       filtered = filtered.filter(product =>
         statusFilter === "active" ? product.is_active : !product.is_active
-      );
-    }
-    if (categoryFilter !== "all") {
-      // BUG FIX: category_id was missing from the API response so this always returned false.
-      // Now checks both top-level category_id (fixed in ProductListResource) and
-      // category.id as a defensive fallback.
-      filtered = filtered.filter(product =>
-        (product.category_id ?? product.category?.id) == categoryFilter
       );
     }
     return filtered;
@@ -653,22 +631,23 @@ const ProductManagement = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-              {t("seller.product.filters.category")}
+              {t("seller.product.filters.visible_products", "Visible products")}
             </label>
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className={controlClass}
-            >
-              <option value="all">{t("seller.product.filters.all_categories")}</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>{loc(category.name_en, category.name_mm)}</option>
-              ))}
-            </select>
+            <div className="flex h-10 items-center rounded-md border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/40 px-3">
+              <span className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+                {sortedProducts.length}
+              </span>
+              <span className="ml-1 text-sm text-gray-500 dark:text-slate-400">
+                {t("seller.product.filters.visible_of_total", {
+                  defaultValue: "shown of {{count}}",
+                  count: products.length,
+                })}
+              </span>
+            </div>
           </div>
           <div className="flex items-end">
             <button
-              onClick={() => { setSearchTerm(""); setStatusFilter("all"); setCategoryFilter("all"); }}
+              onClick={() => { setSearchTerm(""); setStatusFilter("all"); }}
               className={`${iconButtonClass} w-full`}
             >
               <XMarkIcon className="mr-2 h-4 w-4" />
@@ -728,11 +707,11 @@ const ProductManagement = () => {
             <CubeIcon className="h-16 w-16 text-gray-400 dark:text-slate-600 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100 mb-2">{t("seller.product.empty.title")}</h3>
             <p className="text-gray-600 dark:text-slate-400 mb-4 max-w-md mx-auto">
-              {searchTerm || statusFilter !== "all" || categoryFilter !== "all"
+              {searchTerm || statusFilter !== "all"
                 ? t("seller.product.empty.filtered")
                 : t("seller.product.empty.no_products")}
             </p>
-            {!searchTerm && statusFilter === "all" && categoryFilter === "all" && (
+            {!searchTerm && statusFilter === "all" && (
               <button onClick={() => navigate("/seller/products/create")} className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700">
                 {t("seller.product.empty.add_first")}
               </button>

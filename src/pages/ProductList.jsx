@@ -48,6 +48,7 @@ const ProductList = () => {
   const [filters, setFilters] = useState({ minPrice, maxPrice, sortBy, sortOrder });
   const [products, setProducts]   = useState([]);
   const [loading, setLoading]     = useState(false);
+  const currencyLabel = t("common.currency.mmk", "MMK");
   const [error, setError]         = useState(null);
   const [categories, setCategories] = useState([]);
   const [page, setPage]           = useState(1);
@@ -455,10 +456,10 @@ const ProductList = () => {
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium
                                bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300">
                 {filters.minPrice && filters.maxPrice
-                  ? `${filters.minPrice} – ${filters.maxPrice} MMK`
+                  ? `${filters.minPrice} – ${filters.maxPrice} ${currencyLabel}`
                   : filters.minPrice
-                  ? `≥ ${filters.minPrice} MMK`
-                  : `≤ ${filters.maxPrice} MMK`}
+                  ? `≥ ${filters.minPrice} ${currencyLabel}`
+                  : `≤ ${filters.maxPrice} ${currencyLabel}`}
                 <button
                   onClick={() => {
                     const p = new URLSearchParams(location.search);

@@ -22,6 +22,7 @@ import {
   Title, Tooltip, Legend, ArcElement,
 } from "chart.js";
 import api from "../../utils/api";
+import i18n from "../../i18n";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
@@ -33,7 +34,7 @@ const fmtK = (n) => {
   if (v >= 1_000) return (v / 1_000).toFixed(1).replace(/\.0$/, "") + "k";
   return v.toLocaleString();
 };
-const fmtMMK = (n) => `${fmtK(n)} MMK`;
+const fmtMMK = (n) => `${fmtK(n)} ${i18n.t("common.currency.mmk", "MMK")}`;
 
 // ── Tier config ────────────────────────────────────────────────────────────────
 const TIER_CONFIG = {
@@ -434,35 +435,35 @@ const [feeSubmitting, setFeeSubmitting] = useState(null);
           <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-2xl p-4">
             <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wide">Total Commission</p>
             <p className="text-lg font-bold text-amber-800 dark:text-amber-300 mt-1">
-              {new Intl.NumberFormat('en-MM').format(commissionData.commission?.total ?? 0)} MMK
+              {fmtMMK(commissionData.commission?.total ?? 0)}
             </p>
             <p className="text-[11px] text-amber-500 mt-0.5">{commissionData.commission?.rate_pct ?? 0}% rate</p>
           </div>
           <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800 rounded-2xl p-4">
             <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 uppercase tracking-wide">Commission Pending</p>
             <p className="text-lg font-bold text-orange-800 dark:text-orange-300 mt-1">
-              {new Intl.NumberFormat('en-MM').format(commissionData.commission?.pending ?? 0)} MMK
+              {fmtMMK(commissionData.commission?.pending ?? 0)}
             </p>
             <p className="text-[11px] text-orange-400 mt-0.5">
-              {new Intl.NumberFormat('en-MM').format(commissionData.commission?.paid ?? 0)} MMK collected
+              {fmtMMK(commissionData.commission?.paid ?? 0)} collected
             </p>
           </div>
           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl p-4">
             <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide">Delivery Fees</p>
             <p className="text-lg font-bold text-blue-800 dark:text-blue-300 mt-1">
-              {new Intl.NumberFormat('en-MM').format(commissionData.delivery_fees?.total ?? 0)} MMK
+              {fmtMMK(commissionData.delivery_fees?.total ?? 0)}
             </p>
             <p className="text-[11px] text-blue-400 mt-0.5">
-              {new Intl.NumberFormat('en-MM').format(commissionData.delivery_fees?.confirmed ?? 0)} MMK confirmed
+              {fmtMMK(commissionData.delivery_fees?.confirmed ?? 0)} confirmed
             </p>
           </div>
           <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800 rounded-2xl p-4">
             <p className="text-xs font-semibold text-yellow-600 dark:text-yellow-400 uppercase tracking-wide">Fees Pending</p>
             <p className="text-lg font-bold text-yellow-800 dark:text-yellow-300 mt-1">
-              {new Intl.NumberFormat('en-MM').format(commissionData.delivery_fees?.pending ?? 0)} MMK
+              {fmtMMK(commissionData.delivery_fees?.pending ?? 0)}
             </p>
             <p className="text-[11px] text-yellow-500 mt-0.5">
-              {new Intl.NumberFormat('en-MM').format(commissionData.delivery_fees?.submitted_awaiting ?? 0)} MMK awaiting admin
+              {fmtMMK(commissionData.delivery_fees?.submitted_awaiting ?? 0)} awaiting admin
             </p>
           </div>
         </div>
@@ -647,7 +648,7 @@ const [feeSubmitting, setFeeSubmitting] = useState(null);
                     <p className="text-sm font-medium text-gray-900 dark:text-slate-100">Order #{d.order?.order_number ?? d.order_id}</p>
                     <p className="text-xs text-gray-500 dark:text-slate-400">
                       Fee: <strong className="text-green-700">
-                        {new Intl.NumberFormat("my-MM", { style: "currency", currency: "MMK", minimumFractionDigits: 0 }).format(d.platform_delivery_fee ?? 0)}
+                        {fmtMMK(d.platform_delivery_fee ?? 0)}
                       </strong>
                       {" · "}
                       <span className={`font-semibold capitalize ${confirmed ? "text-green-600" : submitted ? "text-blue-600" : "text-gray-500"}`}>

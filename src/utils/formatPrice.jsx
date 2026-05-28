@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 
 /**
  * Format price in MMK with translated currency symbol
@@ -27,8 +28,7 @@ export const formatPrice = (amount, options = {}) => {
   }).format(num);
 
   if (useTrans) {
-    // This will be used in components with useTranslation hook
-    return `${formattedNumber} MMK`; // Placeholder, will be replaced with translation
+    return `${formattedNumber} ${i18n.t('common.currency.mmk', 'MMK')}`;
   }
 
   return `${formattedNumber} MMK`;
