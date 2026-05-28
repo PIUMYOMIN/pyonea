@@ -113,10 +113,13 @@
 
   /* Apply tokens globally */
   html {
+    font-size: 16px;
     background-color: var(--bg-base);
     color: var(--text-primary);
     /* Smooth theme transitions */
     transition: background-color 0.2s ease, color 0.2s ease;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
@@ -130,12 +133,13 @@
   }
 
   /* ── Responsive base font scale ─────────────────────────────────────── */
-  /* Slightly smaller on mobile to fit content without cramping             */
-  @media (max-width: 640px) {
-    html { font-size: 15px; }
-  }
+  /* Keep mobile at the accessibility-standard 16px baseline, then step up
+     slightly on wide screens for comfortable formal reading. */
   @media (min-width: 1280px) {
-    html { font-size: 16px; }
+    html { font-size: 16.5px; }
+  }
+  @media (min-width: 1536px) {
+    html { font-size: 17px; }
   }
 
   /* ── Custom scrollbar ───────────────────────────────────────────────── */

@@ -19,7 +19,7 @@ module.exports = {
         torus:           ["Torus", "sans-serif"],
       },
 
-      // ── Fluid font sizes (clamp-based responsive typography) ─────────────
+      // ── Formal responsive font sizes ─────────────────────────────────────
       fontSize: {
         "2xs":  ["0.65rem",  { lineHeight: "1rem" }],
         xs:     ["0.75rem",  { lineHeight: "1.125rem" }],
@@ -32,14 +32,14 @@ module.exports = {
         "4xl":  ["2.25rem",  { lineHeight: "2.75rem" }],
         "5xl":  ["3rem",     { lineHeight: "1.15" }],
         "6xl":  ["3.75rem",  { lineHeight: "1.1" }],
-        // Fluid: these scale with viewport using CSS clamp
-        "fluid-sm":   ["clamp(0.8rem, 1.5vw, 0.875rem)",  { lineHeight: "1.5" }],
-        "fluid-base": ["clamp(0.9rem, 1.8vw, 1rem)",      { lineHeight: "1.6" }],
-        "fluid-lg":   ["clamp(1rem, 2.2vw, 1.25rem)",     { lineHeight: "1.65" }],
-        "fluid-xl":   ["clamp(1.1rem, 2.5vw, 1.5rem)",    { lineHeight: "1.5" }],
-        "fluid-2xl":  ["clamp(1.3rem, 3.5vw, 2.25rem)",   { lineHeight: "1.3" }],
-        "fluid-3xl":  ["clamp(1.6rem, 5vw, 3rem)",        { lineHeight: "1.2" }],
-        "fluid-hero": ["clamp(2rem, 7vw, 4rem)",           { lineHeight: "1.1" }],
+        // Formal responsive aliases; rem values follow the global html scale.
+        "fluid-sm":   ["0.875rem", { lineHeight: "1.5" }],
+        "fluid-base": ["1rem",     { lineHeight: "1.6" }],
+        "fluid-lg":   ["1.125rem", { lineHeight: "1.65" }],
+        "fluid-xl":   ["1.25rem",  { lineHeight: "1.5" }],
+        "fluid-2xl":  ["1.5rem",   { lineHeight: "1.3" }],
+        "fluid-3xl":  ["1.875rem", { lineHeight: "1.2" }],
+        "fluid-hero": ["2.5rem",   { lineHeight: "1.1" }],
       },
 
       // ── Design tokens — light & dark ─────────────────────────────────────
