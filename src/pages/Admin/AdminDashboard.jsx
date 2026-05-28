@@ -481,6 +481,10 @@ const AdminDashboard = () => {
     () => navigation.findIndex((item) => item.name === "Sellers"),
     [navigation]
   );
+  const categoriesTabIndex = React.useMemo(
+    () => navigation.findIndex((item) => item.name === "Categories"),
+    [navigation]
+  );
 
   useEffect(() => {
     const tab = new URLSearchParams(location.search).get("tab");
@@ -494,7 +498,10 @@ const AdminDashboard = () => {
     if (key === "sellers" && sellersTabIndex !== -1) {
       setActiveTab(sellersTabIndex);
     }
-  }, [location.search, notificationsTabIndex, rfqTabIndex, sellersTabIndex]);
+    if (key === "categories" && categoriesTabIndex !== -1) {
+      setActiveTab(categoriesTabIndex);
+    }
+  }, [location.search, notificationsTabIndex, rfqTabIndex, sellersTabIndex, categoriesTabIndex]);
 
   return (
     <>

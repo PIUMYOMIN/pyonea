@@ -101,7 +101,6 @@ import SellerOnboardingRoute from "./components/SellerOnboardingRoute";
 
 // Admin
 const AdminDashboard          = lazy(() => import("./pages/Admin/AdminDashboard"));
-const CategoryManagement      = lazy(() => import("./components/admin/CategoryManagement"));
 const CategoryCreate          = lazy(() => import("./pages/Admin/categories/CategoryCreate"));
 const CategoryEdit            = lazy(() => import("./pages/Admin/categories/CategoryEdit"));
 const FinancialReports        = lazy(() => import("./components/admin/FinancialReports"));
@@ -342,7 +341,7 @@ function App() {
                         {/* Admin Routes */}
                         <Route path="/admin" element={<ProtectedRoute roles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
                         <Route path="/admin/dashboard" element={<ProtectedRoute roles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
-                        <Route path="/admin/categories" element={<ProtectedRoute roles={["admin"]}><CategoryManagement /></ProtectedRoute>} />
+                        <Route path="/admin/categories" element={<ProtectedRoute roles={["admin"]}><Navigate to="/admin/dashboard?tab=categories" replace /></ProtectedRoute>} />
                         <Route path="/admin/categories/create" element={<ProtectedRoute roles={["admin"]}><CategoryCreate /></ProtectedRoute>} />
                         <Route path="/admin/categories/:id/edit" element={<ProtectedRoute roles={["admin"]}><CategoryEdit /></ProtectedRoute>} />
                         <Route path="/admin/products/:id/edit" element={<ProtectedRoute roles={["admin"]}><ProductEdit mode="admin" /></ProtectedRoute>} />

@@ -5,6 +5,8 @@ import { ArrowLeftIcon, PhotoIcon } from "@heroicons/react/24/outline";
 import api from "../../../utils/api";
 import { IMAGE_BASE_URL, DEFAULT_PLACEHOLDER } from "../../../config";
 
+const CATEGORY_DASHBOARD_PATH = "/admin/dashboard?tab=categories";
+
 const CategoryForm = ({ mode = "create", category: initialCategory = null, onSuccess }) => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
@@ -170,7 +172,7 @@ const CategoryForm = ({ mode = "create", category: initialCategory = null, onSuc
       if (onSuccess) {
         onSuccess();
       } else {
-        navigate("/admin/categories");
+        navigate(CATEGORY_DASHBOARD_PATH);
       }
     } catch (error) {
       console.error("Failed to save category:", error);
@@ -208,7 +210,7 @@ const CategoryForm = ({ mode = "create", category: initialCategory = null, onSuc
       {/* Header */}
       <div className="mb-8">
         <button
-          onClick={() => navigate("/admin/categories")}
+          onClick={() => navigate(CATEGORY_DASHBOARD_PATH)}
           className="inline-flex items-center text-sm text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100 mb-4"
         >
           <ArrowLeftIcon className="h-4 w-4 mr-1" />
@@ -462,7 +464,7 @@ const CategoryForm = ({ mode = "create", category: initialCategory = null, onSuc
             <div className="flex justify-end space-x-3">
               <button
                 type="button"
-                onClick={() => navigate("/admin/categories")}
+                onClick={() => navigate(CATEGORY_DASHBOARD_PATH)}
                 disabled={saving}
                 className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
               >
