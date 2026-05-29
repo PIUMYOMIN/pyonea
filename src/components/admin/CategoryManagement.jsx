@@ -8,6 +8,7 @@ import {
   PencilIcon,
   TrashIcon,
   ArrowPathIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import api from "../../utils/api";
@@ -377,18 +378,28 @@ const CategoryManagement = () => {
 
       {/* Search and Filters */}
       <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="relative flex-1 max-w-md">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="relative w-full lg:max-w-xl">
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
             <input
               type="text"
               placeholder="Search categories by name or description..."
-              className="block w-full rounded-md border-0 py-2 pl-10 pr-3 text-gray-900 dark:text-slate-100 bg-white dark:bg-slate-700 ring-1 ring-inset ring-gray-300 dark:ring-slate-600 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm sm:leading-6"
+              className="block w-full rounded-md border-0 py-2 pl-10 pr-10 text-gray-900 dark:text-slate-100 bg-white dark:bg-slate-700 ring-1 ring-inset ring-gray-300 dark:ring-slate-600 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-green-600 sm:text-sm sm:leading-6"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-slate-500 dark:hover:bg-slate-600 dark:hover:text-slate-200"
+                aria-label="Clear category search"
+              >
+                <XMarkIcon className="h-4 w-4" />
+              </button>
+            )}
           </div>
-          <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-slate-400">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500 dark:text-slate-400 lg:justify-end">
             <span>Total: {totalCount}</span>
             {searchTerm && (
               <>

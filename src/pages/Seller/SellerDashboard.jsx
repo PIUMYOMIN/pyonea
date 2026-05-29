@@ -175,24 +175,24 @@ const SellerDashboard = () => {
 
   const navigation = useMemo(() => [
     { name: t("seller.dashboard"), icon: ChartBarIcon, key: "dashboard" },
-    { name: "Notifications",            icon: BellIcon,               key: "notifications" },
+    { name: t("seller.sidebar.notifications"), icon: BellIcon, key: "notifications" },
     { name: t("seller.my_store"),       icon: BuildingStorefrontIcon, key: "my_store" },
     { name: t("seller.order.title"),    icon: ShoppingBagIcon,        key: "orders" },
-    { name: "RFQ",                      icon: DocumentTextIcon,       key: "rfq" },
+    { name: t("seller.sidebar.rfq"),    icon: DocumentTextIcon,       key: "rfq" },
     { name: t("seller.delivery_zones.title"), icon: TruckIcon,        key: "delivery_zones" },
     { name: t("seller.product.title"),  icon: CubeIcon,               key: "products" },
     { name: t("seller.discount.title"), icon: TagIcon,               key: "discounts" },
-    { name: "Coupons",                  icon: TicketIcon,             key: "coupons" },
+    { name: t("seller.sidebar.coupons"), icon: TicketIcon, key: "coupons" },
     { name: t("seller.sales.title"),    icon: CurrencyDollarIcon,     key: "sales" },
     { name: t("seller.reviews.title"),  icon: StarIcon,               key: "reviews" },
     { name: t("seller.customers"),      icon: UserGroupIcon,          key: "customers" },
     { name: t("seller.delivery.title"), icon: TruckIcon,        key: "delivery" },
     { name: t("seller.settings"), icon: CogIcon, key: "settings" },
-    { name: "Referrals", icon: GiftIcon, key: "referrals" },
-    { name: "Seller Wallet", icon: WalletIcon, key: "wallet" },
-    { name: 'Subscription', icon: SparklesIcon, key: 'subscription' },
-    { name: "Financial Reports", icon: ChartBarIcon,      key: "financial_reports" },
-    { name: "Bulk Import",       icon: ArrowUpTrayIcon,   key: "bulk_import" },
+    { name: t("seller.sidebar.referrals"), icon: GiftIcon, key: "referrals" },
+    { name: t("seller.sidebar.wallet"), icon: WalletIcon, key: "wallet" },
+    { name: t("seller.sidebar.subscription"), icon: SparklesIcon, key: "subscription" },
+    { name: t("seller.sidebar.financial_reports"), icon: ChartBarIcon, key: "financial_reports" },
+    { name: t("seller.sidebar.bulk_import"), icon: ArrowUpTrayIcon, key: "bulk_import" },
   ], [t]);
 
   // Render the active tab with current state — separated from the stable nav structure
@@ -554,7 +554,7 @@ const SellerDashboard = () => {
                 <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100 truncate max-w-[180px]">
                   {storeData?.store_name || t("seller.seller_center")}
                 </h1>
-                <p className="text-sm text-green-600 font-medium">Seller Account</p>
+                <p className="text-sm text-green-600 font-medium">{t("seller.sidebar.seller_account")}</p>
               </div>
             </div>
 
@@ -571,7 +571,7 @@ const SellerDashboard = () => {
                       {setupNotificationData.setupProgress && (
                         <div className="mb-3">
                           <div className="flex items-center justify-between text-[11px] font-medium text-amber-800 dark:text-amber-300 mb-1">
-                            <span>Store setup</span>
+                            <span>{t("seller.sidebar.store_setup")}</span>
                             <span>{Math.round(setupNotificationData.setupProgress.percentage || 0)}%</span>
                           </div>
                           <div className="h-2 rounded-full bg-amber-100 dark:bg-amber-950 overflow-hidden">
@@ -581,7 +581,10 @@ const SellerDashboard = () => {
                             />
                           </div>
                           <p className="mt-1 text-[11px] text-amber-700 dark:text-amber-400">
-                            {setupNotificationData.setupProgress.completed_count || 0} of {setupNotificationData.setupProgress.total_count || 0} completed
+                            {t("seller.sidebar.setup_completed", {
+                              completed: setupNotificationData.setupProgress.completed_count || 0,
+                              total: setupNotificationData.setupProgress.total_count || 0
+                            })}
                           </p>
                         </div>
                       )}
@@ -598,7 +601,7 @@ const SellerDashboard = () => {
                       )}
 
                       <button onClick={handleStartSetup} className="w-full text-xs bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1.5 rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all duration-200 flex items-center justify-center">
-                        {setupNotificationData.ctaLabel || "Complete Setup"} <ArrowRightIcon className="h-3 w-3 ml-1" />
+                        {setupNotificationData.ctaLabel || t("seller.sidebar.complete_setup")} <ArrowRightIcon className="h-3 w-3 ml-1" />
                       </button>
                     </div>
                   </div>
@@ -653,11 +656,11 @@ const SellerDashboard = () => {
             <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
               <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
                 <div className="font-bold text-green-700 dark:text-green-400">{stats.totalProducts}</div>
-                <div className="text-gray-600 dark:text-slate-400">Products</div>
+                <div className="text-gray-600 dark:text-slate-400">{t("seller.sidebar.products")}</div>
               </div>
               <div className="text-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <div className="font-bold text-blue-700 dark:text-blue-400">{stats.totalOrders}</div>
-                <div className="text-gray-600 dark:text-slate-400">Orders</div>
+                <div className="text-gray-600 dark:text-slate-400">{t("seller.sidebar.orders")}</div>
               </div>
             </div>
           </div>
@@ -669,8 +672,8 @@ const SellerDashboard = () => {
         <div className="flex-shrink-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border-b border-gray-200/60 dark:border-slate-700/60">
           <div className="flex items-center justify-between px-6 py-4">
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">Seller Center</h1>
-              <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">Manage your store and grow your business</p>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">{t("seller.seller_center")}</h1>
+              <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">{t("seller.sidebar.header_subtitle")}</p>
             </div>
             <div className="flex items-center space-x-4">
               <NotificationBell onClick={() => {
@@ -679,7 +682,7 @@ const SellerDashboard = () => {
               }} />
               <div className="hidden md:flex items-center space-x-2 text-sm text-gray-600 dark:text-slate-400">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span>Store Active</span>
+                <span>{t("seller.sidebar.store_active")}</span>
               </div>
             </div>
           </div>

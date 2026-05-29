@@ -617,6 +617,24 @@
     "open_sidebar": "Open sidebar",
     "back_to_sellers": "Back to Sellers",
     "dashboard": "Dashboard",
+    "sidebar": {
+      "notifications": "Notifications",
+      "rfq": "RFQ",
+      "coupons": "Coupons",
+      "referrals": "Referrals",
+      "wallet": "Seller Wallet",
+      "subscription": "Subscription",
+      "financial_reports": "Financial Reports",
+      "bulk_import": "Bulk Import",
+      "seller_account": "Seller Account",
+      "store_setup": "Store setup",
+      "setup_completed": "{{completed}} of {{total}} completed",
+      "complete_setup": "Complete Setup",
+      "products": "Products",
+      "orders": "Orders",
+      "header_subtitle": "Manage your store and grow your business",
+      "store_active": "Store Active"
+    },
     "order": {
       "title": "Orders",
       "subtitle": "Manage and process your orders",
@@ -831,8 +849,120 @@
       }
     },
     "delivery": {
-      "title": "Delivery",
-      "subtitle": "Manage and update your delivery"
+      "title": "Delivery Management",
+      "subtitle": "Choose delivery methods and track your order deliveries",
+      "refresh": "Refresh",
+      "order_number": "Order #{{number}}",
+      "not_available": "N/A",
+      "not_assigned": "Not assigned",
+      "not_specified": "Not specified",
+      "stats": {
+        "pending": "Pending",
+        "in_transit": "In Transit",
+        "delivered": "Delivered",
+        "failed": "Failed"
+      },
+      "table": {
+        "order_id": "Order ID",
+        "customer": "Customer",
+        "delivery_method": "Delivery Method",
+        "status": "Status",
+        "delivery_fee": "Delivery Fee",
+        "actions": "Actions"
+      },
+      "methods": {
+        "self": "Self Delivery",
+        "platform": "Platform Logistics",
+        "platform_delivery": "Platform Delivery"
+      },
+      "statuses": {
+        "pending": "Pending",
+        "awaiting_pickup": "Awaiting Pickup",
+        "picked_up": "Picked Up",
+        "in_transit": "In Transit",
+        "out_for_delivery": "Out for Delivery",
+        "delivered": "Delivered",
+        "failed": "Failed",
+        "cancelled": "Cancelled"
+      },
+      "actions": {
+        "view_details": "View details",
+        "choose_method": "Choose Delivery Method",
+        "mark_picked_up": "Mark Picked Up",
+        "in_transit": "In Transit",
+        "out_for_delivery": "Out for Delivery",
+        "mark_out_for_delivery": "Mark as Out for Delivery",
+        "cancel": "Cancel",
+        "close": "Close",
+        "saving": "Saving...",
+        "updating": "Updating...",
+        "uploading": "Uploading...",
+        "submit_proof": "Submit Proof",
+        "confirm_method": "Confirm Delivery Method"
+      },
+      "notes": {
+        "picked_up": "Items picked up from warehouse",
+        "in_transit": "On the way to customer",
+        "out_for_delivery": "Out for delivery to customer"
+      },
+      "method_modal": {
+        "self_desc": "You arrange and manage delivery",
+        "platform_desc": "We handle delivery for you",
+        "free": "Free",
+        "no_platform_fee": "No platform fee",
+        "platform_fee": "Platform service fee",
+        "benefits": "Benefits:",
+        "self_benefit_1": "Full control over delivery process",
+        "self_benefit_2": "Direct communication with customer",
+        "self_benefit_3": "No additional platform fees",
+        "self_benefit_4": "Flexible delivery scheduling",
+        "platform_benefit_1": "Professional logistics service",
+        "platform_benefit_2": "Real-time tracking for customers",
+        "platform_benefit_3": "Delivery confirmation system",
+        "platform_benefit_4": "Platform manages customer communication"
+      },
+      "labels": {
+        "pickup_address": "Pickup Address",
+        "delivery_address": "Delivery Address",
+        "method": "Method",
+        "status": "Status",
+        "delivery_fee": "Delivery Fee",
+        "tracking_number": "Tracking Number",
+        "location": "Location"
+      },
+      "placeholders": {
+        "pickup_address": "e.g. No. 12, Merchant St, Yangon",
+        "recipient_name": "e.g. Ko Aung",
+        "recipient_phone": "e.g. 09 xxx xxx xxx"
+      },
+      "proof": {
+        "title": "Upload Delivery Proof",
+        "description": "Attach a photo of the delivered package and confirm recipient details to mark this order as delivered.",
+        "photo": "Proof Photo",
+        "select_photo": "Click to select a photo",
+        "photo_hint": "JPG, PNG up to 5 MB",
+        "recipient_name": "Recipient Name",
+        "recipient_phone": "Recipient Phone"
+      },
+      "details": {
+        "title": "Delivery Details — Order #{{number}}",
+        "delivery_information": "Delivery Information",
+        "address_information": "Address Information",
+        "delivery_updates": "Delivery Updates"
+      },
+      "empty": {
+        "title": "No Deliveries Found",
+        "subtitle": "You don't have any deliveries to manage yet."
+      },
+      "errors": {
+        "load_failed": "Failed to load deliveries. Please try again.",
+        "method_failed": "Failed to set delivery method",
+        "status_failed": "Failed to update status",
+        "proof_failed": "Failed to upload proof",
+        "pickup_required": "Pickup address is required",
+        "proof_required": "Please fill all fields and select a proof photo.",
+        "proof_image_required": "Please fill all fields and select a proof image"
+      }
     },
     "delivery_zones": {
       "title": "Delivery Zones",
@@ -3144,6 +3274,7 @@
     },
     "quote": {
       "seller": "Seller",
+      "unknown_seller": "Unknown Seller",
       "unit_price": "Unit Price",
       "total": "Total",
       "delivery": "Delivery",
@@ -3304,12 +3435,18 @@
     },
     "quote": {
       "seller": "Seller",
+      "unknown_seller": "Unknown Seller",
       "unit_price": "Unit Price",
       "total": "Total",
       "total_value": "Total Value",
       "delivery": "Delivery",
       "notes": "Notes",
       "days": "days"
+    },
+    "order": {
+      "created": "Order Created",
+      "status": "Status",
+      "track_order": "Track Order"
     },
     "modal": {
       "submit_quotation": "Submit Quotation",

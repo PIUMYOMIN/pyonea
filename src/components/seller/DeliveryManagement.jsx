@@ -1,5 +1,6 @@
 // src/components/seller/DeliveryManagement.jsx
 import React, { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
   TruckIcon,
   CheckCircleIcon,
@@ -13,14 +14,11 @@ import {
   CameraIcon,
 } from "@heroicons/react/24/outline";
 import api from "../../utils/api";
+import i18n from "../../i18n";
 
 // FIX: single shared formatMMK — removed the duplicate defined later in the file
 function formatMMK(amount) {
-  return new Intl.NumberFormat("en-MM", {
-    style: "currency",
-    currency: "MMK",
-    minimumFractionDigits: 0,
-  }).format(amount ?? 0);
+  return `${new Intl.NumberFormat("en-MM", { maximumFractionDigits: 0 }).format(amount ?? 0)} ${i18n.t("common.currency.mmk", "MMK")}`;
 }
 
 function getStatusColor(status) {
@@ -49,14 +47,15 @@ function getStatusIcon(status) {
 }
 
 // FIX: replaceAll so multi-underscore statuses like out_for_delivery render correctly
-function humanStatus(status) {
-  return (status ?? "").replaceAll("_", " ");
+function humanStatus(status, t) {
+  return t(`seller.delivery.statuses.${status}`, (status ?? "").replaceAll("_", " "));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main component
 // ─────────────────────────────────────────────────────────────────────────────
 const DeliveryManagement = ({ refreshData }) => {
+  const { t } = useTranslation();
   const [deliveries, setDeliveries]               = useState([]);
   const [loading, setLoading]                     = useState(true);
   const [error, setError]                         = useState(null);
@@ -76,12 +75,12 @@ const DeliveryManagement = ({ refreshData }) => {
       setDeliveries(data);
     } catch (err) {
       console.error("Failed to fetch deliveries:", err);
-      setError("Failed to load deliveries. Please try again.");
+      setError(t("seller.delivery.errors.load_failed", "Failed to load deliveries. Please try again."));
       setDeliveries([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchDeliveries();
@@ -113,7 +112,7 @@ const DeliveryManagement = ({ refreshData }) => {
       }
     } catch (err) {
       console.error("Failed to set delivery method:", err);
-      setError(err.response?.data?.message ?? "Failed to set delivery method");
+      setError(err.response?.data?.message ?? t("seller.delivery.errors.method_failed", "Failed to set delivery method"));
     } finally {
       setActionLoading(null);
     }
@@ -129,7 +128,7 @@ const DeliveryManagement = ({ refreshData }) => {
       }
     } catch (err) {
       console.error("Failed to update delivery status:", err);
-      setError(err.response?.data?.message ?? "Failed to update status");
+      setError(err.response?.data?.message ?? t("seller.delivery.errors.status_failed", "Failed to update status"));
     } finally {
       setActionLoading(null);
     }
@@ -155,7 +154,7 @@ const DeliveryManagement = ({ refreshData }) => {
       }
     } catch (err) {
       console.error("Failed to upload delivery proof:", err);
-      setError(err.response?.data?.message ?? "Failed to upload proof");
+      setError(err.response?.data?.message ?? t("seller.delivery.errors.proof_failed", "Failed to upload proof"));
     } finally {
       setActionLoading(null);
     }
@@ -181,24 +180,24 @@ const DeliveryManagement = ({ refreshData }) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Delivery Management</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t("seller.delivery.title", "Delivery Management")}</h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-            Choose delivery methods and track your order deliveries
+            {t("seller.delivery.subtitle", "Choose delivery methods and track your order deliveries")}
           </p>
         </div>
         <button onClick={fetchDeliveries}
           className="flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 bg-white dark:bg-slate-800">
-          <ArrowPathIcon className="h-4 w-4" /> Refresh
+          <ArrowPathIcon className="h-4 w-4" /> {t("seller.delivery.refresh", "Refresh")}
         </button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Pending',    value: stats.pending,    color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-900/20' },
-          { label: 'In Transit', value: stats.inTransit,  color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/20' },
-          { label: 'Delivered',  value: stats.delivered,  color: 'text-green-600 dark:text-green-400',   bg: 'bg-green-50 dark:bg-green-900/20'   },
-          { label: 'Failed',     value: stats.failed,     color: 'text-red-600 dark:text-red-400',       bg: 'bg-red-50 dark:bg-red-900/20'       },
+          { label: t("seller.delivery.stats.pending", "Pending"), value: stats.pending, color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-900/20' },
+          { label: t("seller.delivery.stats.in_transit", "In Transit"), value: stats.inTransit, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+          { label: t("seller.delivery.stats.delivered", "Delivered"), value: stats.delivered, color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/20' },
+          { label: t("seller.delivery.stats.failed", "Failed"), value: stats.failed, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20' },
         ].map(s => (
           <div key={s.label} className={`${s.bg} rounded-xl p-4`}>
             <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
@@ -232,7 +231,14 @@ const DeliveryManagement = ({ refreshData }) => {
           <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
             <thead className="bg-gray-50 dark:bg-slate-700/50">
               <tr>
-                {["Order ID", "Customer", "Delivery Method", "Status", "Delivery Fee", "Actions"].map((h) => (
+                {[
+                  t("seller.delivery.table.order_id", "Order ID"),
+                  t("seller.delivery.table.customer", "Customer"),
+                  t("seller.delivery.table.delivery_method", "Delivery Method"),
+                  t("seller.delivery.table.status", "Status"),
+                  t("seller.delivery.table.delivery_fee", "Delivery Fee"),
+                  t("seller.delivery.table.actions", "Actions"),
+                ].map((h) => (
                   <th key={h} className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
                     {h}
                   </th>
@@ -247,25 +253,25 @@ const DeliveryManagement = ({ refreshData }) => {
                       #{delivery.order?.order_number ?? delivery.order_id}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-slate-200">
-                      {delivery.order?.shipping_address?.full_name ?? "N/A"}
+                      {delivery.order?.shipping_address?.full_name ?? t("seller.delivery.not_available", "N/A")}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-slate-200">
                       {delivery.delivery_method === "platform" ? (
                         <span className="flex items-center gap-1">
                           <BuildingStorefrontIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                          Platform Logistics
+                          {t("seller.delivery.methods.platform", "Platform Logistics")}
                         </span>
                       ) : (
                         <span className="flex items-center gap-1">
                           <TruckIcon className="h-4 w-4 text-gray-600 dark:text-slate-400" />
-                          Self Delivery
+                          {t("seller.delivery.methods.self", "Self Delivery")}
                         </span>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(delivery.status)}`}>
                         {getStatusIcon(delivery.status)}
-                        <span className="capitalize">{humanStatus(delivery.status)}</span>
+                        <span className="capitalize">{humanStatus(delivery.status, t)}</span>
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-slate-200">
@@ -275,7 +281,7 @@ const DeliveryManagement = ({ refreshData }) => {
                       <button
                         onClick={() => { setSelectedDelivery(delivery); setIsModalOpen(true); }}
                         className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
-                        title="View details"
+                        title={t("seller.delivery.actions.view_details", "View details")}
                       >
                         <EyeIcon className="h-5 w-5" />
                       </button>
@@ -287,7 +293,7 @@ const DeliveryManagement = ({ refreshData }) => {
                           onClick={() => { setSelectedOrder(delivery.order); setShowDeliveryMethodModal(true); }}
                           className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 disabled:opacity-50"
                         >
-                          Choose Method
+                          {t("seller.delivery.actions.choose_method", "Choose Method")}
                         </button>
                       )}
 
@@ -298,37 +304,37 @@ const DeliveryManagement = ({ refreshData }) => {
                             ? "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700"
                             : "bg-gray-50 text-gray-600 border-gray-200 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600"
                         } cursor-not-allowed opacity-70`}>
-                          🔒 {delivery.delivery_method === "platform" ? "Platform Delivery" : "Self Delivery"}
+                          🔒 {delivery.delivery_method === "platform" ? t("seller.delivery.methods.platform_delivery", "Platform Delivery") : t("seller.delivery.methods.self", "Self Delivery")}
                         </span>
                       )}
 
                       {delivery.status === "awaiting_pickup" && delivery.delivery_method === "supplier" && (
                         <button
                           disabled={actionLoading === delivery.id}
-                          onClick={() => updateDeliveryStatus(delivery.id, "picked_up", "Items picked up from warehouse")}
+                          onClick={() => updateDeliveryStatus(delivery.id, "picked_up", t("seller.delivery.notes.picked_up", "Items picked up from warehouse"))}
                           className="text-xs bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 disabled:opacity-50"
                         >
-                          {actionLoading === delivery.id ? "..." : "Mark Picked Up"}
+                          {actionLoading === delivery.id ? "..." : t("seller.delivery.actions.mark_picked_up", "Mark Picked Up")}
                         </button>
                       )}
 
                       {delivery.status === "picked_up" && delivery.delivery_method === "supplier" && (
                         <button
                           disabled={actionLoading === delivery.id}
-                          onClick={() => updateDeliveryStatus(delivery.id, "in_transit", "On the way to customer")}
+                          onClick={() => updateDeliveryStatus(delivery.id, "in_transit", t("seller.delivery.notes.in_transit", "On the way to customer"))}
                           className="text-xs bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 disabled:opacity-50"
                         >
-                          {actionLoading === delivery.id ? "..." : "In Transit"}
+                          {actionLoading === delivery.id ? "..." : t("seller.delivery.actions.in_transit", "In Transit")}
                         </button>
                       )}
 
                       {delivery.status === "in_transit" && delivery.delivery_method === "supplier" && (
                         <button
                           disabled={actionLoading === delivery.id}
-                          onClick={() => updateDeliveryStatus(delivery.id, "out_for_delivery", "Out for delivery to customer")}
+                          onClick={() => updateDeliveryStatus(delivery.id, "out_for_delivery", t("seller.delivery.notes.out_for_delivery", "Out for delivery to customer"))}
                           className="text-xs bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600 disabled:opacity-50"
                         >
-                          {actionLoading === delivery.id ? "..." : "Out for Delivery"}
+                          {actionLoading === delivery.id ? "..." : t("seller.delivery.actions.out_for_delivery", "Out for Delivery")}
                         </button>
                       )}
 
@@ -362,8 +368,8 @@ const DeliveryManagement = ({ refreshData }) => {
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center">
                     <TruckIcon className="h-16 w-16 text-gray-400 dark:text-slate-500 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Deliveries Found</h3>
-                    <p className="text-gray-600 dark:text-slate-400">You don't have any deliveries to manage yet.</p>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t("seller.delivery.empty.title", "No Deliveries Found")}</h3>
+                    <p className="text-gray-600 dark:text-slate-400">{t("seller.delivery.empty.subtitle", "You don't have any deliveries to manage yet.")}</p>
                   </td>
                 </tr>
               )}
@@ -390,6 +396,7 @@ const DeliveryManagement = ({ refreshData }) => {
 // FIX: added pickupAddress input so it's no longer hard-coded
 // ─────────────────────────────────────────────────────────────────────────────
 const DeliveryMethodModal = ({ order, loading, onClose, onMethodSelect, calculatePlatformFee }) => {
+  const { t } = useTranslation();
   const [selectedMethod, setSelectedMethod] = useState("supplier");
   const [pickupAddress, setPickupAddress]   = useState("");
   const [addressError, setAddressError]     = useState("");
@@ -398,7 +405,7 @@ const DeliveryMethodModal = ({ order, loading, onClose, onMethodSelect, calculat
 
   const handleConfirm = () => {
     if (!pickupAddress.trim()) {
-      setAddressError("Pickup address is required");
+      setAddressError(t("seller.delivery.errors.pickup_required", "Pickup address is required"));
       return;
     }
     onMethodSelect(order, selectedMethod, pickupAddress.trim());
@@ -411,7 +418,7 @@ const DeliveryMethodModal = ({ order, loading, onClose, onMethodSelect, calculat
 
         <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg z-10">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Choose Delivery Method</h3>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{t("seller.delivery.actions.choose_method", "Choose Delivery Method")}</h3>
             <button onClick={onClose} className="text-gray-400 dark:text-slate-500 hover:text-gray-500 dark:hover:text-slate-300">
               <XCircleIcon className="h-6 w-6" />
             </button>
@@ -431,13 +438,13 @@ const DeliveryMethodModal = ({ order, loading, onClose, onMethodSelect, calculat
                     <TruckIcon className="h-5 w-5 text-gray-600 dark:text-slate-400" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white">Self Delivery</h4>
-                    <p className="text-sm text-gray-600 dark:text-slate-400">You arrange and manage delivery</p>
+                    <h4 className="font-semibold text-gray-900 dark:text-white">{t("seller.delivery.methods.self", "Self Delivery")}</h4>
+                    <p className="text-sm text-gray-600 dark:text-slate-400">{t("seller.delivery.method_modal.self_desc", "You arrange and manage delivery")}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-green-600 dark:text-green-400">Free</p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400">No platform fee</p>
+                  <p className="font-bold text-green-600 dark:text-green-400">{t("seller.delivery.method_modal.free", "Free")}</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">{t("seller.delivery.method_modal.no_platform_fee", "No platform fee")}</p>
                 </div>
               </div>
             </div>
@@ -455,34 +462,34 @@ const DeliveryMethodModal = ({ order, loading, onClose, onMethodSelect, calculat
                     <BuildingStorefrontIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white">Platform Logistics</h4>
-                    <p className="text-sm text-gray-600 dark:text-slate-400">We handle delivery for you</p>
+                    <h4 className="font-semibold text-gray-900 dark:text-white">{t("seller.delivery.methods.platform", "Platform Logistics")}</h4>
+                    <p className="text-sm text-gray-600 dark:text-slate-400">{t("seller.delivery.method_modal.platform_desc", "We handle delivery for you")}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-blue-600 dark:text-blue-400">{formatMMK(calculatePlatformFee(weight))}</p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400">Platform service fee</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">{t("seller.delivery.method_modal.platform_fee", "Platform service fee")}</p>
                 </div>
               </div>
             </div>
 
             {/* Benefits */}
             <div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
-              <h5 className="font-medium text-gray-900 dark:text-white mb-2">Benefits:</h5>
+              <h5 className="font-medium text-gray-900 dark:text-white mb-2">{t("seller.delivery.method_modal.benefits", "Benefits:")}</h5>
               <ul className="text-sm text-gray-600 dark:text-slate-400 space-y-1">
                 {selectedMethod === "supplier" ? (
                   <>
-                    <li>• Full control over delivery process</li>
-                    <li>• Direct communication with customer</li>
-                    <li>• No additional platform fees</li>
-                    <li>• Flexible delivery scheduling</li>
+                    <li>• {t("seller.delivery.method_modal.self_benefit_1", "Full control over delivery process")}</li>
+                    <li>• {t("seller.delivery.method_modal.self_benefit_2", "Direct communication with customer")}</li>
+                    <li>• {t("seller.delivery.method_modal.self_benefit_3", "No additional platform fees")}</li>
+                    <li>• {t("seller.delivery.method_modal.self_benefit_4", "Flexible delivery scheduling")}</li>
                   </>
                 ) : (
                   <>
-                    <li>• Professional logistics service</li>
-                    <li>• Real-time tracking for customers</li>
-                    <li>• Delivery confirmation system</li>
-                    <li>• Platform manages customer communication</li>
+                    <li>• {t("seller.delivery.method_modal.platform_benefit_1", "Professional logistics service")}</li>
+                    <li>• {t("seller.delivery.method_modal.platform_benefit_2", "Real-time tracking for customers")}</li>
+                    <li>• {t("seller.delivery.method_modal.platform_benefit_3", "Delivery confirmation system")}</li>
+                    <li>• {t("seller.delivery.method_modal.platform_benefit_4", "Platform manages customer communication")}</li>
                   </>
                 )}
               </ul>
@@ -491,13 +498,13 @@ const DeliveryMethodModal = ({ order, loading, onClose, onMethodSelect, calculat
             {/* FIX: pickup address input */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-                Pickup Address <span className="text-red-500">*</span>
+                {t("seller.delivery.labels.pickup_address", "Pickup Address")} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={pickupAddress}
                 onChange={(e) => { setPickupAddress(e.target.value); setAddressError(""); }}
-                placeholder="e.g. No. 12, Merchant St, Yangon"
+                placeholder={t("seller.delivery.placeholders.pickup_address", "e.g. No. 12, Merchant St, Yangon")}
                 className={`w-full px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 ${
                   addressError ? "border-red-400 dark:border-red-600" : "border-gray-300 dark:border-slate-600"
                 } focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400`}
@@ -511,14 +518,14 @@ const DeliveryMethodModal = ({ order, loading, onClose, onMethodSelect, calculat
               onClick={onClose}
               className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm font-medium text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700"
             >
-              Cancel
+              {t("seller.delivery.actions.cancel", "Cancel")}
             </button>
             <button
               onClick={handleConfirm}
               disabled={loading}
               className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50"
             >
-              {loading ? "Saving..." : "Confirm Delivery Method"}
+              {loading ? t("seller.delivery.actions.saving", "Saving...") : t("seller.delivery.actions.confirm_method", "Confirm Delivery Method")}
             </button>
           </div>
         </div>
@@ -528,6 +535,7 @@ const DeliveryMethodModal = ({ order, loading, onClose, onMethodSelect, calculat
 };
 
 const ProofUploadModal = ({ delivery, actionLoading, onUpload, onClose }) => {
+  const { t } = useTranslation();
   const [proofFile, setProofFile]         = useState(null);
   const [recipientName, setRecipientName] = useState("");
   const [recipientPhone, setRecipientPhone] = useState("");
@@ -537,7 +545,7 @@ const ProofUploadModal = ({ delivery, actionLoading, onUpload, onClose }) => {
  
   const handleSubmit = async () => {
     if (!proofFile || !recipientName.trim() || !recipientPhone.trim()) {
-      setProofError("Please fill all fields and select a proof photo.");
+      setProofError(t("seller.delivery.errors.proof_required", "Please fill all fields and select a proof photo."));
       return;
     }
     setProofError("");
@@ -560,10 +568,10 @@ const ProofUploadModal = ({ delivery, actionLoading, onUpload, onClose }) => {
             </div>
             <div>
               <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-                Upload Delivery Proof
+                {t("seller.delivery.proof.title", "Upload Delivery Proof")}
               </h2>
               <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-                Order #{delivery.order?.order_number ?? delivery.order_id}
+                {t("seller.delivery.order_number", { number: delivery.order?.order_number ?? delivery.order_id })}
               </p>
             </div>
           </div>
@@ -579,8 +587,7 @@ const ProofUploadModal = ({ delivery, actionLoading, onUpload, onClose }) => {
         {/* Body */}
         <div className="px-5 py-5 space-y-4">
           <p className="text-xs text-gray-500 dark:text-slate-400">
-            Attach a photo of the delivered package and confirm recipient details to
-            mark this order as delivered.
+            {t("seller.delivery.proof.description", "Attach a photo of the delivered package and confirm recipient details to mark this order as delivered.")}
           </p>
  
           {proofError && (
@@ -593,7 +600,7 @@ const ProofUploadModal = ({ delivery, actionLoading, onUpload, onClose }) => {
           {/* Photo picker */}
           <div>
             <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1.5 uppercase tracking-wide">
-              Proof Photo <span className="text-red-500">*</span>
+              {t("seller.delivery.proof.photo", "Proof Photo")} <span className="text-red-500">*</span>
             </label>
             <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl cursor-pointer hover:border-green-400 dark:hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/10 transition-colors">
               {proofFile ? (
@@ -604,8 +611,8 @@ const ProofUploadModal = ({ delivery, actionLoading, onUpload, onClose }) => {
               ) : (
                 <>
                   <CameraIcon className="h-7 w-7 text-gray-400 dark:text-slate-500 mb-1" />
-                  <span className="text-xs text-gray-500 dark:text-slate-400">Click to select a photo</span>
-                  <span className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">JPG, PNG up to 5 MB</span>
+                  <span className="text-xs text-gray-500 dark:text-slate-400">{t("seller.delivery.proof.select_photo", "Click to select a photo")}</span>
+                  <span className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">{t("seller.delivery.proof.photo_hint", "JPG, PNG up to 5 MB")}</span>
                 </>
               )}
               <input
@@ -620,11 +627,11 @@ const ProofUploadModal = ({ delivery, actionLoading, onUpload, onClose }) => {
           {/* Recipient details */}
           <div>
             <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1.5 uppercase tracking-wide">
-              Recipient Name <span className="text-red-500">*</span>
+              {t("seller.delivery.proof.recipient_name", "Recipient Name")} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              placeholder="e.g. Ko Aung"
+              placeholder={t("seller.delivery.placeholders.recipient_name", "e.g. Ko Aung")}
               value={recipientName}
               onChange={(e) => { setRecipientName(e.target.value); setProofError(""); }}
               className="w-full px-3 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm
@@ -635,11 +642,11 @@ const ProofUploadModal = ({ delivery, actionLoading, onUpload, onClose }) => {
  
           <div>
             <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1.5 uppercase tracking-wide">
-              Recipient Phone <span className="text-red-500">*</span>
+              {t("seller.delivery.proof.recipient_phone", "Recipient Phone")} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              placeholder="e.g. 09 xxx xxx xxx"
+              placeholder={t("seller.delivery.placeholders.recipient_phone", "e.g. 09 xxx xxx xxx")}
               value={recipientPhone}
               onChange={(e) => { setRecipientPhone(e.target.value); setProofError(""); }}
               className="w-full px-3 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm
@@ -656,7 +663,7 @@ const ProofUploadModal = ({ delivery, actionLoading, onUpload, onClose }) => {
             className="flex-1 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm font-medium
                        text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
           >
-            Cancel
+            {t("seller.delivery.actions.cancel", "Cancel")}
           </button>
           <button
             onClick={handleSubmit}
@@ -666,9 +673,9 @@ const ProofUploadModal = ({ delivery, actionLoading, onUpload, onClose }) => {
                        disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {actionLoading === delivery.id ? (
-              <><ArrowPathIcon className="h-4 w-4 animate-spin" /> Uploading…</>
+              <><ArrowPathIcon className="h-4 w-4 animate-spin" /> {t("seller.delivery.actions.uploading", "Uploading...")}</>
             ) : (
-              <><CameraIcon className="h-4 w-4" /> Submit Proof</>
+              <><CameraIcon className="h-4 w-4" /> {t("seller.delivery.actions.submit_proof", "Submit Proof")}</>
             )}
           </button>
         </div>
@@ -681,6 +688,7 @@ const ProofUploadModal = ({ delivery, actionLoading, onUpload, onClose }) => {
 // Delivery Details Modal
 // ─────────────────────────────────────────────────────────────────────────────
 const DeliveryDetailsModal = ({ delivery, isOpen, actionLoading, onClose, onProofUpload, onUpdateStatus }) => {
+  const { t } = useTranslation();
   const [showProofUpload, setShowProofUpload] = useState(false);
   const [proofFile, setProofFile]             = useState(null);
   const [recipientName, setRecipientName]     = useState("");
@@ -699,7 +707,7 @@ const DeliveryDetailsModal = ({ delivery, isOpen, actionLoading, onClose, onProo
 
   const handleProofUpload = async () => {
     if (!proofFile || !recipientName.trim() || !recipientPhone.trim()) {
-      setProofError("Please fill all fields and select a proof image");
+      setProofError(t("seller.delivery.errors.proof_image_required", "Please fill all fields and select a proof image"));
       return;
     }
     setProofError("");
@@ -719,7 +727,7 @@ const DeliveryDetailsModal = ({ delivery, isOpen, actionLoading, onClose, onProo
         <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-4xl z-10">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Delivery Details — Order #{delivery.order?.order_number}
+              {t("seller.delivery.details.title", { number: delivery.order?.order_number })}
             </h3>
             <button onClick={onClose} className="text-gray-400 dark:text-slate-500 hover:text-gray-500 dark:hover:text-slate-300">
               <XCircleIcon className="h-6 w-6" />
@@ -730,45 +738,45 @@ const DeliveryDetailsModal = ({ delivery, isOpen, actionLoading, onClose, onProo
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Delivery info */}
               <div>
-                <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Delivery Information</h4>
+                <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">{t("seller.delivery.details.delivery_information", "Delivery Information")}</h4>
                 <div className="space-y-3 text-sm text-gray-900 dark:text-slate-200">
                   <div>
-                    <span className="font-medium text-gray-700 dark:text-slate-400">Method: </span>
-                    <span className="capitalize">{delivery.delivery_method}</span>
+                    <span className="font-medium text-gray-700 dark:text-slate-400">{t("seller.delivery.labels.method", "Method")}: </span>
+                    <span className="capitalize">{delivery.delivery_method === "platform" ? t("seller.delivery.methods.platform", "Platform Logistics") : t("seller.delivery.methods.self", "Self Delivery")}</span>
                     {delivery.delivery_method === "platform" && (
                       <span className="ml-2 text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 px-2 py-0.5 rounded-full">
-                        Platform Logistics
+                        {t("seller.delivery.methods.platform", "Platform Logistics")}
                       </span>
                     )}
                   </div>
                   <div>
-                    <span className="font-medium text-gray-700 dark:text-slate-400">Status: </span>
-                    <span className="capitalize">{humanStatus(delivery.status)}</span>
+                    <span className="font-medium text-gray-700 dark:text-slate-400">{t("seller.delivery.labels.status", "Status")}: </span>
+                    <span className="capitalize">{humanStatus(delivery.status, t)}</span>
                   </div>
                   <div>
-                    <span className="font-medium text-gray-700 dark:text-slate-400">Delivery Fee: </span>
+                    <span className="font-medium text-gray-700 dark:text-slate-400">{t("seller.delivery.labels.delivery_fee", "Delivery Fee")}: </span>
                     {formatMMK(delivery.platform_delivery_fee)}
                   </div>
                   <div>
-                    <span className="font-medium text-gray-700 dark:text-slate-400">Tracking Number: </span>
-                    <span className="font-mono">{delivery.tracking_number ?? "Not assigned"}</span>
+                    <span className="font-medium text-gray-700 dark:text-slate-400">{t("seller.delivery.labels.tracking_number", "Tracking Number")}: </span>
+                    <span className="font-mono">{delivery.tracking_number ?? t("seller.delivery.not_assigned", "Not assigned")}</span>
                   </div>
                 </div>
               </div>
 
               {/* Address info */}
               <div>
-                <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Address Information</h4>
+                <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">{t("seller.delivery.details.address_information", "Address Information")}</h4>
                 <div className="space-y-3 text-sm">
                   <div>
                     <p className="font-medium text-gray-700 dark:text-slate-400 flex items-center gap-1">
-                      <MapPinIcon className="h-4 w-4" /> Pickup Address
+                      <MapPinIcon className="h-4 w-4" /> {t("seller.delivery.labels.pickup_address", "Pickup Address")}
                     </p>
-                    <p className="text-gray-900 dark:text-slate-200 mt-1">{delivery.pickup_address ?? "Not specified"}</p>
+                    <p className="text-gray-900 dark:text-slate-200 mt-1">{delivery.pickup_address ?? t("seller.delivery.not_specified", "Not specified")}</p>
                   </div>
                   <div>
                     <p className="font-medium text-gray-700 dark:text-slate-400 flex items-center gap-1">
-                      <MapPinIcon className="h-4 w-4" /> Delivery Address
+                      <MapPinIcon className="h-4 w-4" /> {t("seller.delivery.labels.delivery_address", "Delivery Address")}
                     </p>
                     <p className="text-gray-900 dark:text-slate-200 mt-1">{delivery.delivery_address}</p>
                   </div>
@@ -779,7 +787,7 @@ const DeliveryDetailsModal = ({ delivery, isOpen, actionLoading, onClose, onProo
             {/* Tracking timeline */}
             {updates.length > 0 && (
               <div className="mt-6">
-                <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Delivery Updates</h4>
+                <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">{t("seller.delivery.details.delivery_updates", "Delivery Updates")}</h4>
                 <div className="space-y-3">
                   {updates.map((update, index) => (
                     <div key={update.id ?? index} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
@@ -787,7 +795,7 @@ const DeliveryDetailsModal = ({ delivery, isOpen, actionLoading, onClose, onProo
                       <div className="flex-1">
                         <div className="flex justify-between items-start">
                           <span className="text-sm font-medium text-gray-900 dark:text-white capitalize">
-                            {humanStatus(update.status)}
+                            {humanStatus(update.status, t)}
                           </span>
                           <span className="text-xs text-gray-500 dark:text-slate-400">
                             {new Date(update.created_at).toLocaleString()}
@@ -797,7 +805,7 @@ const DeliveryDetailsModal = ({ delivery, isOpen, actionLoading, onClose, onProo
                           <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">{update.notes}</p>
                         )}
                         {update.location && (
-                          <p className="text-xs text-gray-500 dark:text-slate-500 mt-1">Location: {update.location}</p>
+                          <p className="text-xs text-gray-500 dark:text-slate-500 mt-1">{t("seller.delivery.labels.location", "Location")}: {update.location}</p>
                         )}
                       </div>
                     </div>
@@ -810,11 +818,11 @@ const DeliveryDetailsModal = ({ delivery, isOpen, actionLoading, onClose, onProo
             {delivery.status === "in_transit" && delivery.delivery_method === "supplier" && (
               <div className="mt-6">
                 <button
-                  onClick={() => onUpdateStatus(delivery.id, "out_for_delivery", "Out for delivery to customer")}
+                  onClick={() => onUpdateStatus(delivery.id, "out_for_delivery", t("seller.delivery.notes.out_for_delivery", "Out for delivery to customer"))}
                   disabled={actionLoading === delivery.id}
                   className="w-full bg-orange-500 text-white py-3 rounded-lg font-medium hover:bg-orange-600 disabled:opacity-50"
                 >
-                  {actionLoading === delivery.id ? "Updating..." : "Mark as Out for Delivery"}
+                  {actionLoading === delivery.id ? t("seller.delivery.actions.updating", "Updating...") : t("seller.delivery.actions.mark_out_for_delivery", "Mark as Out for Delivery")}
                 </button>
               </div>
             )}
@@ -827,11 +835,11 @@ const DeliveryDetailsModal = ({ delivery, isOpen, actionLoading, onClose, onProo
                     onClick={() => setShowProofUpload(true)}
                     className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700"
                   >
-                    Upload Delivery Proof
+                    {t("seller.delivery.proof.title", "Upload Delivery Proof")}
                   </button>
                 ) : (
                   <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                    <h5 className="font-medium text-yellow-800 dark:text-yellow-300 mb-3">Upload Delivery Proof</h5>
+                    <h5 className="font-medium text-yellow-800 dark:text-yellow-300 mb-3">{t("seller.delivery.proof.title", "Upload Delivery Proof")}</h5>
                     <div className="space-y-3">
                       {proofError && (
                         <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded px-3 py-2">
@@ -846,14 +854,14 @@ const DeliveryDetailsModal = ({ delivery, isOpen, actionLoading, onClose, onProo
                       />
                       <input
                         type="text"
-                        placeholder="Recipient Name"
+                        placeholder={t("seller.delivery.proof.recipient_name", "Recipient Name")}
                         value={recipientName}
                         onChange={(e) => setRecipientName(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100"
                       />
                       <input
                         type="text"
-                        placeholder="Recipient Phone"
+                        placeholder={t("seller.delivery.proof.recipient_phone", "Recipient Phone")}
                         value={recipientPhone}
                         onChange={(e) => setRecipientPhone(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100"
@@ -864,13 +872,13 @@ const DeliveryDetailsModal = ({ delivery, isOpen, actionLoading, onClose, onProo
                           disabled={actionLoading === delivery.id}
                           className="flex-1 bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50"
                         >
-                          {actionLoading === delivery.id ? "Uploading..." : "Submit Proof"}
+                          {actionLoading === delivery.id ? t("seller.delivery.actions.uploading", "Uploading...") : t("seller.delivery.actions.submit_proof", "Submit Proof")}
                         </button>
                         <button
                           onClick={resetProofForm}
                           className="flex-1 bg-gray-500 text-white py-2 rounded-lg font-medium hover:bg-gray-600"
                         >
-                          Cancel
+                          {t("seller.delivery.actions.cancel", "Cancel")}
                         </button>
                       </div>
                     </div>
@@ -885,7 +893,7 @@ const DeliveryDetailsModal = ({ delivery, isOpen, actionLoading, onClose, onProo
               onClick={onClose}
               className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm font-medium text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700"
             >
-              Close
+              {t("seller.delivery.actions.close", "Close")}
             </button>
           </div>
         </div>

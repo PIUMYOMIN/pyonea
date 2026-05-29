@@ -483,7 +483,7 @@ const QuoteCard = ({ quote, rfqId, onAccepted, onRejected, canRespond = true }) 
               {quote.seller?.seller_profile?.store_name
                 || quote.seller?.sellerProfile?.store_name
                 || quote.seller?.name
-                || "Unknown Seller"}
+                || t("rfq.quote.unknown_seller")}
             </p>
             {(quote.seller?.seller_profile?.average_rating || quote.seller?.rating) && (
               <div className="flex items-center gap-1 text-xs text-amber-500">
@@ -543,7 +543,7 @@ const QuoteCard = ({ quote, rfqId, onAccepted, onRejected, canRespond = true }) 
       )}
       {quote.status === "accepted" && (
         <div className="flex items-center gap-2 text-green-700 dark:text-green-400 text-xs font-bold">
-          <CheckCircleIcon className="h-4 w-4" /> Quote accepted — order will be created
+          <CheckCircleIcon className="h-4 w-4" /> {t("rfq.messages.quote_accepted")}
         </div>
       )}
     </div>
@@ -679,13 +679,13 @@ const RFQDetailModal = ({ rfq, onClose, onRefresh, canManageQuotes = true, canRe
                   <div className="mt-4 pt-4 border-t border-green-200 dark:border-green-700 flex items-center justify-between gap-3">
                     <div>
                       <p className="text-xs text-green-600 dark:text-green-400 font-semibold uppercase tracking-wide">
-                        Order Created
+                        {t("rfq.order.created")}
                       </p>
                       <p className="text-sm font-bold text-green-900 dark:text-green-200 font-mono tracking-wide">
                         {data.order.order_number}
                       </p>
                       <p className="text-xs text-green-600 dark:text-green-400 capitalize mt-0.5">
-                        Status: <span className="font-semibold">{data.order.status}</span>
+                        {t("rfq.order.status")}: <span className="font-semibold">{data.order.status}</span>
                       </p>
                     </div>
                     <button
@@ -697,7 +697,7 @@ const RFQDetailModal = ({ rfq, onClose, onRefresh, canManageQuotes = true, canRe
                                  shadow-sm transition-colors flex-shrink-0"
                     >
                       <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-                      Track Order
+                      {t("rfq.order.track_order")}
                     </button>
                   </div>
                 )}
@@ -853,7 +853,7 @@ const SubmitQuoteModal = ({ rfq, onClose, onSuccess }) => {
               {t("rfq.modal.total_price")}
             </label>
             <div className="relative">
-              <input type="number" min="0" className={inputCls} placeholder="Auto-calculated" value={form.total_price} onChange={set("total_price")} />
+              <input type="number" min="0" className={inputCls} placeholder={t("rfq.modal.auto_calculated")} value={form.total_price} onChange={set("total_price")} />
               {form.total_price && (
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
                   {Number(form.total_price).toLocaleString()} {form.currency}
@@ -1234,14 +1234,14 @@ const RFQManager = () => {
                   displaySent.length === 0 ? (
                     <EmptyState
                       icon={DocumentTextIcon}
-                      title={t('rfq.empty.sent.title') || "No RFQs found"}
-                      sub={t('rfq.empty.sent.sub') || "Create your first RFQ to start collecting quotes from sellers"}
+                      title={t('rfq.empty.sent.title')}
+                      sub={t('rfq.empty.sent.sub')}
                       action={
                         <button
                           onClick={() => setActiveTab("create")}
                           className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700"
                         >
-                          <PlusIcon className="h-4 w-4" /> {t('rfq.tabs.create') || 'Create RFQ'}
+                          <PlusIcon className="h-4 w-4" /> {t('rfq.tabs.create')}
                         </button>
                       }
                     />
@@ -1264,8 +1264,8 @@ const RFQManager = () => {
                   displayReceived.length === 0 ? (
                     <EmptyState
                       icon={InboxIcon}
-                      title={t('rfq.empty.received.title') || "No RFQs received"}
-                      sub={t('rfq.empty.received.sub') || "RFQs from buyers will appear here when buyers select you as a seller"}
+                      title={t('rfq.empty.received.title')}
+                      sub={t('rfq.empty.received.sub')}
                     />
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
