@@ -186,13 +186,13 @@ const SellerDashboard = () => {
     { name: t("seller.sales.title"),    icon: CurrencyDollarIcon,     key: "sales" },
     { name: t("seller.reviews.title"),  icon: StarIcon,               key: "reviews" },
     { name: t("seller.customers"),      icon: UserGroupIcon,          key: "customers" },
-    { name: t("seller.delivery.title"), icon: TruckIcon,        key: "delivery" },
-    { name: t("seller.settings"), icon: CogIcon, key: "settings" },
+    { name: t("seller.delivery.title"), icon: TruckIcon, key: "delivery" },
     { name: t("seller.sidebar.referrals"), icon: GiftIcon, key: "referrals" },
     { name: t("seller.sidebar.wallet"), icon: WalletIcon, key: "wallet" },
     { name: t("seller.sidebar.subscription"), icon: SparklesIcon, key: "subscription" },
     { name: t("seller.sidebar.financial_reports"), icon: ChartBarIcon, key: "financial_reports" },
     { name: t("seller.sidebar.bulk_import"), icon: ArrowUpTrayIcon, key: "bulk_import" },
+    { name: t("seller.settings"), icon: CogIcon, key: "settings" },
   ], [t]);
 
   // Render the active tab with current state — separated from the stable nav structure
@@ -413,7 +413,7 @@ const SellerDashboard = () => {
     } else if (setupNotificationData.nextStep === "delivery_zones") {
       const deliveryIndex = navigation.findIndex(item => item.key === "delivery_zones");
       if (deliveryIndex !== -1) setSelectedTab(deliveryIndex);
-      navigate('/seller/dashboard?tab=delivery-zones', { replace: true });
+      navigate('/seller/dashboard?tab=delivery_zones', { replace: true });
     } else if (setupNotificationData.nextStep === "products") {
       const productsIndex = navigation.findIndex(item => item.key === "products");
       if (productsIndex !== -1) setSelectedTab(productsIndex);

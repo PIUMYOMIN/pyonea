@@ -1040,6 +1040,7 @@
       "2_stars": "2 Stars",
       "1_star": "1 Star",
       "loading": "Loading reviews...",
+      "error_title": "Reviews unavailable",
       "write_review": "Write a Review",
       "your_response": "Your Response",
       "edit_response": "Edit Response",
@@ -1051,7 +1052,10 @@
       "error_submitting": "Error submitting review. Please try again.",
       "no_reviews_found": "No reviews found",
       "reply_to_review": "Reply to review",
-      "total_reviews": "Total Reviews"
+      "total_reviews": "Total Reviews",
+      "for_product": "For product",
+      "unknown_user": "Unknown User",
+      "unknown_product": "Unknown Product"
     },
     "rating": {
       "label": "Review Comment",
@@ -3737,27 +3741,75 @@
         "noActionSelected": "No action selected",
         "noActionSelectedMsg": "Please choose an action from the dropdown before clicking Apply."
       }
+    },
+    "reviewManagement": {
+      "title": "Review Management",
+      "count": "{{count}} reviews",
+      "noReviews": "No reviews found.",
+      "retry": "Retry",
+      "searchPlaceholder": "Search reviews...",
+      "tabs": {
+        "seller": "Seller Reviews",
+        "product": "Product Reviews"
+      },
+      "table": {
+        "reviewer": "Reviewer",
+        "target": "Target",
+        "rating": "Rating",
+        "comment": "Comment",
+        "status": "Status",
+        "date": "Date",
+        "actions": "Actions"
+      },
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "actions": {
+        "approve": "Approve",
+        "reject": "Reject"
+      },
+      "messages": {
+        "approved": "Review approved successfully.",
+        "rejected": "Review rejected successfully."
+      },
+      "errors": {
+        "load": "Failed to load reviews.",
+        "update": "Failed to update review."
+      }
     }
   },
   "subscription": {
     "free": "Free",
-    "free_plan_no_expiry": "Free plan — no expiry date.",
-    "per_month": "/month",
-    "usage_warning": "You're nearly at your product limit — consider upgrading.",
-    "upgrade_to": "Upgrade to {name}",
-    "payment_instruction": "Transfer <strong>{amount}</strong> via KBZPay, Wave Money, or bank transfer, then paste your payment reference below.",
+    "free_plan_no_expiry": "Your free plan has no expiry date.",
+    "per_month": "per month",
+    "per_month_short": "/mo",
+    "no_charge": "- no charge",
+    "usage_warning": "You are close to your product limit. Consider upgrading before adding more items.",
+    "usage_unlimited": "{{used}} / Unlimited",
+    "upgrade_to": "Upgrade to {{name}}",
+    "payment_instruction": "Transfer this amount by KBZPay, Wave Money, or bank transfer, then paste your payment reference below.",
     "payment_ref_label": "Payment Reference",
     "ref_placeholder": "e.g. TXN-20260517-001234",
     "ref_hint": "Enter the transaction ID from your payment confirmation.",
     "cancel": "Cancel",
     "alerts": {
-      "processing": "Processing…"
+      "processing": "Processing..."
     },
     "confirm_upgrade": "Confirm Upgrade",
     "load_error": "Failed to load subscription data.",
-    "upgrade_msg": "Successfully {{action}} to the {{name}} plan!",
+    "upgrade_msg": "Your plan has been changed to {{name}}.",
+    "downgrade_success": "You are now on the {{name}} plan.",
+    "request_submitted": "Your {{name}} request has been sent for approval. We will update the plan after payment is confirmed.",
     "upgrade_failed": "Upgrade failed.",
     "upgrade_failed_retry": "Upgrade failed. Please try again.",
+    "pending_title": "Plan change awaiting approval",
+    "pending_body": "{{name}} is waiting for payment confirmation.",
+    "reference_label": "Reference",
+    "pending_badge": "Pending Approval",
+    "waiting_approval": "Waiting for Approval",
+    "plan_heading": "{{name}} Plan",
     "plan_names": {
       "basic": "Basic",
       "products": "products",
@@ -3767,6 +3819,7 @@
       "active": "Active"
     },
     "renews": "Renews:",
+    "days_remaining": "{{count}} days remaining",
     "days_remaining_0": "{{count}} day remaining",
     "days_remaining_1": "{{count}} days remaining",
     "days_remaining_other": "{{count}} days remaining",
@@ -3780,7 +3833,7 @@
     "analytics_dashboard": "Analytics dashboard",
     "bulk_product_import": "Bulk product import",
     "custom_storefront_label": "Custom storefront",
-    "available_plans": "Available Plans",
+    "available_plans": "Choose a plan",
     "report": {
       "title": "Report an Issue",
       "subtitle": "Found a bug, issue, or want to report misconduct? We take every report seriously and respond promptly.",
@@ -3859,12 +3912,12 @@
     "most_popular": "Most Popular",
     "your_current_plan": "Your Current Plan",
     "downgrade": "Downgrade",
-    "upgrade_label": "Upgrade to {name}",
-    "how_billing_works": "How billing works",
-    "faq_billed_monthly": "Paid plans are billed <strong>monthly</strong>. Transfer the amount and paste your payment reference to activate.",
-    "faq_upgrades_immediate": "Upgrades take effect <strong>immediately</strong> after confirmation.",
-    "faq_downgrades_immediate": "Downgrades take effect immediately — make sure your product count fits within the new limit first.",
-    "faq_accepted_payment": "Accepted payment: KBZPay, Wave Money, CB Bank transfer.",
+    "upgrade_label": "Upgrade to {{name}}",
+    "how_billing_works": "How plan changes work",
+    "faq_billed_monthly": "Paid plans are monthly. Send the payment first, then enter the transaction reference.",
+    "faq_upgrades_immediate": "Upgrades are activated after an admin confirms your payment.",
+    "faq_downgrades_immediate": "Downgrades apply immediately. Make sure your active product count fits the lower limit first.",
+    "faq_accepted_payment": "Accepted payment methods: KBZPay, Wave Money, and bank transfer.",
     "faq_contact_support_text": "Contact support at",
     "billing_email": "billing@pyonea.com",
     "for_invoice_receipt": "for invoice or receipt.",

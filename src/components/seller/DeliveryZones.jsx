@@ -14,15 +14,12 @@ import getMyanmarStates from '../../data/myanmar-locations';
 import { toLocationTree, myanmarLocationsEng } from '../../utils/myanmarLocationTree';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const formatMMK = (n) =>
-  new Intl.NumberFormat('my-MM', { style: 'currency', currency: 'MMK', minimumFractionDigits: 0 }).format(n || 0);
-
 // Build a flat lookup key from area fields (always uses English names from DB)
 const zoneKey = (z) => [z.area_type, z.country, z.state, z.city, z.township]
   .filter(Boolean).join('|');
 
 // ─── FeeInput ────────────────────────────────────────────────────────────────
-const FeeInput = ({ value, onChange, placeholder }) => (
+const FeeInput = ({ value, onChange, placeholder, currencyLabel }) => (
   <div className="flex items-center gap-1">
     <input
       type="number"
@@ -34,7 +31,7 @@ const FeeInput = ({ value, onChange, placeholder }) => (
       placeholder={placeholder}
       className="w-24 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-xs bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:ring-1 focus:ring-green-500 dark:focus:ring-green-400 focus:outline-none"
     />
-    <span className="text-xs text-gray-400 dark:text-slate-500">MMK</span>
+    <span className="text-xs text-gray-400 dark:text-slate-500">{currencyLabel}</span>
   </div>
 );
 
@@ -122,13 +119,13 @@ const DeliveryZones = ({
         }
       } catch (e) {
         console.error('Failed to load delivery zones:', e);
-        setError('Failed to load your delivery zones.');
+        setError(t('seller.delivery_zones.error_load'));
       } finally {
         setLoading(false);
       }
     };
     load();
-  }, []);
+  }, [t]);
 
   // ── Default fee object ─────────────────────────────────────────────────
   const defaultFee = () => ({ fee: 3000, freeThreshold: 0, daysMin: 3, daysMax: 5 });
@@ -325,10 +322,10 @@ const DeliveryZones = ({
         if (onSaveSuccess) await onSaveSuccess();
         return true;
       } else {
-        setError(res.data.message || 'Failed to save zones');
+        setError(res.data.message || t('seller.delivery_zones.error_save'));
       }
     } catch (e) {
-      setError(e.response?.data?.message || 'Failed to save delivery zones');
+      setError(e.response?.data?.message || t('seller.delivery_zones.error_save'));
     } finally {
       setSaving(false);
     }
@@ -438,6 +435,7 @@ const DeliveryZones = ({
         {wholeMyanmar && (
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pl-7 sm:pl-0">
             <FeeInput
+              currencyLabel={t('seller.delivery_zones.mmk')}
               value={getFee('country|Myanmar').fee}
               onChange={(v) => setFeeField('country|Myanmar', 'fee', v)}
             />
@@ -495,6 +493,7 @@ const DeliveryZones = ({
                       onClick={(e) => e.stopPropagation()}
                     >
                       <FeeInput
+                        currencyLabel={t('seller.delivery_zones.mmk')}
                         value={getFee(stKey).fee}
                         onChange={(v) => setFeeField(stKey, 'fee', v)}
                       />
@@ -558,6 +557,7 @@ const DeliveryZones = ({
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <FeeInput
+                                  currencyLabel={t('seller.delivery_zones.mmk')}
                                   value={getFee(cKey).fee}
                                   onChange={(v) => setFeeField(cKey, 'fee', v)}
                                 />
@@ -607,6 +607,7 @@ const DeliveryZones = ({
                                       {isTOn && (
                                         <div className="pl-5 flex flex-col gap-1">
                                           <FeeInput
+                                            currencyLabel={t('seller.delivery_zones.mmk')}
                                             value={getFee(tKey).fee}
                                             onChange={(v) => setFeeField(tKey, 'fee', v)}
                                           />

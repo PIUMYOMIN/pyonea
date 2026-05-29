@@ -22,8 +22,10 @@ import { useSubscription } from '../../context/SubscriptionContext';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const fmtMMK = (n) =>
-  Number(n) === 0 ? 'Free' : `${Number(n).toLocaleString()} MMK`;
+const fmtMMK = (n, t, language = 'en') =>
+  Number(n) === 0
+    ? t('subscription.free')
+    : `${Number(n).toLocaleString(language === 'my' ? 'my-MM' : 'en-MM')} ${t('common.currency.mmk', 'MMK')}`;
 
 const PLAN_COLORS = {
   basic: { ring: 'ring-gray-300 dark:ring-gray-600', badge: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300', btn: 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100', accent: 'text-gray-600 dark:text-gray-400' },
@@ -55,7 +57,7 @@ const UsageBar = ({ used, limit, label, t }) => {
       <div className="flex justify-between text-xs font-medium text-gray-600 dark:text-gray-400">
         <span>{label}</span>
         <span className={danger ? 'text-red-500' : warn ? 'text-yellow-500' : ''}>
-          {limit === -1 ? `${used} / Unlimited` : `${used} / ${limit}`}
+          {limit === -1 ? t('subscription.usage_unlimited', { used }) : `${used} / ${limit}`}
         </span>
       </div>
       {limit !== -1 && (
@@ -80,7 +82,7 @@ const UsageBar = ({ used, limit, label, t }) => {
 // Payment reference modal for paid plan upgrades
 const UpgradeModal = ({ plan, onConfirm, onCancel, loading }) => {
   const [ref, setRef] = useState('');
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -89,13 +91,13 @@ const UpgradeModal = ({ plan, onConfirm, onCancel, loading }) => {
           <span className="text-3xl">{PLAN_ICONS[plan.slug] ?? '⭐'}</span>
           <div>
             <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">{t('subscription.upgrade_to', { name: plan.name })}</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{fmtMMK(plan.price_mmk)} {t('subscription.per_month')}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{fmtMMK(plan.price_mmk, t, i18n.language)} {t('subscription.per_month')}</p>
           </div>
         </div>
 
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-3 text-sm text-amber-800 dark:text-amber-300 flex gap-2">
           <InformationCircleIcon className="w-4 h-4 flex-shrink-0 mt-0.5" />
-          <span><strong>{fmtMMK(plan.price_mmk)}</strong> {t('subscription.payment_instruction')}</span>
+          <span><strong>{fmtMMK(plan.price_mmk, t, i18n.language)}</strong> {t('subscription.payment_instruction')}</span>
         </div>
 
         <div>
@@ -136,7 +138,7 @@ const UpgradeModal = ({ plan, onConfirm, onCancel, loading }) => {
 // ── Main component ────────────────────────────────────────────────────────────
 
 const SellerSubscription = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [current, setCurrent] = useState(null);   // current subscription object
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -181,8 +183,8 @@ const SellerSubscription = () => {
       if (res.data.success) {
         setSuccess(
           plan.price_mmk === 0
-            ? t('subscription.upgrade_msg', { action: 'downgraded', name: plan.name })
-            : (res.data.message || t('subscription.request_submitted', { name: plan.name, defaultValue: `${plan.name} request submitted for admin approval.` }))
+            ? t('subscription.downgrade_success', { name: plan.name })
+            : (res.data.message || t('subscription.request_submitted', { name: plan.name }))
         );
         setModal(null);
         await load();
@@ -245,10 +247,10 @@ const SellerSubscription = () => {
         <div className="flex items-start gap-2 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-300 text-sm">
           <ExclamationTriangleIcon className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-semibold">Upgrade pending admin approval</p>
+            <p className="font-semibold">{t('subscription.pending_title')}</p>
             <p className="mt-0.5">
-              {pendingRequest.plan?.name} is waiting for payment confirmation.
-              {pendingRequest.payment_reference ? ` Reference: ${pendingRequest.payment_reference}` : ''}
+              {t('subscription.pending_body', { name: pendingRequest.plan?.name })}
+              {pendingRequest.payment_reference ? ` ${t('subscription.reference_label')}: ${pendingRequest.payment_reference}` : ''}
             </p>
           </div>
         </div>
@@ -262,14 +264,15 @@ const SellerSubscription = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                  {current?.plan?.name ?? t('subscription.plan_names.basic')} Plan
+                  {t('subscription.plan_heading', { name: current?.plan?.name ?? t('subscription.plan_names.basic') })}
                 </h2>
                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${colors.badge}`}>
                   {current?.status_label ?? t('subscription.status.active', 'Active')}
                 </span>
               </div>
               <p className={`text-sm font-medium ${colors.accent}`}>
-                {fmtMMK(current?.plan?.price_mmk ?? 0)}{current?.plan?.price_mmk > 0 ? '/month' : ' — no charge'}
+                {fmtMMK(current?.plan?.price_mmk ?? 0, t, i18n.language)}
+                {current?.plan?.price_mmk > 0 ? ` ${t('subscription.per_month')}` : ` ${t('subscription.no_charge')}`}
               </p>
             </div>
           </div>
@@ -295,7 +298,7 @@ const SellerSubscription = () => {
           </div>
         )}
         {!current?.ends_at && (
-          <p className="text-sm text-gray-400 dark:text-gray-500">{t('subscription.free_plan_no_expiry', 'Free plan — no expiry date.')}</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">{t('subscription.free_plan_no_expiry')}</p>
         )}
 
         {/* Product usage */}
@@ -354,7 +357,7 @@ const SellerSubscription = () => {
                 {isPending && !isCurrent && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className="text-xs font-bold px-3 py-1 rounded-full shadow-sm bg-amber-500 text-white">
-                      Pending Approval
+                      {t('subscription.pending_badge')}
                     </span>
                   </div>
                 )}
@@ -375,8 +378,8 @@ const SellerSubscription = () => {
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400">{plan.description}</p>
                   <p className={`text-2xl font-extrabold mt-2 ${c.accent}`}>
-                    {fmtMMK(plan.price_mmk)}
-                    {isPaid && <span className="text-sm font-normal text-gray-400">/mo</span>}
+                    {fmtMMK(plan.price_mmk, t, i18n.language)}
+                    {isPaid && <span className="text-sm font-normal text-gray-400"> {t('subscription.per_month_short')}</span>}
                   </p>
                 </div>
 
@@ -405,13 +408,13 @@ const SellerSubscription = () => {
                       <CheckCircleIcon className="w-4 h-4" /> {t('subscription.your_current_plan', 'Your Current Plan')}
                     </>
                   ) : isPending ? (
-                    'Waiting for Approval'
+                    t('subscription.waiting_approval')
                   ) : plan.price_mmk < (current?.plan?.price_mmk ?? 0) ? (
                       t('subscription.downgrade', 'Downgrade')
                   ) : (
                     <>
                       <ArrowUpCircleIcon className="w-4 h-4" />
-                          {upgrading ? t('subscription.alerts.processing', 'Processing…') : t('subscription.upgrade_label', `Upgrade to ${plan.name}`)}
+                          {upgrading ? t('subscription.alerts.processing', 'Processing...') : t('subscription.upgrade_label', { name: plan.name })}
                     </>
                   )}
                 </button>

@@ -1,6 +1,10 @@
 import React from "react";
 import { StarIcon } from "@heroicons/react/24/outline";
+import { useTranslation } from "react-i18next";
+
 const ReviewCard = ({ review }) => {
+  const { t } = useTranslation();
+
   // Render star ratings
   const renderStars = rating => {
     const stars = [];
@@ -44,7 +48,7 @@ const ReviewCard = ({ review }) => {
         <div className="bg-gray-200 border-2 border-dashed rounded-full w-10 h-10" />
         <div className="ml-4">
           <h4 className="text-sm font-medium text-gray-900">
-            {review.user?.name || "Unknown User"}
+            {review.user?.name || t("seller.reviews.unknown_user")}
           </h4>
           <div className="mt-1 flex items-center">
             {renderStars(review.rating)}
@@ -59,7 +63,7 @@ const ReviewCard = ({ review }) => {
         <p className="text-gray-600">{review.comment}</p>
         {review.product && (
           <p className="mt-2 text-sm text-gray-500">
-            <span className="font-medium">Product:</span> {review.product?.name || "Unknown Product"}
+            <span className="font-medium">{t("seller.reviews.for_product")}:</span> {review.product?.name || t("seller.reviews.unknown_product")}
           </p>
         )}
       </div>

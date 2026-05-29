@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
   CheckIcon, XMarkIcon, MagnifyingGlassIcon, ArrowPathIcon,
   StarIcon as StarSolid, CheckCircleIcon, XCircleIcon,
@@ -14,7 +15,7 @@ const Stars = ({ rating }) => (
   </div>
 );
 
-const StatusBadge = ({ status }) => {
+const StatusBadge = ({ status, t }) => {
   const map = {
     pending:  "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300",
     approved: "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300",
@@ -23,16 +24,16 @@ const StatusBadge = ({ status }) => {
   return (
     <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold capitalize
                       ${map[status] || "bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300"}`}>
-      {status || "pending"}
+      {t(`admin.reviewManagement.status.${status || "pending"}`)}
     </span>
   );
 };
 
-const ReviewTable = ({ reviews, onAction, actionLoading }) => {
+const ReviewTable = ({ reviews, onAction, actionLoading, t }) => {
   if (reviews.length === 0)
     return (
       <div className="py-14 text-center text-gray-400 dark:text-slate-500 text-sm">
-        No reviews found.
+        {t("admin.reviewManagement.noReviews")}
       </div>
     );
 
@@ -41,7 +42,15 @@ const ReviewTable = ({ reviews, onAction, actionLoading }) => {
       <table className="min-w-full text-sm divide-y divide-gray-100 dark:divide-slate-700">
         <thead className="bg-gray-50 dark:bg-slate-900/50">
           <tr>
-            {["Reviewer", "Target", "Rating", "Comment", "Status", "Date", "Actions"].map(h => (
+            {[
+              t("admin.reviewManagement.table.reviewer"),
+              t("admin.reviewManagement.table.target"),
+              t("admin.reviewManagement.table.rating"),
+              t("admin.reviewManagement.table.comment"),
+              t("admin.reviewManagement.table.status"),
+              t("admin.reviewManagement.table.date"),
+              t("admin.reviewManagement.table.actions"),
+            ].map(h => (
               <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                 {h}
               </th>
@@ -59,7 +68,7 @@ const ReviewTable = ({ reviews, onAction, actionLoading }) => {
               <td className="px-4 py-3 text-gray-600 dark:text-slate-400 max-w-[200px]">
                 <p className="truncate">{r.comment || "—"}</p>
               </td>
-              <td className="px-4 py-3"><StatusBadge status={r.status} /></td>
+              <td className="px-4 py-3"><StatusBadge status={r.status} t={t} /></td>
               <td className="px-4 py-3 text-gray-500 dark:text-slate-400 whitespace-nowrap">
                 {new Date(r.created_at).toLocaleDateString()}
               </td>
@@ -72,7 +81,7 @@ const ReviewTable = ({ reviews, onAction, actionLoading }) => {
                       className="flex items-center gap-1 text-xs text-green-700 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300
                                  font-medium disabled:opacity-50"
                     >
-                      <CheckIcon className="h-3.5 w-3.5" /> Approve
+                      <CheckIcon className="h-3.5 w-3.5" /> {t("admin.reviewManagement.actions.approve")}
                     </button>
                   )}
                   {r.status !== "rejected" && (
@@ -82,7 +91,7 @@ const ReviewTable = ({ reviews, onAction, actionLoading }) => {
                       className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300
                                  font-medium disabled:opacity-50"
                     >
-                      <XMarkIcon className="h-3.5 w-3.5" /> Reject
+                      <XMarkIcon className="h-3.5 w-3.5" /> {t("admin.reviewManagement.actions.reject")}
                     </button>
                   )}
                 </div>
@@ -96,6 +105,7 @@ const ReviewTable = ({ reviews, onAction, actionLoading }) => {
 };
 
 const ReviewManagement = () => {
+  const { t } = useTranslation();
   const [tab, setTab]               = useState("seller"); // "seller" | "product"
   const [sellerReviews, setSellerR] = useState([]);
   const [productReviews, setProductR] = useState([]);
@@ -127,11 +137,11 @@ const ReviewManagement = () => {
         setProductR(Array.isArray(d) ? d : []);
       }
     } catch (err) {
-      setError("Failed to load reviews.");
+      setError(t("admin.reviewManagement.errors.load"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
@@ -146,9 +156,9 @@ const ReviewManagement = () => {
         prev.map(r => r.id === reviewId ? { ...r, status } : r);
       if (isSeller) setSellerR(update);
       else           setProductR(update);
-      flash(`Review ${status} successfully.`);
+      flash(t(`admin.reviewManagement.messages.${status}`));
     } catch (err) {
-      flash(err.response?.data?.message || "Failed to update review.", "error");
+      flash(err.response?.data?.message || t("admin.reviewManagement.errors.update"), "error");
     } finally {
       setActionL(null);
     }
@@ -179,8 +189,8 @@ const ReviewManagement = () => {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-gray-900 dark:text-slate-100">Review Management</h2>
-          <p className="text-sm text-gray-500 dark:text-slate-400">{filtered.length} reviews</p>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-slate-100">{t("admin.reviewManagement.title")}</h2>
+          <p className="text-sm text-gray-500 dark:text-slate-400">{t("admin.reviewManagement.count", { count: filtered.length })}</p>
         </div>
         <button onClick={fetchAll}
           className="p-2 text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
@@ -190,7 +200,7 @@ const ReviewManagement = () => {
 
       {/* Tabs */}
       <div className="flex gap-1 p-1 bg-gray-100 dark:bg-slate-700 rounded-xl w-fit">
-        {[["seller", "Seller Reviews"], ["product", "Product Reviews"]].map(([key, label]) => (
+        {[["seller", t("admin.reviewManagement.tabs.seller")], ["product", t("admin.reviewManagement.tabs.product")]].map(([key, label]) => (
           <button key={key} onClick={() => { setTab(key); setSearch(""); }}
             className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-colors ${
               tab === key
@@ -206,7 +216,7 @@ const ReviewManagement = () => {
       <div className="relative max-w-sm">
         <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-slate-500" />
         <input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Search reviews…"
+          placeholder={t("admin.reviewManagement.searchPlaceholder")}
           className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-xl
                      bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500
                      focus:ring-2 focus:ring-green-500 focus:border-transparent" />
@@ -219,10 +229,10 @@ const ReviewManagement = () => {
           </div>
         ) : error ? (
           <div className="p-6 text-center text-red-600 dark:text-red-400 text-sm">
-            {error} <button onClick={fetchAll} className="underline ml-1">Retry</button>
+            {error} <button onClick={fetchAll} className="underline ml-1">{t("admin.reviewManagement.retry")}</button>
           </div>
         ) : (
-          <ReviewTable reviews={filtered} onAction={handleAction} actionLoading={actionLoading} />
+          <ReviewTable reviews={filtered} onAction={handleAction} actionLoading={actionLoading} t={t} />
         )}
       </div>
     </div>

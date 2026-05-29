@@ -9,7 +9,7 @@ import {
 import api from "../../utils/api";
 
 const ProductReviewManagement = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [activeFilter, setActiveFilter] = useState("all");
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +33,7 @@ const ProductReviewManagement = () => {
         setTotalPages(response.data.data.last_page);
       }
     } catch (err) {
-      setError(t("seller.failed_to_load_reviews"));
+      setError(t("seller.reviews.fetch_error"));
       console.error("Error fetching reviews:", err);
     } finally {
       setLoading(false);
@@ -61,7 +61,7 @@ const ProductReviewManagement = () => {
 
   const formatDate = dateString => {
     const options = { year: "numeric", month: "short", day: "numeric" };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+    return new Date(dateString).toLocaleDateString(i18n.language === "my" ? "my-MM" : undefined, options);
   };
 
   if (loading) {
@@ -187,7 +187,7 @@ const ProductReviewManagement = () => {
       <div className="space-y-6">
         {filteredReviews.length === 0 ? (
           <div className="text-center py-8 text-gray-500 dark:text-slate-400">
-            {t("seller.no_reviews_found")}
+            {t("seller.reviews.no_reviews_found")}
           </div>
         ) : (
           filteredReviews.map(review => (
@@ -197,7 +197,7 @@ const ProductReviewManagement = () => {
                   <div className="bg-gray-200 border-2 border-dashed rounded-full w-10 h-10 flex-shrink-0" />
                   <div className="ml-4 min-w-0">
                     <h4 className="font-medium text-gray-900 dark:text-slate-100 truncate">
-                      {review.user.name}
+                      {review.user?.name || t("seller.reviews.unknown_user")}
                     </h4>
                     <p className="text-sm text-gray-500 dark:text-slate-400">
                       {formatDate(review.created_at)}
@@ -228,10 +228,10 @@ const ProductReviewManagement = () => {
                 <p className="text-gray-700 dark:text-slate-200">{review.comment} </p>
                 <div className="mt-3 flex flex-wrap items-center text-sm text-gray-500">
                   <span className="mr-2 text-gray-500 dark:text-slate-400">
-                    {/* {t("seller.reviews.for_product")}: */}
+                    {t("seller.reviews.for_product")}:
                   </span>
                   <span className="font-medium text-gray-900 dark:text-slate-100 truncate">
-                    {review.product.name}
+                    {review.product?.name || review.product?.name_en || t("seller.reviews.unknown_product")}
                   </span>
                 </div>
               </div>
