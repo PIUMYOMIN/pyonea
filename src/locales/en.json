@@ -1463,7 +1463,66 @@
     "loading": "Loading...",
     "load_more": "Load more",
     "mark_as_read": "Mark as read",
-    "remove": "Remove"
+    "remove": "Remove",
+    "open_notifications": "Open notifications",
+    "clear_confirm": "Clear all notifications? This cannot be undone.",
+    "cancel": "Cancel",
+    "clear_confirm_yes": "Clear all",
+    "preferences": {
+      "title": "Email notifications",
+      "subtitle": "Choose which emails you receive from Pyonea. You can change these at any time.",
+      "save": "Save preferences",
+      "saving": "Saving...",
+      "saved": "Saved",
+      "save_failed": "Failed to save notification preferences.",
+      "locked_title": "This setting cannot be disabled",
+      "transactional_note": "Transactional emails, such as order confirmations and password resets, are always sent.",
+      "groups": {
+        "order_account": "Orders & account",
+        "promotions_news": "Promotions & news",
+        "orders_reviews": "Orders & reviews",
+        "seller_updates": "Seller updates",
+        "account_security": "Account & security"
+      },
+      "items": {
+        "order_updates": {
+          "label": "Order updates",
+          "hint": "Status changes, shipping updates, and delivery confirmations"
+        },
+        "promotional_emails": {
+          "label": "Promotional emails",
+          "hint": "Discounts, flash sales, and special offers"
+        },
+        "newsletter": {
+          "label": "Pyonea newsletter",
+          "hint": "New sellers, product highlights, and platform news"
+        },
+        "new_orders": {
+          "label": "New orders",
+          "hint": "Email me when a buyer places an order in my store"
+        },
+        "order_status_updates": {
+          "label": "Order status updates",
+          "hint": "Email me when an order is shipped, delivered, or updated"
+        },
+        "review_notifications": {
+          "label": "Product reviews",
+          "hint": "Email me when a buyer leaves a review on my product"
+        },
+        "seller_updates": {
+          "label": "Seller announcements",
+          "hint": "Policy changes, fee updates, and seller platform news"
+        },
+        "promotional_tips": {
+          "label": "Selling tips",
+          "hint": "Best practices, seasonal tips, and new seller features"
+        },
+        "security_alerts": {
+          "label": "Security alerts",
+          "hint": "New device logins and password changes are always sent"
+        }
+      }
+    }
   },
   "email_verification": {
     "seo_title": "Verify Your Email | Pyonea",

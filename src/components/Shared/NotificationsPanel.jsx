@@ -49,13 +49,22 @@ const typeIcon = (type) => {
 
 // ── Relative timestamp ────────────────────────────────────────────────────────
 
-const relativeTime = (dateStr, t) => {
+const relativeTime = (dateStr, t, language = 'en') => {
   const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
   if (diff < 60)     return t('notifications.just_now');
   if (diff < 3600)   return t('notifications.minutes_ago', { count: Math.floor(diff / 60) });
   if (diff < 86400)  return t('notifications.hours_ago',   { count: Math.floor(diff / 3600) });
   if (diff < 604800) return t('notifications.days_ago',    { count: Math.floor(diff / 86400) });
-  return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+  return new Date(dateStr).toLocaleDateString(language === 'my' ? 'my-MM' : 'en-GB', { day: '2-digit', month: 'short' });
+};
+
+const notificationData = (data) => {
+  if (typeof data !== 'string') return data ?? {};
+  try {
+    return JSON.parse(data);
+  } catch {
+    return {};
+  }
 };
 
 // ── Main panel ────────────────────────────────────────────────────────────────
@@ -63,7 +72,7 @@ const relativeTime = (dateStr, t) => {
 const PER_PAGE = 20;
 
 const NotificationsPanel = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { unreadCount, version, decrementUnread, resetUnread } = useNotifications();
 
@@ -264,7 +273,7 @@ const NotificationsPanel = () => {
         ) : (
           <div className="divide-y divide-gray-50 dark:divide-slate-700">
             {visible.map(n => {
-              const data     = typeof n.data === 'string' ? JSON.parse(n.data) : (n.data ?? {});
+              const data     = notificationData(n.data);
               const isUnread = !n.read_at;
               return (
                 <div key={n.id}
@@ -303,7 +312,7 @@ const NotificationsPanel = () => {
                       </p>
                     )}
                     <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
-                      {relativeTime(n.created_at, t)}
+                      {relativeTime(n.created_at, t, i18n.language)}
                     </p>
                   </div>
 
@@ -356,10 +365,14 @@ const NotificationsPanel = () => {
 // Reads from context — no independent polling, no extra API calls.
 
 export const NotificationBell = ({ onClick }) => {
+  const { t } = useTranslation();
   const { unreadCount } = useNotifications();
 
   return (
     <button onClick={onClick}
+      type="button"
+      aria-label={t('notifications.open_notifications')}
+      title={t('notifications.open_notifications')}
       className="relative p-2 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200
                  hover:bg-gray-100 dark:hover:bg-slate-700 rounded-xl transition-colors">
       {unreadCount > 0

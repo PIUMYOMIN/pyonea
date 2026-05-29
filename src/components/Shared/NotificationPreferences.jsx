@@ -1,6 +1,7 @@
 // src/components/Shared/NotificationPreferences.jsx
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CheckCircleIcon, BellIcon, EnvelopeIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 import api from '../../utils/api';
 
@@ -21,52 +22,52 @@ const EDITABLE_KEYS = [
   'new_orders', 'review_notifications', 'seller_updates',
 ];
 
-const BUYER_GROUPS = [
+const getBuyerGroups = (t) => [
   {
-    title: 'Order & Account',
+    title: t('notifications.preferences.groups.order_account'),
     icon: '📦',
     items: [
-      { key: 'order_updates',      label: 'Order updates',      hint: 'Status changes, shipping, and delivery confirmations' },
+      { key: 'order_updates', label: t('notifications.preferences.items.order_updates.label'), hint: t('notifications.preferences.items.order_updates.hint') },
     ],
   },
   {
-    title: 'Promotions & News',
+    title: t('notifications.preferences.groups.promotions_news'),
     icon: '🎁',
     items: [
-      { key: 'promotional_emails', label: 'Promotional emails', hint: 'Discounts, flash sales, and special offers' },
-      { key: 'newsletter',         label: 'Pyonea newsletter',  hint: 'New sellers, product highlights, platform news' },
+      { key: 'promotional_emails', label: t('notifications.preferences.items.promotional_emails.label'), hint: t('notifications.preferences.items.promotional_emails.hint') },
+      { key: 'newsletter', label: t('notifications.preferences.items.newsletter.label'), hint: t('notifications.preferences.items.newsletter.hint') },
     ],
   },
 ];
 
-const SELLER_GROUPS = [
+const getSellerGroups = (t) => [
   {
-    title: 'Orders & Reviews',
+    title: t('notifications.preferences.groups.orders_reviews'),
     icon: '🛒',
     items: [
-      { key: 'new_orders',           label: 'New orders',           hint: 'Email when a buyer places an order in your store' },
-      { key: 'order_updates',        label: 'Order status updates', hint: 'When order status changes (shipped, delivered, etc.)' },
-      { key: 'review_notifications', label: 'Product reviews',      hint: 'When a buyer leaves a review on your product' },
+      { key: 'new_orders', label: t('notifications.preferences.items.new_orders.label'), hint: t('notifications.preferences.items.new_orders.hint') },
+      { key: 'order_updates', label: t('notifications.preferences.items.order_status_updates.label'), hint: t('notifications.preferences.items.order_status_updates.hint') },
+      { key: 'review_notifications', label: t('notifications.preferences.items.review_notifications.label'), hint: t('notifications.preferences.items.review_notifications.hint') },
     ],
   },
   {
-    title: 'Seller Updates',
+    title: t('notifications.preferences.groups.seller_updates'),
     icon: '📋',
     items: [
-      { key: 'seller_updates',     label: 'Seller announcements', hint: 'Policy changes, fee updates, platform news for sellers' },
-      { key: 'promotional_emails', label: 'Promotional tips',     hint: 'Best practices, seasonal selling tips, new features' },
-      { key: 'newsletter',         label: 'Pyonea newsletter',    hint: 'General platform updates and highlights' },
+      { key: 'seller_updates', label: t('notifications.preferences.items.seller_updates.label'), hint: t('notifications.preferences.items.seller_updates.hint') },
+      { key: 'promotional_emails', label: t('notifications.preferences.items.promotional_tips.label'), hint: t('notifications.preferences.items.promotional_tips.hint') },
+      { key: 'newsletter', label: t('notifications.preferences.items.newsletter.label'), hint: t('notifications.preferences.items.newsletter.hint') },
     ],
   },
 ];
 
 // ── Toggle ────────────────────────────────────────────────────────────────────
 
-const Toggle = ({ checked, onChange, disabled, locked }) => {
+const Toggle = ({ checked, onChange, disabled, locked, lockedTitle }) => {
   if (locked) {
     // Locked toggles are always-on and show a lock icon instead of a thumb
     return (
-      <div className="flex items-center gap-1.5" title="This setting cannot be disabled">
+      <div className="flex items-center gap-1.5" title={lockedTitle}>
         <LockClosedIcon className="h-3.5 w-3.5 text-gray-400 dark:text-slate-500" />
         <div className="relative inline-flex h-5 w-9 rounded-full bg-green-500 opacity-60 cursor-not-allowed">
           <span className="absolute right-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow" />
@@ -94,6 +95,7 @@ const Toggle = ({ checked, onChange, disabled, locked }) => {
 // ── Main component ────────────────────────────────────────────────────────────
 
 const NotificationPreferences = ({ userType = 'buyer', initialPrefs = {}, onSaved }) => {
+  const { t } = useTranslation();
   const [prefs,  setPrefs]  = useState({ ...DEFAULT_PREFS, ...initialPrefs });
   const [saving, setSaving] = useState(false);
   const [saved,  setSaved]  = useState(false);
@@ -126,13 +128,13 @@ const NotificationPreferences = ({ userType = 'buyer', initialPrefs = {}, onSave
       onSaved?.(payload);
       setTimeout(() => setSaved(false), 3000);
     } catch (e) {
-      setError(e.response?.data?.message || 'Failed to save preferences.');
+      setError(e.response?.data?.message || t('notifications.preferences.save_failed'));
     } finally {
       setSaving(false);
     }
   };
 
-  const groups = userType === 'seller' ? SELLER_GROUPS : BUYER_GROUPS;
+  const groups = userType === 'seller' ? getSellerGroups(t) : getBuyerGroups(t);
 
   return (
     <div className="space-y-6 max-w-lg">
@@ -144,10 +146,10 @@ const NotificationPreferences = ({ userType = 'buyer', initialPrefs = {}, onSave
         </div>
         <div>
           <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">
-            Email Notifications
+            {t('notifications.preferences.title')}
           </h3>
           <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
-            Choose which emails you receive from Pyonea. You can change these at any time.
+            {t('notifications.preferences.subtitle')}
           </p>
         </div>
       </div>
@@ -184,16 +186,16 @@ const NotificationPreferences = ({ userType = 'buyer', initialPrefs = {}, onSave
         <div className="px-5 py-3 bg-gray-50 dark:bg-slate-700/60 border-b border-gray-100 dark:border-slate-700
                         flex items-center gap-2">
           <span>🔒</span>
-          <span className="text-sm font-semibold text-gray-700 dark:text-slate-200">Account & Security</span>
+          <span className="text-sm font-semibold text-gray-700 dark:text-slate-200">{t('notifications.preferences.groups.account_security')}</span>
         </div>
         <div className="flex items-center justify-between px-5 py-3.5 gap-4">
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 dark:text-slate-100">Security alerts</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-slate-100">{t('notifications.preferences.items.security_alerts.label')}</p>
             <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
-              Login from new devices, password changes — always sent.
+              {t('notifications.preferences.items.security_alerts.hint')}
             </p>
           </div>
-          <Toggle checked={true} locked />
+          <Toggle checked={true} locked lockedTitle={t('notifications.preferences.locked_title')} />
         </div>
       </div>
 
@@ -201,7 +203,7 @@ const NotificationPreferences = ({ userType = 'buyer', initialPrefs = {}, onSave
       <div className="flex items-start gap-2 px-1">
         <EnvelopeIcon className="h-4 w-4 text-gray-300 dark:text-slate-600 flex-shrink-0 mt-0.5" />
         <p className="text-xs text-gray-400 dark:text-slate-500">
-          Transactional emails (order confirmations, password resets) are always sent regardless of your preferences.
+          {t('notifications.preferences.transactional_note')}
         </p>
       </div>
 
@@ -211,11 +213,11 @@ const NotificationPreferences = ({ userType = 'buyer', initialPrefs = {}, onSave
         <button onClick={save} disabled={saving}
           className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium
                      rounded-xl disabled:opacity-50 transition-colors">
-          {saving ? 'Saving…' : 'Save Preferences'}
+          {saving ? t('notifications.preferences.saving') : t('notifications.preferences.save')}
         </button>
         {saved && (
           <span className="flex items-center gap-1.5 text-sm text-green-600 dark:text-green-400 font-medium">
-            <CheckCircleIcon className="h-4 w-4" /> Saved
+            <CheckCircleIcon className="h-4 w-4" /> {t('notifications.preferences.saved')}
           </span>
         )}
       </div>
