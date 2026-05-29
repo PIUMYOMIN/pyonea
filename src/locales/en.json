@@ -617,6 +617,7 @@
     "open_sidebar": "Open sidebar",
     "back_to_sellers": "Back to Sellers",
     "dashboard": "Dashboard",
+    "dashboard_refreshing": "Refreshing...",
     "sidebar": {
       "notifications": "Notifications",
       "rfq": "RFQ",

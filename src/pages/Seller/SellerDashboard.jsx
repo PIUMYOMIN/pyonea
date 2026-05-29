@@ -199,7 +199,7 @@ const SellerDashboard = () => {
   const renderActiveTab = () => {
     const key = navigation[selectedTab]?.key;
     switch (key) {
-      case "dashboard": return <DashboardSummary storeData={storeData} stats={stats} onSetupClick={handleSetupClick} />;
+      case "dashboard": return <DashboardSummary storeData={storeData} stats={stats} refreshData={refreshGlobalData} onSetupClick={handleSetupClick} />;
       case "notifications":  return <NotificationsPanel />;
       case "my_store":    return <SellerMyStoreSection storeData={storeData} stats={stats} refreshData={refreshGlobalData} />;
       case "orders":      return <OrderManagement />;

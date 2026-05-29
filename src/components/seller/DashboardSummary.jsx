@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import {
   ArrowUpIcon,
   ArrowDownIcon,
+  ArrowPathIcon,
   ShoppingBagIcon,
   CheckCircleIcon,
   ClockIcon,
@@ -217,6 +218,7 @@ const DashboardSummary = ({ storeData, stats, refreshData, onSetupClick }) => {
 const [feeSubmitting, setFeeSubmitting] = useState(null);
   const [feeNotes, setFeeNotes] = useState({});
   const [feeToast, setFeeToast] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
   const initialFetchDone = useRef(false);
 
   const flashFee = (msg, type = "success") => {
@@ -315,6 +317,18 @@ const [feeSubmitting, setFeeSubmitting] = useState(null);
 
   useEffect(() => { if (refreshData) fetchAll(); }, [refreshData, fetchAll]);
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        fetchAll(),
+        refreshData ? refreshData() : Promise.resolve(),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   if (loading && !dash) {
     return (
       <div className="flex justify-center items-center py-20">
@@ -392,9 +406,13 @@ const [feeSubmitting, setFeeSubmitting] = useState(null);
           <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100">{t("seller.overview")}</h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{t("seller.dashboard_summary")}</p>
         </div>
-        <button onClick={fetchAll}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 flex items-center gap-2">
-          <ArrowUpIcon className="h-3.5 w-3.5 rotate-90" /> Refresh
+        <button
+          onClick={handleRefresh}
+          disabled={refreshing || loading}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          <ArrowPathIcon className={`h-4 w-4 ${refreshing || loading ? "animate-spin" : ""}`} />
+          {refreshing || loading ? t("seller.dashboard_refreshing", "Refreshing...") : t("refresh", "Refresh")}
         </button>
       </div>
 
