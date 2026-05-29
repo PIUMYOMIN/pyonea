@@ -16,7 +16,7 @@ const normalizeLanguage = (lng) => {
   if (code.startsWith('my') || code.startsWith('mm')) return 'my';
   if (code.startsWith('en')) return 'en';
 
-  return 'en';
+  return 'my';
 };
 
 const syncDocumentLanguage = (lng) => {
@@ -45,7 +45,7 @@ i18n
     nonExplicitSupportedLngs: true,
     load: 'languageOnly',
     cleanCode: true,
-    fallbackLng: 'en',
+    fallbackLng: 'my',
     interpolation: {
       escapeValue: false,
     },
