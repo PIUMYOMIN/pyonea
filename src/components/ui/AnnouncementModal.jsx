@@ -29,6 +29,11 @@ const ASPECT_CLASSES = {
 const PopupBanner = ({ announcement, close }) => {
   const ratio = ASPECT_CLASSES[announcement.banner_aspect_ratio ?? '16:9'] ?? 'aspect-video';
   const isExternal = announcement.banner_link_url?.startsWith('http');
+  const handleCloseClick = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    close();
+  };
 
   const imageEl = (
     <div className={`relative w-full ${ratio} overflow-hidden`}>
@@ -39,9 +44,10 @@ const PopupBanner = ({ announcement, close }) => {
       />
       {/* Semi-transparent close button — always visible */}
       <button
-        onClick={close}
+        type="button"
+        onClick={handleCloseClick}
         aria-label="Close"
-        className="absolute top-3 right-3 z-10 p-1.5 bg-black/40 hover:bg-black/60
+        className="absolute top-3 right-3 z-20 p-1.5 bg-black/40 hover:bg-black/60
                    backdrop-blur-sm rounded-full text-white transition-colors"
       >
         <XMarkIcon className="h-5 w-5" />

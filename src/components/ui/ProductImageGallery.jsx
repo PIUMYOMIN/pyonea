@@ -223,7 +223,7 @@ const ProductImageGallery = ({
         <div className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-sm">
           {/* Backdrop click to close */}
           <div
-            className="absolute inset-0 cursor-zoom-out"
+            className="absolute inset-0 z-0 cursor-zoom-out"
             onClick={() => setLightboxOpen(false)}
             aria-hidden="true"
           />
@@ -232,18 +232,20 @@ const ProductImageGallery = ({
             type="button"
             onClick={() => setLightboxOpen(false)}
             aria-label="Close image viewer"
-            className="absolute top-4 right-4 h-10 w-10 rounded-full
-                       bg-white/10 hover:bg-white/20 text-white
-                       flex items-center justify-center transition-colors"
+            className="absolute right-4 top-[max(1rem,env(safe-area-inset-top))]
+                       z-30 flex h-11 w-11 items-center justify-center rounded-full
+                       border border-white/20 bg-black/45 text-white shadow-lg
+                       backdrop-blur-md transition-colors hover:bg-black/65
+                       focus:outline-none focus:ring-2 focus:ring-white/70"
           >
             <XMarkIcon className="h-6 w-6" />
           </button>
 
-          <div className="absolute top-4 left-4 px-2 py-1 rounded-full text-xs text-white bg-white/10">
+          <div className="absolute left-4 top-[max(1rem,env(safe-area-inset-top))] z-20 rounded-full bg-black/45 px-2 py-1 text-xs text-white backdrop-blur-md">
             {active + 1} / {total}
           </div>
 
-          <div className="absolute inset-0 flex items-center justify-center px-4">
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-4">
             <img
               key={`lb-${activeSrc}`}
               src={lightboxSrc}
@@ -263,7 +265,7 @@ const ProductImageGallery = ({
                 type="button"
                 onClick={prev}
                 aria-label="Previous image"
-                className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2
+                className="absolute left-3 sm:left-6 top-1/2 z-30 -translate-y-1/2
                            h-11 w-11 sm:h-12 sm:w-12 rounded-full
                            bg-white/10 hover:bg-white/20 text-white
                            flex items-center justify-center transition-colors"
@@ -274,7 +276,7 @@ const ProductImageGallery = ({
                 type="button"
                 onClick={next}
                 aria-label="Next image"
-                className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2
+                className="absolute right-3 sm:right-6 top-1/2 z-30 -translate-y-1/2
                            h-11 w-11 sm:h-12 sm:w-12 rounded-full
                            bg-white/10 hover:bg-white/20 text-white
                            flex items-center justify-center transition-colors"
