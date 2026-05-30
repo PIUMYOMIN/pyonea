@@ -3,17 +3,20 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const GuestRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, hasRole } = useAuth();
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600" />
+      </div>
+    );
+  }
 
   if (user) {
-
-    const roles = Array.isArray(user.roles) ? user.roles : [];
-
-    if (roles.includes('admin') || user.type === 'admin') return <Navigate to="/admin" replace />;
-    if (roles.includes('seller') || user.type === 'seller') return <Navigate to="/seller" replace />;
-    if (roles.includes('buyer') || user.type === 'buyer') return <Navigate to="/buyer" replace />;
+    if (hasRole('admin')) return <Navigate to="/admin/dashboard" replace />;
+    if (hasRole('seller')) return <Navigate to="/seller/dashboard" replace />;
+    if (hasRole('buyer')) return <Navigate to="/buyer/dashboard" replace />;
 
     return <Navigate to="/" replace />;
   }

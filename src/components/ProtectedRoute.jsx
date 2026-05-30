@@ -4,7 +4,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const ProtectedRoute = ({ children, roles = [] }) => {
-  const { user, isAuthenticated, loading } = useAuth();
+  const { user, isAuthenticated, loading, hasRole } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -17,13 +17,12 @@ const ProtectedRoute = ({ children, roles = [] }) => {
 
   if (!isAuthenticated) {
     // Redirect to login with return url
-    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+    return <Navigate to="/login" state={{ from: `${location.pathname}${location.search}` }} replace />;
   }
 
-  const userRoles = Array.isArray(user?.roles) ? user.roles : [];
-  const isBuyer = userRoles.includes('buyer') || user?.role === 'buyer' || user?.type === 'buyer';
-  const isSeller = userRoles.includes('seller') || user?.role === 'seller' || user?.type === 'seller';
-  const isAdmin = userRoles.includes('admin') || user?.role === 'admin' || user?.type === 'admin';
+  const isBuyer = hasRole('buyer');
+  const isSeller = hasRole('seller');
+  const isAdmin = hasRole('admin');
 
   // Sellers/admins must verify email before protected areas. Buyers can shop
   // immediately and get a dashboard reminder instead of a hard redirect.
@@ -39,18 +38,16 @@ const ProtectedRoute = ({ children, roles = [] }) => {
 
   // Check if user has required roles
   if (roles.length > 0) {
-    const hasRequiredRole = roles.some(role => 
-      user?.roles?.includes(role) || user?.role === role || user?.type === role
-    );
+    const hasRequiredRole = roles.some(role => hasRole(role));
     
     if (!hasRequiredRole) {
       // Redirect to appropriate dashboard based on user role
-      if (user?.roles?.includes('admin') || user?.role === 'admin') {
-        return <Navigate to="/admin" replace />;
-      } else if (user?.roles?.includes('seller') || user?.role === 'seller') {
-        return <Navigate to="/seller" replace />;
+      if (isAdmin) {
+        return <Navigate to="/admin/dashboard" replace />;
+      } else if (isSeller) {
+        return <Navigate to="/seller/dashboard" replace />;
       } else {
-        return <Navigate to="/buyer" replace />;
+        return <Navigate to="/buyer/dashboard" replace />;
       }
     }
   }

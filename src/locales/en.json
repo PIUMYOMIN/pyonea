@@ -1232,6 +1232,9 @@
   "productDetail": {
     "title": "Product Details",
     "description_meta": "View product details on Pyonea marketplace.",
+    "seo_title": "{{title}} | Wholesale Myanmar | Pyonea",
+    "seo_description": "{{title}} wholesale in Myanmar. Check MOQ {{moq}}, bulk price, supplier details, and secure ordering on Pyonea.",
+    "seo_image_alt": "{{title}} wholesale Myanmar product on Pyonea",
     "failed_load": "Failed to load product",
     "product": "Product",
     "back": "Back",

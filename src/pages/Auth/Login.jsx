@@ -81,11 +81,6 @@ const Login = () => {
     try {
       const from = location.state?.from;
 
-      if (from && from !== '/login') {
-        navigate(from, { replace: true });
-        return;
-      }
-
       if (from === 'cart-add' && productId) {
         try {
           await addToCart({ id: productId, quantity: 1 });
@@ -102,13 +97,18 @@ const Login = () => {
         return;
       }
 
+      if (from && from !== '/login') {
+        navigate(from, { replace: true });
+        return;
+      }
+
       const userRoles = user.roles || [];
       const userRole = user.role || user.type;
 
       if (userRoles.includes('admin') || userRole === 'admin') {
         navigate('/admin/dashboard', { replace: true });
       } else if (userRoles.includes('seller') || userRole === 'seller') {
-        navigate('/seller', { replace: true });
+        navigate('/seller/dashboard', { replace: true });
       } else if (userRoles.includes('buyer') || userRole === 'buyer') {
         navigate('/buyer/dashboard', { replace: true });
       } else {

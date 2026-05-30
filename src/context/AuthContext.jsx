@@ -52,6 +52,13 @@ export const AuthProvider = ({ children }) => {
     };
   };
 
+  const clearSession = useCallback(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
     const controller = new AbortController();
 
@@ -66,49 +73,24 @@ export const AuthProvider = ({ children }) => {
         } catch (err) {
           if (err.name === 'CanceledError' || err.name === 'AbortError') return;
           console.error('Failed to load user from API', err);
-          // Fallback to cached user for display only.
-          // SECURITY: roles are stripped so ProtectedRoute denies access
-          // until the next successful /auth/me refresh.
-          const savedUser = localStorage.getItem('user');
-          if (savedUser) {
-            try {
-              const parsedUser = JSON.parse(savedUser);
-              // Strip roles/type to prevent privilege escalation from cached data
-              const safeUser = {
-                ...parsedUser,
-                roles: [],
-                role: null,
-                type: parsedUser.type,  // preserve type for display only
-              };
-              setUser(safeUser);
-            } catch (parseError) {
-              console.error('Failed to parse saved user', parseError);
-              logout();
-            }
-          } else {
-            logout();
-          }
+          clearSession();
+          return;
         }
       } else {
-        // No token, try to load from localStorage
-        const savedUser = localStorage.getItem('user');
-        if (savedUser) {
-          try {
-            const parsedUser = JSON.parse(savedUser);
-            const normalizedUser = normalizeUserRoles(parsedUser);
-            setUser(normalizedUser);
-          } catch (parseError) {
-            console.error('Failed to parse saved user', parseError);
-          }
-        }
+        clearSession();
+        return;
       }
       setLoading(false);
     };
 
     loadUser();
+    window.addEventListener('auth:session-expired', clearSession);
 
-    return () => controller.abort();
-  }, []);
+    return () => {
+      controller.abort();
+      window.removeEventListener('auth:session-expired', clearSession);
+    };
+  }, [clearSession]);
 
   const login = async (credentials) => {
     try {
@@ -191,6 +173,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
+    setLoading(false);
 
     // Fire-and-forget server logout - ignore any errors
     api.post('/auth/logout').catch(() => {

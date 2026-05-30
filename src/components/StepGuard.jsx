@@ -17,19 +17,23 @@ const StepGuard = ({ children, step }) => {
     const [isValid, setIsValid]   = useState(false);
     const [loading, setLoading]   = useState(true);
     const navigate                = useNavigate();
-    const { user }                = useAuth();
+    const { user, loading: authLoading, hasRole } = useAuth();
     useEffect(() => {
         let cancelled = false;
         setLoading(true);
         setIsValid(false);
 
         const validateStep = async () => {
+            if (authLoading) {
+                return;
+            }
+
             if (!user) {
                 navigate('/login');
                 return;
             }
 
-            if (user.type !== 'seller' && !user.roles?.includes('seller')) {
+            if (!hasRole('seller')) {
                 navigate('/');
                 return;
             }
@@ -104,9 +108,9 @@ const StepGuard = ({ children, step }) => {
             cancelled = true;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user, step]); // navigate is stable; step + user are the only meaningful deps
+    }, [user, authLoading, step, hasRole]); // navigate is stable; auth + step are the meaningful deps
 
-    if (loading) {
+    if (authLoading || loading) {
         return (
             <div className="flex items-center justify-center h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-slate-900 dark:to-slate-950">
                 <div className="text-center">

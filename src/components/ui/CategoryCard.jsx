@@ -101,12 +101,14 @@ const CategoryCard = ({ category, priority = false }) => {
     0
   );
   const maxDiscountPct = Math.round(Math.max(categoryPct, childrenPct));
+  const activeLang = i18n.language?.startsWith("my") ? "my" : "en";
+  const categoryUrl = `/products?category=${category.id}&lang=${activeLang}`;
 
   return (
     // CSS animation instead of framer-motion: card is immediately visible to
     // the browser paint engine (no JS gate), which fixes the LCP render delay.
     <div className="animate-card-in bg-white dark:bg-slate-800 rounded-xl shadow-sm dark:shadow-slate-900/50 border border-gray-200 dark:border-slate-700 overflow-hidden">
-      <Link to={`/products?category=${category.id}`} className="block">
+      <Link to={categoryUrl} className="block">
 
         {/* ── Image / Gradient placeholder ────────────── */}
         <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-slate-700">

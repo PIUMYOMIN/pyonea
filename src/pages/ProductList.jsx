@@ -38,6 +38,7 @@ const ProductList = () => {
   const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const searchQuery   = queryParams.get("search")    || "";
   const categoryQuery = queryParams.get("category")  || "";
+  const activeLang    = i18n.language?.startsWith("my") ? "my" : "en";
   const minPrice      = queryParams.get("min_price") || "";
   const maxPrice      = queryParams.get("max_price") || "";
   const sortBy        = queryParams.get("sort_by")   || "created_at";
@@ -245,7 +246,10 @@ const ProductList = () => {
   }, [searchQuery, selectedCategory, products.length, getCategoryName, t]);
 
   const productListingSchema = useMemo(() => {
-    const pageUrl = `${SITE_PUBLIC_URL}${location.pathname}${location.search}`;
+    const seoParams = new URLSearchParams(location.search);
+    seoParams.set("lang", activeLang);
+    const seoSearch = seoParams.toString();
+    const pageUrl = `${SITE_PUBLIC_URL}${location.pathname}${seoSearch ? `?${seoSearch}` : ""}`;
     const itemListElement = products.slice(0, 24).map((p, i) => {
       const path = p.slug_en || p.slug || p.id;
       const name = p.name_en || p.name_mm || "Product";
@@ -264,7 +268,7 @@ const ProductList = () => {
         item: {
           "@type": "Thing",
           name: name || t("productDetail.product"),
-          url: `${SITE_PUBLIC_URL}/products/${path}`,
+          url: `${SITE_PUBLIC_URL}/products/${path}?lang=${activeLang}`,
           ...(img ? { image: img } : {}),
         },
       };
@@ -281,12 +285,19 @@ const ProductList = () => {
         itemListElement,
       },
     };
-  }, [products, location.pathname, location.search, getPageTitle, metaDescription, t]);
+  }, [products, location.pathname, location.search, getPageTitle, metaDescription, t, activeLang]);
+
+  const seoParams = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    params.set("lang", activeLang);
+    return params.toString();
+  }, [location.search, activeLang]);
+  const seoUrl = `${location.pathname}${seoParams ? `?${seoParams}` : ""}`;
 
   const SeoComponent = useSEO({
     title: getPageTitle,
     description: metaDescription,
-    url: location.pathname + location.search,
+    url: seoUrl,
     type: "website",
     schema: productListingSchema,
   });

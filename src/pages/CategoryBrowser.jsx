@@ -24,6 +24,7 @@ const CategoryCardSkeleton = () => (
 
 const CategoryBrowser = () => {
   const { t, i18n } = useTranslation();
+  const activeLang = i18n.language?.startsWith("my") ? "my" : "en";
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -107,7 +108,7 @@ const CategoryBrowser = () => {
   }, [localizedCategories, searchQuery]);
 
   const categoryListingSchema = useMemo(() => {
-    const pageUrl = `${SITE_PUBLIC_URL}/categories`;
+    const pageUrl = `${SITE_PUBLIC_URL}/categories?lang=${activeLang}`;
     const itemListElement = filteredCategories.slice(0, 48).map((cat, i) => {
       const name = cat.display_name || "Category";
       let img;
@@ -123,7 +124,7 @@ const CategoryBrowser = () => {
         item: {
           "@type": "Thing",
           name,
-          url: `${SITE_PUBLIC_URL}/products?category=${cat.id}`,
+          url: `${SITE_PUBLIC_URL}/products?category=${cat.id}&lang=${activeLang}`,
           ...(img ? { image: img } : {}),
         },
       };
@@ -140,12 +141,12 @@ const CategoryBrowser = () => {
         itemListElement,
       },
     };
-  }, [filteredCategories, t]);
+  }, [filteredCategories, t, activeLang]);
 
   const SeoComponent = useSEO({
     title: t("seo.categories.title"),
     description: t("seo.categories.description"),
-    url: "/categories",
+    url: `/categories?lang=${activeLang}`,
     type: "website",
     schema: categoryListingSchema,
   });

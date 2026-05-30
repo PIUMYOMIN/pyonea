@@ -608,7 +608,8 @@ const ProductDetail = () => {
   // ── Share ────────────────────────────────────────────────────────────────────
   const shareData = useMemo(() => {
     if (!product) return null;
-    const url   = `${SITE_PUBLIC_URL}/products/${product.slug_en || product.slug || slug}`;
+    const lang  = i18n.language?.startsWith("my") ? "my" : "en";
+    const url   = `${SITE_PUBLIC_URL}/products/${product.slug_en || product.slug || slug}?lang=${lang}`;
     const title = loc(product.name_en, product.name_mm) || t("productDetail.product");
     const text  = t("productDetail.share_text", { title });
     const description = t("productDetail.share_description", { url });
@@ -711,17 +712,18 @@ const ProductDetail = () => {
   }, [product?.id, product?.seller_id, product?.seller?.id]);
   const productDisplayName = product ? (loc(product.name_en, product.name_mm) || t("productDetail.product")) : "";
   const productAltText = product
-    ? `${productDisplayName} wholesale Myanmar product on Pyonea`
+    ? t("productDetail.seo_image_alt", { title: productDisplayName })
     : undefined;
   const pageTitle = product
-    ? `${productDisplayName} | Wholesale Myanmar | Pyonea`
+    ? t("productDetail.seo_title", { title: productDisplayName })
     : fallbackTitle;
   const pageDescription = product
-    ? (
-        `${productDisplayName} wholesale in Myanmar. Check MOQ ${effectiveMoq || 1}, bulk price, supplier details, and secure ordering on Pyonea.`
-      ).slice(0, 160)
+    ? t("productDetail.seo_description", { title: productDisplayName, moq: effectiveMoq || 1 }).slice(0, 160)
     : fallbackDescription;
-  const pageUrl   = product ? `/products/${product.slug_en || product.slug || slug}` : `/products/${slug}`;
+  const activeLang = i18n.language?.startsWith("my") ? "my" : "en";
+  const pagePath = product ? `/products/${product.slug_en || product.slug || slug}` : `/products/${slug}`;
+  const pageUrl = `${pagePath}?lang=${activeLang}`;
+  const absolutePageUrl = `${SITE_PUBLIC_URL}${pageUrl}`;
 
   const productSchema = useMemo(() => {
     if (!product) return null;
@@ -731,8 +733,8 @@ const ProductDetail = () => {
     return {
       "@context": "https://schema.org",
       "@type":    "Product",
-      name:        product.name_en || product.name_mm,
-      description: product.description_en || product.description_mm,
+      name:        loc(product.name_en, product.name_mm) || product.name_en || product.name_mm,
+      description: loc(product.description_en, product.description_mm) || product.description_en || product.description_mm,
       image: product.images?.map((img) => getImageUrl(img)),
       sku: product.sku,
       ...(sellerName && { brand: { "@type": "Brand", name: sellerName } }),
@@ -743,7 +745,7 @@ const ProductDetail = () => {
         availability:  availableStock > 0
           ? "https://schema.org/InStock"
           : "https://schema.org/OutOfStock",
-        url: `${SITE_PUBLIC_URL}/products/${product.slug_en || product.slug || product.id}`,
+        url: absolutePageUrl,
       },
       ...(product.review_count > 0 && {
         aggregateRating: {
@@ -753,13 +755,13 @@ const ProductDetail = () => {
         },
       }),
     };
-  }, [product, displayPrice, availableStock]);
+  }, [product, displayPrice, availableStock, i18n.language, absolutePageUrl]);
 
   const pageSchema = useMemo(() => {
     if (!product) return null;
 
     const productName = loc(product.name_en, product.name_mm) || (product.name_en || product.name_mm || t("productDetail.product"));
-    const productUrl = `${SITE_PUBLIC_URL}/products/${product.slug_en || product.slug || slug}`;
+    const productUrl = absolutePageUrl;
 
     return {
       "@context": "https://schema.org",
@@ -791,7 +793,7 @@ const ProductDetail = () => {
         productSchema,
       ].filter(Boolean),
     };
-  }, [product, productSchema, slug, i18n.language, t]);
+  }, [product, productSchema, slug, i18n.language, t, absolutePageUrl]);
 
   const SeoComponent = useSEO({
     title:       pageTitle,
@@ -1316,9 +1318,32 @@ const ProductDetail = () => {
                             className="h-10 w-10 rounded-md object-cover flex-shrink-0"
                           />
                         )}
-                        <p className="text-xs text-gray-600 dark:text-slate-300 line-clamp-2 leading-snug">
-                          {shareData.title}
-                        </p>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs text-gray-600 dark:text-slate-300 line-clamp-2 leading-snug">
+                            {shareData.title}
+                          </p>
+                          <p className="mt-1 truncate text-[10px] text-gray-400 dark:text-slate-500">
+                            {shareData.url}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            handleCopyLink();
+                          }}
+                          title={t("productDetail.copy_link")}
+                          aria-label={t("productDetail.copy_link")}
+                          className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full
+                                     border border-gray-200 text-gray-600 transition-colors
+                                     hover:bg-gray-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700"
+                        >
+                          {copied
+                            ? <CheckIcon className="h-4 w-4 text-green-500" />
+                            : <LinkIcon className="h-4 w-4" />
+                          }
+                        </button>
                       </div>
 
                       {/* Platform links */}
