@@ -1,19 +1,21 @@
-# Enable URL rewriting
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
-  # Redirect all requests to index.html except existing files and directories
+  # Send crawlers to the OG proxy PHP script
+  RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|Twitterbot|WhatsApp|TelegramBot|LinkedInBot|Slackbot|Discordbot|Googlebot|bingbot|Snapchat|Pinterest|viber|vkShare) [NC]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^ og-proxy.php [L]
+
+  # Normal users — serve static React app
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule ^ index.html [L]
 
-  # Optional: Cache static files for performance
   <FilesMatch "\.(js|css|png|jpg|jpeg|gif|ico|svg)$">
     ExpiresActive On
     ExpiresDefault "access plus 1 year"
   </FilesMatch>
 
-  # Optional: Set MIME types for fonts
   <FilesMatch "\.(woff|woff2|ttf|otf|eot)$">
     AddType application/font-woff2 .woff2
     AddType application/font-woff .woff
@@ -23,5 +25,4 @@
   </FilesMatch>
 </IfModule>
 
-# Optional: Disable directory listing
 Options -Indexes
