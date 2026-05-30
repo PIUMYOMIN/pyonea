@@ -1,5 +1,11 @@
 // src/utils/imageHelpers.jsx
-import { IMAGE_BASE_URL, DEFAULT_PLACEHOLDER } from "../config";
+import { IMAGE_BASE_URL, DEFAULT_PLACEHOLDER, SITE_PUBLIC_URL } from "../config";
+
+const toAbsoluteUrl = (url) => {
+  if (!url || url.startsWith('http') || url.startsWith('data:')) return url;
+  const path = url.startsWith('/') ? url : `/${url}`;
+  return `${SITE_PUBLIC_URL}${path}`;
+};
 
 /**
  * Returns a WebP-optimised URL for backend images.
@@ -44,19 +50,19 @@ export const getImageUrl = (image) => {
     if (!image) return DEFAULT_PLACEHOLDER;          // empty string guard
     if (image.startsWith('http')) return image;
     const cleanPath = image.replace('public/', '');
-    return `${IMAGE_BASE_URL}/${cleanPath}`;
+    return toAbsoluteUrl(`${IMAGE_BASE_URL}/${cleanPath}`);
   }
 
   if (typeof image === 'object') {
     if (image.url != null && image.url !== '') {
       if (image.url.startsWith('http')) return image.url;
       const cleanPath = image.url.replace('public/', '');
-      return `${IMAGE_BASE_URL}/${cleanPath}`;
+      return toAbsoluteUrl(`${IMAGE_BASE_URL}/${cleanPath}`);
     }
     if (image.path != null && image.path !== '') {
       if (image.path.startsWith('http')) return image.path;
       const cleanPath = image.path.replace('public/', '');
-      return `${IMAGE_BASE_URL}/${cleanPath}`;
+      return toAbsoluteUrl(`${IMAGE_BASE_URL}/${cleanPath}`);
     }
   }
 
