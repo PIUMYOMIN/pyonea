@@ -29,9 +29,6 @@ $context = stream_context_create([
             'Accept: text/html',
         ],
     ],
-    'ssl' => [
-        'verify_peer' => false,
-    ],
 ]);
 
 $html = @file_get_contents($apiUrl, false, $context);
