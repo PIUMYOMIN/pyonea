@@ -17,9 +17,52 @@ if (!$isCrawler) {
     exit;
 }
 
-$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$query = $_SERVER['QUERY_STRING'] ?? '';
-$apiUrl = 'https://api.pyonea.com' . $path . ($query ? '?' . $query : '');
+$requestUri = str_replace("\0", '', $_SERVER['REQUEST_URI'] ?? '/');
+$path = parse_url($requestUri, PHP_URL_PATH) ?: '/';
+$path = str_replace("\0", '', $path);
+$decodedPath = str_replace("\0", '', rawurldecode($path));
+
+$hasUnsafePath = (
+    strpos($decodedPath, '@') !== false ||
+    strpos($decodedPath, '//') !== false ||
+    strpos($decodedPath, '..') !== false ||
+    strpos($decodedPath, '\\') !== false
+);
+
+$allowedRoutes = [
+    '#^/$#',
+    '#^/products/?$#',
+    '#^/products/[^/]+/?$#',
+    '#^/categories/?$#',
+    '#^/categories/[^/]+/?$#',
+    '#^/sellers/?$#',
+    '#^/sellers/[^/]+/?$#',
+    '#^/blog/?$#',
+    '#^/blog/[^/]+/?$#',
+    '#^/(faq|shipping|seller-guidelines|bulk-order-tool|product-comparison|compare|pricing|about-us|terms|help|legal|privacy-policy|return-policy|contact|local-deals|order-tracking|track-order)/?$#',
+];
+
+$isAllowedRoute = false;
+foreach ($allowedRoutes as $pattern) {
+    if (preg_match($pattern, $decodedPath)) {
+        $isAllowedRoute = true;
+        break;
+    }
+}
+
+if ($hasUnsafePath || !$isAllowedRoute) {
+    readfile(__DIR__ . '/index.html');
+    exit;
+}
+
+$queryParams = [];
+parse_str(str_replace("\0", '', $_SERVER['QUERY_STRING'] ?? ''), $queryParams);
+$safeQuery = '';
+if (isset($queryParams['lang']) && in_array($queryParams['lang'], ['en', 'my'], true)) {
+    $safeQuery = '?' . http_build_query(['lang' => $queryParams['lang']]);
+}
+
+$apiUrl = 'https://api.pyonea.com' . $path . $safeQuery;
 
 $context = stream_context_create([
     'http' => [
