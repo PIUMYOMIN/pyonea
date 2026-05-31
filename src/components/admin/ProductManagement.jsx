@@ -131,7 +131,7 @@ const ProductManagement = () => {
   // Handle product status change (active/inactive)
   const handleProductStatus = async (productId, isActive, productName) => {
     try {
-      await api.patch(`/admin/products/${productId}/toggle-status`);
+      await api.patch(`/admin/products/${productId}/toggle-status`, { is_active: isActive });
 
       // Update local state
       setProducts(prev => prev.map(product =>
@@ -268,9 +268,16 @@ const ProductManagement = () => {
 
       for (const chunk of chunks) {
         await Promise.all(chunk.map(productId => {
+          const product = products.find(item => item.id === productId);
           if (bulkAction === "delete") return api.delete(`/admin/products/${productId}`);
-          if (bulkAction === "activate") return api.patch(`/admin/products/${productId}/toggle-status`);
-          if (bulkAction === "deactivate") return api.patch(`/admin/products/${productId}/toggle-status`);
+          if (bulkAction === "activate") {
+            if (product?.is_active === true) return Promise.resolve();
+            return api.patch(`/admin/products/${productId}/toggle-status`, { is_active: true });
+          }
+          if (bulkAction === "deactivate") {
+            if (product?.is_active === false) return Promise.resolve();
+            return api.patch(`/admin/products/${productId}/toggle-status`, { is_active: false });
+          }
           if (bulkAction === "approve") return api.post(`/admin/products/${productId}/approve`);
           if (bulkAction === "reject") return api.post(`/admin/products/${productId}/reject`);
           return Promise.resolve();
