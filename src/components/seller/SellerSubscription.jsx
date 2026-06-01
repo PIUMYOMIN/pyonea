@@ -527,34 +527,32 @@ const SellerSubscription = () => {
             const isPending = plan.is_pending || pendingRequest?.plan?.slug === plan.slug;
             const c = PLAN_COLORS[plan.slug] ?? PLAN_COLORS.basic;
             const isPaid = plan.price_mmk > 0;
+            const showPopular = plan.slug === 'professional' && !isCurrent;
 
             return (
               <div
                 key={plan.id}
-                className={`relative bg-white dark:bg-gray-800 rounded-2xl border-2 shadow-sm
+                className={`relative z-0 overflow-visible bg-white dark:bg-gray-800 rounded-2xl border-2 shadow-sm
                   ${isCurrent ? c.ring : 'border-gray-200 dark:border-gray-700'}
-                  flex flex-col p-5 space-y-4 transition-all duration-200 ${!isCurrent ? 'hover:shadow-md hover:-translate-y-0.5' : ''}`}
+                  flex flex-col p-5 space-y-4 transition-all duration-200 ${!isCurrent ? 'hover:z-10 hover:shadow-md hover:-translate-y-0.5' : ''}`}
               >
-                {isCurrent && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className={`text-xs font-bold px-3 py-1 rounded-full shadow-sm ${c.badge}`}>
-                      {t('subscription.current_plan', 'Current Plan')}
-                    </span>
-                  </div>
-                )}
-                {isPending && !isCurrent && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="text-xs font-bold px-3 py-1 rounded-full shadow-sm bg-amber-500 text-white">
-                      {t('subscription.pending_badge')}
-                    </span>
-                  </div>
-                )}
-
-                {plan.slug === 'professional' && !isCurrent && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="text-xs font-bold px-3 py-1 rounded-full shadow-sm bg-green-500 text-white">
-                      {t('subscription.most_popular', 'Most Popular')}
-                    </span>
+                {(isCurrent || (isPending && !isCurrent) || showPopular) && (
+                  <div className="absolute -top-3 left-1/2 z-20 flex -translate-x-1/2 items-center justify-center gap-1.5 whitespace-nowrap">
+                    {isCurrent && (
+                      <span className={`text-xs font-bold px-3 py-1 rounded-full shadow-sm ${c.badge}`}>
+                        {t('subscription.current_plan', 'Current Plan')}
+                      </span>
+                    )}
+                    {isPending && !isCurrent && (
+                      <span className="text-xs font-bold px-2.5 py-1 rounded-full shadow-sm bg-amber-500 text-white">
+                        {t('subscription.pending_badge')}
+                      </span>
+                    )}
+                    {showPopular && (
+                      <span className="text-xs font-bold px-2.5 py-1 rounded-full shadow-sm bg-green-500 text-white">
+                        {t('subscription.most_popular', 'Most Popular')}
+                      </span>
+                    )}
                   </div>
                 )}
 
