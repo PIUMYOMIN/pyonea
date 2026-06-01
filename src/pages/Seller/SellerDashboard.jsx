@@ -47,6 +47,7 @@ import SellerFinancialReports from "../../components/seller/SellerFinancialRepor
 import BulkImportProducts from "../../components/seller/BulkImportProducts";
 import DashboardRFQSection, { fetchRfqDashboardTabBadgeForRole } from "../../components/Shared/DashboardRFQSection";
 import SellerSubscription from '../../components/seller/SellerSubscription';
+import { useSubscription } from "../../context/SubscriptionContext";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -56,6 +57,8 @@ const SellerDashboard = () => {
   const location = useLocation();
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { loading: subscriptionLoading, subscription } = useSubscription();
+  const analyticsEnabled = subscription?.plan?.analytics_enabled === true;
   const [selectedTab, setSelectedTab] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [storeData, setStoreData] = useState(null);
@@ -82,9 +85,13 @@ const SellerDashboard = () => {
 
   // ---------- Shared data-fetch logic (no loading state) ----------
   const doFetchStoreAndStats = useCallback(async () => {
+    if (subscriptionLoading) return;
+
     const [storeResponse, statsResponse] = await Promise.allSettled([
       api.get("/seller/my-store"),
-      api.get("/seller/sales-summary")
+      analyticsEnabled
+        ? api.get("/seller/sales-summary")
+        : Promise.resolve({ data: { success: true, data: {} } })
     ]);
 
     if (storeResponse.status === 'fulfilled' && storeResponse.value.data.success) {
@@ -111,7 +118,7 @@ const SellerDashboard = () => {
         pendingOrders: statsResponse.value.data.data.orders_by_status?.pending || 0
       });
     }
-  }, []);
+  }, [analyticsEnabled, subscriptionLoading]);
 
   // Initial page load — shows full-screen spinner
   const fetchGlobalData = useCallback(async () => {

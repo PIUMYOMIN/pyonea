@@ -32,6 +32,7 @@ import {
 } from "recharts";
 import api from "../../utils/api";
 import i18n from "../../i18n";
+import { useSubscription } from "../../context/SubscriptionContext";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const fmtK = (n) => {
@@ -212,6 +213,8 @@ const SetupChecklist = ({ storeData, onSetupClick }) => {
 // ── Main Dashboard ─────────────────────────────────────────────────────────────
 const DashboardSummary = ({ storeData, stats, refreshData, onSetupClick }) => {
   const { t } = useTranslation();
+  const { loading: subscriptionLoading, subscription } = useSubscription();
+  const analyticsEnabled = subscription?.plan?.analytics_enabled === true;
   const [dash, setDash] = useState(null);
   const [wallet, setWallet] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -258,11 +261,15 @@ const [feeSubmitting, setFeeSubmitting] = useState(null);
   };
 
   const fetchAll = useCallback(async () => {
+    if (subscriptionLoading) return;
+
     setLoading(true);
     setError(null);
     try {
       const [salesRes, recentRes, delivRes, walletRes] = await Promise.allSettled([
-        api.get("/seller/sales-summary"),
+        analyticsEnabled
+          ? api.get("/seller/sales-summary")
+          : Promise.resolve({ data: { success: true, data: {} } }),
         api.get("/seller/recent-orders?limit=8"),
         api.get("/deliveries?stats=true"),
         api.get("/seller/wallet"),
@@ -315,13 +322,14 @@ const [feeSubmitting, setFeeSubmitting] = useState(null);
     } finally {
       setLoading(false);
     }
-  }, [fetchDeliveryFees]);
+  }, [analyticsEnabled, fetchDeliveryFees, subscriptionLoading]);
 
   useEffect(() => {
+    if (subscriptionLoading) return;
     if (!initialFetchDone.current) { initialFetchDone.current = true; fetchAll(); }
-  }, [fetchAll]);
+  }, [fetchAll, subscriptionLoading]);
 
-  useEffect(() => { if (refreshData) fetchAll(); }, [refreshData, fetchAll]);
+  useEffect(() => { if (!subscriptionLoading && refreshData) fetchAll(); }, [refreshData, fetchAll, subscriptionLoading]);
 
   const handleRefresh = async () => {
     setRefreshing(true);

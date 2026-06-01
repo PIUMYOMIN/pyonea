@@ -1,5 +1,5 @@
 // src/components/seller/SellerSubscription.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   CheckCircleIcon,
@@ -16,6 +16,8 @@ import {
   InformationCircleIcon,
   ArrowPathIcon,
   CheckBadgeIcon,
+  QrCodeIcon,
+  DevicePhoneMobileIcon,
 } from '@heroicons/react/24/outline';
 import api from '../../utils/api';
 import { useSubscription } from '../../context/SubscriptionContext';
@@ -36,6 +38,7 @@ const PLAN_COLORS = {
 const PLAN_ICONS = { basic: '🏪', professional: '🚀', enterprise: '🏢' };
 
 const DEFAULT_SUBSCRIPTION_PAYMENT_METHODS = [];
+const ONLINE_SUBSCRIPTION_PAYMENT_METHODS = ['mmqr', 'kbz_pay', 'wave_pay'];
 
 const paymentMethodLabel = (method, t) => {
   const fallback = {
@@ -96,9 +99,73 @@ const UsageBar = ({ used, limit, label, t }) => {
 
 // Payment reference modal for paid plan upgrades
 const UpgradeModal = ({ plan, paymentMethods, onConfirm, onCancel, loading }) => {
-  const [ref, setRef] = useState('');
   const [method, setMethod] = useState(paymentMethods[0] || '');
+  const [session, setSession] = useState(null);
+  const [generating, setGenerating] = useState(false);
+  const [sessionError, setSessionError] = useState('');
+  const [paymentDetected, setPaymentDetected] = useState(false);
+  const autoSubmittedRef = useRef(false);
   const { t, i18n } = useTranslation();
+
+  const generatePayment = async () => {
+    setGenerating(true);
+    setSessionError('');
+    setSession(null);
+    try {
+      const res = await api.post('/seller/subscription/payment-session', {
+        plan_slug: plan.slug,
+        payment_method: method,
+      });
+
+      if (res.data?.success) {
+        setSession(res.data);
+      } else {
+        setSessionError(res.data?.message || t('subscription.payment_session_failed', 'Could not generate payment. Please try again.'));
+      }
+    } catch (e) {
+      setSessionError(e.response?.data?.message || t('subscription.payment_session_failed', 'Could not generate payment. Please try again.'));
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const resetPayment = (nextMethod) => {
+    setMethod(nextMethod);
+    setSession(null);
+    setSessionError('');
+    setPaymentDetected(false);
+    autoSubmittedRef.current = false;
+  };
+
+  useEffect(() => {
+    if (!session?.reference || !method || autoSubmittedRef.current) return undefined;
+
+    let cancelled = false;
+    const pollPayment = async () => {
+      try {
+        const res = await api.post('/seller/subscription/payment-session/verify', {
+          payment_method: method,
+          payment_reference: session.reference,
+        });
+
+        if (!cancelled && res.data?.paid) {
+          autoSubmittedRef.current = true;
+          setPaymentDetected(true);
+          await onConfirm(session.reference, method);
+        }
+      } catch {
+        // Keep the modal quiet while waiting; the seller can still submit manually.
+      }
+    };
+
+    const timer = setInterval(pollPayment, 5000);
+    pollPayment();
+
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [method, onConfirm, session?.reference]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -122,8 +189,8 @@ const UpgradeModal = ({ plan, paymentMethods, onConfirm, onCancel, loading }) =>
           </label>
           <select
             value={method}
-            onChange={e => setMethod(e.target.value)}
-            disabled={paymentMethods.length === 0}
+            onChange={e => resetPayment(e.target.value)}
+            disabled={paymentMethods.length === 0 || generating || loading}
             className="w-full px-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm"
           >
             {paymentMethods.length === 0 ? (
@@ -137,35 +204,109 @@ const UpgradeModal = ({ plan, paymentMethods, onConfirm, onCancel, loading }) =>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{t('subscription.payment_method_hint')}</p>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            {t('subscription.payment_ref_label')}<span className="text-red-500"> *</span>
-          </label>
-          <input
-            type="text"
-            value={ref}
-            onChange={e => setRef(e.target.value)}
-            placeholder={t('subscription.ref_placeholder', 'e.g. TXN-20260517-001234')}
-            className="w-full px-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm"
-          />
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{t('subscription.ref_hint')}</p>
-        </div>
+        {sessionError && (
+          <div className="rounded-xl border border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-700 dark:text-red-300">
+            {sessionError}
+          </div>
+        )}
+
+        {session && (
+          <div className="rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 p-4 space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase font-semibold tracking-wide text-green-700 dark:text-green-300">
+                  {t('subscription.amount_to_pay', 'Amount to pay')}
+                </p>
+                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  {fmtMMK(session.amount ?? plan.price_mmk, t, i18n.language)}
+                </p>
+              </div>
+              <span className="rounded-full bg-white dark:bg-gray-800 px-3 py-1 text-xs font-semibold text-green-700 dark:text-green-300">
+                {paymentMethodLabel(method, t)}
+              </span>
+            </div>
+
+            {session.qr_image_url && (
+              <div className="flex flex-col items-center gap-2">
+                <img
+                  src={session.qr_image_url}
+                  alt={t('subscription.payment_qr_alt', 'Subscription payment QR code')}
+                  className="w-48 h-48 rounded-2xl border-4 border-white dark:border-gray-700 shadow-sm bg-white"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                  {t('subscription.scan_qr_instruction', 'Scan this QR code with your payment app, enter your PIN there, then return here.')}
+                </p>
+              </div>
+            )}
+
+            {session.deep_link && (
+              <a
+                href={session.deep_link}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white hover:bg-green-700 transition-colors"
+              >
+                <DevicePhoneMobileIcon className="w-5 h-5" />
+                {t('subscription.open_payment_app', 'Open Payment App')}
+              </a>
+            )}
+
+            {session.qr_string && (
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('subscription.qr_data_label', 'QR data')}</p>
+                <div className="flex gap-2">
+                  <code className="flex-1 truncate rounded-lg border border-green-200 dark:border-green-800 bg-white dark:bg-gray-800 px-3 py-2 text-xs text-gray-700 dark:text-gray-300">
+                    {session.qr_string}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={() => navigator.clipboard?.writeText(session.qr_string)}
+                    className="rounded-lg border border-green-200 dark:border-green-800 px-3 py-2 text-xs font-medium text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/30"
+                  >
+                    {t('subscription.copy', 'Copy')}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="rounded-lg bg-white/80 dark:bg-gray-800/80 px-3 py-2 text-xs text-gray-600 dark:text-gray-400">
+              <span className="font-medium text-gray-800 dark:text-gray-200">{t('subscription.reference_label')}:</span>{' '}
+              <span className="font-mono">{session.reference}</span>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 text-xs text-green-700 dark:text-green-300">
+              <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+              {paymentDetected
+                ? t('subscription.payment_detected', 'Payment detected. Submitting request...')
+                : t('subscription.waiting_payment_confirmation', 'Waiting for payment confirmation...')}
+            </div>
+          </div>
+        )}
 
         <div className="flex gap-3 pt-2">
           <button
             onClick={onCancel}
-            disabled={loading}
+            disabled={loading || generating}
             className="flex-1 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium transition-colors"
           >
             {t('subscription.cancel')}
           </button>
-          <button
-            onClick={() => onConfirm(ref, method)}
-            disabled={loading || !ref.trim() || !method}
-            className="flex-1 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors"
-          >
-            {loading ? t('subscription.alerts.processing') : t('subscription.confirm_upgrade')}
-          </button>
+          {session ? (
+            <button
+              onClick={() => onConfirm(session.reference, method)}
+              disabled={loading || paymentDetected || !session.reference || !method}
+              className="flex-1 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors"
+            >
+              {loading || paymentDetected ? t('subscription.alerts.processing') : t('subscription.submit_after_payment', 'I have paid')}
+            </button>
+          ) : (
+            <button
+              onClick={generatePayment}
+              disabled={generating || loading || !method}
+              className="flex-1 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors inline-flex items-center justify-center gap-2"
+            >
+              {method === 'mmqr' ? <QrCodeIcon className="w-4 h-4" /> : <DevicePhoneMobileIcon className="w-4 h-4" />}
+              {generating ? t('subscription.generating_payment', 'Generating...') : t('subscription.pay_now', 'Pay Now')}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -200,7 +341,7 @@ const SellerSubscription = () => {
       setPlans(plansRes.data.data ?? []);
       api.get('/payment-methods')
         .then(res => {
-          setPaymentMethods((res.data.data ?? []).filter(method => method !== 'cash_on_delivery'));
+          setPaymentMethods((res.data.data ?? []).filter(method => ONLINE_SUBSCRIPTION_PAYMENT_METHODS.includes(method)));
         })
         .catch(() => setPaymentMethods([]));
     } catch (e) {
