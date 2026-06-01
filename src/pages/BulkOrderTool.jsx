@@ -357,25 +357,41 @@ const BulkOrderTool = () => {
 
   const buildSpecText = (sellerLines) =>
     sellerLines
-      .map(
-        (l) =>
-          `• ${l.name} (Product ID: ${l.productId}) — Qty: ${l.quantityNum} ${l.unitLabel} — Est. ${fmtMmk(l.unitPrice)} / ${l.unitLabel} — Line: ${fmtMmk(l.subtotal)}`
+      .map((l) =>
+        t("bulk_order.spec_line", "• {{name}} (Product ID: {{id}}) - Qty: {{qty}} {{unit}} - Est. {{price}} / {{unit}} - Line: {{subtotal}}", {
+          name: l.name,
+          id: l.productId,
+          qty: l.quantityNum,
+          unit: l.unitLabel,
+          price: fmtMmk(l.unitPrice),
+          subtotal: fmtMmk(l.subtotal),
+        })
       )
       .join("\n");
 
   const buildSummaryText = () => {
-    const head = `Pyonea bulk order draft\nDeadline: ${deadline}\n`;
+    const head = t("bulk_order.summary_head", "Pyonea bulk order draft\nDeadline: {{deadline}}\n", { deadline });
     const body = validatedLines
       .map((l) => `${l.name}\t${l.quantityNum}\t${l.unitLabel}\t${l.unitPrice}\t${l.subtotal}\t${l.sellerLabel}`)
       .join("\n");
-    const totals = `\nTotal (estimate): ${fmtMmk(grandTotal)}`;
-    const notes = buyerNotes ? `\nNotes:\n${buyerNotes}` : "";
-    return head + "Product\tQty\tUnit\tUnitPrice\tSubtotalMMK\tSeller\n" + body + totals + notes;
+    const totals = t("bulk_order.summary_total", "\nTotal (estimate): {{total}}", { total: fmtMmk(grandTotal) });
+    const notes = buyerNotes ? t("bulk_order.summary_notes", "\nNotes:\n{{notes}}", { notes: buyerNotes }) : "";
+    return head + t("bulk_order.summary_columns", "Product\tQty\tUnit\tUnitPrice\tSubtotalMMK\tSeller\n") + body + totals + notes;
   };
 
   const exportCsv = () => {
     const rows = [
-      ["Product ID", "Product name", "Quantity", "Unit", "MOQ", "Unit price (MMK)", "Line total (MMK)", "Seller", "Has variants"],
+      [
+        t("bulk_order.csv_product_id", "Product ID"),
+        t("bulk_order.csv_product_name", "Product name"),
+        t("bulk_order.csv_quantity", "Quantity"),
+        t("bulk_order.csv_unit", "Unit"),
+        t("bulk_order.csv_moq", "MOQ"),
+        t("bulk_order.csv_unit_price", "Unit price (MMK)"),
+        t("bulk_order.csv_line_total", "Line total (MMK)"),
+        t("bulk_order.csv_seller", "Seller"),
+        t("bulk_order.csv_has_variants", "Has variants"),
+      ],
       ...validatedLines.map((l) => [
         l.productId,
         `"${(l.name || "").replace(/"/g, '""')}"`,
@@ -385,7 +401,7 @@ const BulkOrderTool = () => {
         l.unitPrice,
         l.subtotal,
         `"${(l.sellerLabel || "").replace(/"/g, '""')}"`,
-        l.hasVariants ? "yes" : "no",
+        l.hasVariants ? t("bulk_order.yes", "yes") : t("bulk_order.no", "no"),
       ]),
     ];
     const blob = new Blob([rows.map((r) => r.join(",")).join("\n")], { type: "text/csv;charset=utf-8;" });
@@ -483,11 +499,14 @@ const BulkOrderTool = () => {
     const created = [];
     try {
       for (const g of groups) {
-        const spec = [buildSpecText(g.lines), buyerNotes ? `\n\nBuyer notes:\n${buyerNotes}` : ""].join("");
+        const spec = [
+          buildSpecText(g.lines),
+          buyerNotes ? t("bulk_order.rfq_buyer_notes", "\n\nBuyer notes:\n{{notes}}", { notes: buyerNotes }) : "",
+        ].join("");
         const totalQty = g.lines.reduce((s, l) => s + l.quantityNum, 0);
         const unit = (g.lines[0].unitLabel || "piece").slice(0, 20);
         const payload = {
-          product_name: `Bulk order — ${g.lines.length} product(s)`,
+          product_name: t("bulk_order.rfq_product_name", "Bulk order - {{count}} product(s)", { count: g.lines.length }),
           category_id: g.lines[0].categoryId,
           quantity: Math.max(0.001, totalQty),
           unit,
@@ -513,7 +532,7 @@ const BulkOrderTool = () => {
         ? Object.values(errs)
             .flat()
             .join(" ")
-        : err.response?.data?.message || err.message || "RFQ failed.";
+        : err.response?.data?.message || err.message || t("bulk_order.rfq_failed", "RFQ failed.");
       setActionMsg({ type: "error", text: msg });
     } finally {
       setSubmitting(false);
@@ -627,9 +646,9 @@ const BulkOrderTool = () => {
                             const step = resolveQuantityStep(p.quantity_step, moq);
                             return (
                               <>
-                                {fmtMmk(p.selling_price ?? p.price)} · MOQ {moq}
+                                {fmtMmk(p.selling_price ?? p.price)} - {t("bulk_order.moq_label", "MOQ")} {moq}
                                 {step > 1 && (
-                                  <span className="ml-1 text-gray-500 dark:text-slate-400">· step {step}</span>
+                                  <span className="ml-1 text-gray-500 dark:text-slate-400">- {t("bulk_order.step_label", "step")} {step}</span>
                                 )}
                               </>
                             );
@@ -767,7 +786,7 @@ const BulkOrderTool = () => {
                               {fmtMmk(l.unitPrice)}
                               {l.activeTier && (
                                 <span className="ml-1 inline-block bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded text-[10px] font-semibold">
-                                  {l.activeTier.discount_pct > 0 ? `-${l.activeTier.discount_pct}%` : "Tier"}
+                                  {l.activeTier.discount_pct > 0 ? `-${l.activeTier.discount_pct}%` : t("bulk_order.tier_label", "Tier")}
                                 </span>
                               )}
                             </td>
@@ -782,8 +801,8 @@ const BulkOrderTool = () => {
                                 className="w-20 border border-gray-200 dark:border-slate-600 rounded-lg px-2 py-1.5 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100"
                               />
                               <p className="text-[10px] text-gray-400 mt-0.5">
-                                MOQ {l.moq}
-                                {l.quantityStep > 1 && ` · step ${l.quantityStep}`}
+                                {t("bulk_order.moq_label", "MOQ")} {l.moq}
+                                {l.quantityStep > 1 && ` - ${t("bulk_order.step_label", "step")} ${l.quantityStep}`}
                                 {" "}{l.unitLabel}
                               </p>
                             </td>
@@ -887,7 +906,10 @@ const BulkOrderTool = () => {
                     <ul className="space-y-1">
                       {bySeller.map((g) => (
                         <li key={g.sellerUserId}>
-                          • {g.sellerLabel} — {g.lines.length} line(s)
+                          {t("bulk_order.rfq_preview_line", "• {{seller}} - {{count}} line(s)", {
+                            seller: g.sellerLabel,
+                            count: g.lines.length,
+                          })}
                         </li>
                       ))}
                     </ul>
