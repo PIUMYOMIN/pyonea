@@ -230,14 +230,26 @@ const UserManagement = () => {
 
   const executeBulk = async () => {
     setBulkModal(false);
+    const actionableUsers = selectedUsers.filter(id => id !== adminUser?.id);
+
+    if (actionableUsers.length !== selectedUsers.length) {
+      flash("Your own account was skipped for safety.", "error");
+    }
+
+    if (actionableUsers.length === 0) {
+      setSelected([]);
+      setBulkAction("");
+      return;
+    }
+
     try {
-      await Promise.all(selectedUsers.map(id => {
+      await Promise.all(actionableUsers.map(id => {
         if (bulkAction === "delete") return api.delete(`/users/${id}`);
         if (bulkAction === "activate") return api.put(`/users/${id}`, { is_active: true });
         if (bulkAction === "deactivate") return api.put(`/users/${id}`, { is_active: false });
         return Promise.resolve();
       }));
-      flash(`${bulkAction} applied to ${selectedUsers.length} user(s).`);
+      flash(`${bulkAction} applied to ${actionableUsers.length} user(s).`);
       setSelected([]); setBulkAction(""); fetchUsers(page);
     } catch (err) {
       flash(err.response?.data?.message || `Bulk ${bulkAction} failed.`, "error");
@@ -245,7 +257,9 @@ const UserManagement = () => {
   };
 
   const toggleAll = () =>
-    setSelected(prev => prev.length === users.length ? [] : users.map(u => u.id));
+    setSelected(prev => prev.length === users.filter(u => u.id !== adminUser?.id).length
+      ? []
+      : users.filter(u => u.id !== adminUser?.id).map(u => u.id));
 
   const inputCls = "w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-green-500 focus:border-transparent";
   const selectCls = "px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-green-500";
@@ -361,7 +375,7 @@ const UserManagement = () => {
                 <tr>
                   <th className="px-4 py-3 w-10">
                     <input type="checkbox"
-                      checked={selectedUsers.length === users.length && users.length > 0}
+                      checked={selectedUsers.length === users.filter(u => u.id !== adminUser?.id).length && users.some(u => u.id !== adminUser?.id)}
                       onChange={toggleAll}
                       className="h-4 w-4 text-green-600 rounded border-gray-300 dark:border-slate-600 focus:ring-green-500" />
                   </th>
@@ -381,22 +395,34 @@ const UserManagement = () => {
                       <td className="px-4 py-3">
                         <input type="checkbox"
                           checked={selectedUsers.includes(u.id)}
+                          disabled={isMe}
                           onChange={() => setSelected(prev =>
                             prev.includes(u.id) ? prev.filter(id => id !== u.id) : [...prev, u.id]
                           )}
-                          className="h-4 w-4 text-green-600 rounded border-gray-300 dark:border-slate-600 focus:ring-green-500" />
+                          title={isMe ? "Cannot bulk-edit your own account" : "Select user"}
+                          className="h-4 w-4 text-green-600 rounded border-gray-300 dark:border-slate-600 focus:ring-green-500 disabled:opacity-30 disabled:cursor-not-allowed" />
                       </td>
 
                       {/* Name + avatar */}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-slate-600 flex-shrink-0 overflow-hidden">
-                            {u.profile_photo
-                              ? <img loading="lazy" src={u.profile_photo} alt="" className="w-full h-full object-cover" />
-                              : <span className="w-full h-full flex items-center justify-center text-xs font-bold text-gray-500 dark:text-slate-400">
+                            {u.profile_photo && (
+                              <img
+                                loading="lazy"
+                                src={u.profile_photo}
+                                alt=""
+                                className="w-full h-full object-cover"
+                                onError={(event) => {
+                                  event.currentTarget.classList.add("hidden");
+                                  event.currentTarget.nextElementSibling?.classList.remove("hidden");
+                                  event.currentTarget.nextElementSibling?.classList.add("flex");
+                                }}
+                              />
+                            )}
+                            <span className={`w-full h-full ${u.profile_photo ? "hidden" : "flex"} items-center justify-center text-xs font-bold text-gray-500 dark:text-slate-400`}>
                                 {u.name?.[0]?.toUpperCase() || "?"}
-                              </span>
-                            }
+                            </span>
                           </div>
                           <div>
                             <p className="font-medium text-gray-900 dark:text-slate-100 flex items-center gap-1">
@@ -439,7 +465,9 @@ const UserManagement = () => {
                           <StatusBadge active={u.is_active} />
                           <button
                             onClick={() => handleStatusChange(u.id, !u.is_active)}
-                            className="text-[11px] text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 underline transition-colors"
+                            disabled={isMe}
+                            title={isMe ? "Cannot deactivate your own account" : u.is_active ? "Deactivate user" : "Activate user"}
+                            className="text-[11px] text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 underline transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:no-underline"
                           >
                             {u.is_active ? "Deactivate" : "Activate"}
                           </button>
