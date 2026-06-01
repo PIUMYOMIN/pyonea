@@ -485,6 +485,10 @@ const AdminDashboard = () => {
     () => navigation.findIndex((item) => item.name === "Categories"),
     [navigation]
   );
+  const subscriptionsTabIndex = React.useMemo(
+    () => navigation.findIndex((item) => item.name === "Subscriptions"),
+    [navigation]
+  );
 
   useEffect(() => {
     const tab = new URLSearchParams(location.search).get("tab");
@@ -501,7 +505,10 @@ const AdminDashboard = () => {
     if (key === "categories" && categoriesTabIndex !== -1) {
       setActiveTab(categoriesTabIndex);
     }
-  }, [location.search, notificationsTabIndex, rfqTabIndex, sellersTabIndex, categoriesTabIndex]);
+    if (key === "subscriptions" && subscriptionsTabIndex !== -1) {
+      setActiveTab(subscriptionsTabIndex);
+    }
+  }, [location.search, notificationsTabIndex, rfqTabIndex, sellersTabIndex, categoriesTabIndex, subscriptionsTabIndex]);
 
   return (
     <>

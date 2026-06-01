@@ -163,7 +163,9 @@ const NotificationsPanel = () => {
   };
 
   const notificationPath = (data) => {
+    if (data.url) return data.url;
     if (data.type === 'new_order') return '/seller/dashboard?tab=orders';
+    if (data.type === 'subscription_request') return '/admin/dashboard?tab=subscriptions';
     if (data.type?.startsWith('subscription_')) return '/seller/dashboard?tab=subscription';
     if (data.type?.startsWith('rfq_')) return '/rfq';
     if (data.order_number && data.type?.includes('delivery')) {

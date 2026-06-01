@@ -2881,7 +2881,7 @@
     "alerts": {
       "processing": "လုပ်ဆောင်နေသည်..."
     },
-    "confirm_upgrade": "အစီအစဉ်ပြောင်းရန် အတည်ပြုမည်",
+    "confirm_upgrade": "အတည်ပြုမည်",
     "load_error": "Subscription အချက်အလက်များကို ဖွင့်၍မရပါ။",
     "upgrade_msg": "သင့်အစီအစဉ်ကို {{name}} သို့ ပြောင်းပြီးပါပြီ။",
     "downgrade_success": "သင်သည် ယခု {{name}} အစီအစဉ်ကို အသုံးပြုနေပါပြီ။",
