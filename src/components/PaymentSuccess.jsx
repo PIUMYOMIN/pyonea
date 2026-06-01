@@ -1,5 +1,5 @@
 // components/PaymentSuccess.jsx
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -11,14 +11,11 @@ import {
   ShoppingBagIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
-import { useTranslation } from 'react-i18next';
-import { useReactToPrint } from 'react-to-print';
 import api from '../utils/api';
 
 const PaymentSuccess = ({ order, paymentData, onClose }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const slipRef = useRef();
   const [downloading, setDownloading] = useState(false);
   const [orderDetails, setOrderDetails] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -50,8 +47,6 @@ const PaymentSuccess = ({ order, paymentData, onClose }) => {
       setLoading(false);
     }
   }, [order]);
-
-  const { t } = useTranslation();
 
   const formatMMK = (amount) => {
     const num = Number(amount) || 0;
@@ -244,8 +239,10 @@ const PaymentSuccess = ({ order, paymentData, onClose }) => {
   const handleDownloadPDF = async () => {
     setDownloading(true);
     try {
-      const { default: html2canvas } = await import('html2canvas');
-      const { default: jsPDF } = await import('jspdf');
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas'),
+      ]);
       
       const element = document.getElementById('printable-content');
       if (!element) {

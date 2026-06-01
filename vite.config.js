@@ -53,6 +53,9 @@ export default defineConfig(({ mode }) => ({
           // Icons — medium, used widely but separating reduces main chunk
           'vendor-icons': ['@heroicons/react'],
 
+          // Motion - animation runtime used by several UI components
+          'vendor-motion': ['framer-motion'],
+
           // i18n
           'vendor-i18n': ['i18next', 'react-i18next'],
 

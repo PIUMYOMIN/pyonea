@@ -169,6 +169,61 @@ export const SkeletonProductDetail = () => (
   </div>
 );
 
+export const SkeletonBlogDetail = () => (
+  <main className="bg-white dark:bg-slate-950 min-h-screen animate-pulse">
+    <article>
+      <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+        <Skeleton className="h-5 w-28" />
+
+        <div className="mt-8 space-y-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <Skeleton className="h-6 w-24 rounded-full" />
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-4 w-28" />
+          </div>
+
+          <div className="space-y-3">
+            <Skeleton className="h-10 w-full sm:h-12" />
+            <Skeleton className="h-10 w-5/6 sm:h-12" />
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <Skeleton className="aspect-[16/7] w-full rounded-lg" />
+      </div>
+
+      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mb-8 flex flex-col gap-3 border-b border-gray-100 pb-6 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
+          <Skeleton className="h-5 w-28" />
+          <div className="flex flex-wrap gap-2">
+            {[...Array(4)].map((_, index) => (
+              <Skeleton key={index} className="h-9 w-24 rounded-md" />
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-7">
+          {[...Array(4)].map((_, paragraphIndex) => (
+            <div key={paragraphIndex} className="space-y-3">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-11/12" />
+              <Skeleton className="h-4 w-4/5" />
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-10 flex flex-wrap gap-2 border-t border-gray-100 pt-6 dark:border-slate-800">
+          {[...Array(3)].map((_, index) => (
+            <Skeleton key={index} className="h-7 w-20 rounded-full" />
+          ))}
+        </div>
+      </div>
+    </article>
+  </main>
+);
+
 export const SkeletonSellerProfile = () => (
   <div className="bg-gray-50 dark:bg-slate-900 min-h-screen">
     {/* Banner */}

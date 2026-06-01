@@ -31,6 +31,7 @@ const ProductImageGallery = ({
   const [active, setActive] = useState(() => clampIndex(initialIndex, total));
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [pauseAutoplay, setPauseAutoplay] = useState(false);
+  const [mainLoaded, setMainLoaded] = useState(false);
   const thumbRowRef = useRef(null);
 
   useEffect(() => {
@@ -86,6 +87,10 @@ const ProductImageGallery = ({
   const lightboxSrc = activeSrc ? getWebPUrl(activeSrc, { width: 1600, quality: 90 }) : null;
   const lightboxSrcSet = activeSrc ? getSrcSet(activeSrc, [768, 1200, 1600, 2000]) : "";
 
+  useEffect(() => {
+    setMainLoaded(false);
+  }, [mainSrc]);
+
   // Autoplay (carousel): advances every `autoplayDelayMs`, pauses on hover/touch and in lightbox
   useEffect(() => {
     if (!autoplay) return;
@@ -130,11 +135,14 @@ const ProductImageGallery = ({
             srcSet={mainSrcSet}
             sizes="(min-width: 1024px) 50vw, 100vw"
             alt={alt}
-            className="absolute inset-0 w-full h-full object-contain bg-white/30 dark:bg-black/10"
+            className={`absolute inset-0 w-full h-full object-contain bg-white/30 dark:bg-black/10 transition-opacity duration-300 ease-out ${
+              mainLoaded ? "opacity-100" : "opacity-0"
+            }`}
             style={{ animation: "pdFadeSlideIn 450ms ease-out" }}
             loading={priority ? "eager" : "lazy"}
             decoding="async"
             fetchPriority={priority ? "high" : "low"}
+            onLoad={() => setMainLoaded(true)}
             onClick={() => setLightboxOpen(true)}
           />
         ) : (

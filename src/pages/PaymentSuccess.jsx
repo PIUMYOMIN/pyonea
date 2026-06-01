@@ -1,7 +1,7 @@
 // components/PaymentSuccess.jsx
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
+import {
   CheckCircleIcon,
   CheckIcon,
   DocumentArrowDownIcon,
@@ -11,9 +11,6 @@ import {
   ShoppingBagIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
-import { useReactToPrint } from 'react-to-print';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import api from '../utils/api';
 
 const PaymentSuccess = ({ order: orderProp, paymentData: paymentDataProp, onClose }) => {
@@ -22,7 +19,6 @@ const PaymentSuccess = ({ order: orderProp, paymentData: paymentDataProp, onClos
   // Support both: embedded (props from Checkout) and standalone (/payment-success?state)
   const order       = orderProp       ?? location.state?.order ?? null;
   const paymentData = paymentDataProp ?? location.state?.paymentData ?? null;
-  const slipRef = useRef();
   const [downloading, setDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [orderDetails, setOrderDetails] = useState(null);
@@ -248,6 +244,11 @@ const PaymentSuccess = ({ order: orderProp, paymentData: paymentDataProp, onClos
   const handleDownloadPDF = async () => {
     setDownloading(true);
     try {
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas'),
+      ]);
+
       const element = document.getElementById('printable-content');
       if (!element) {
         throw new Error('Print content not found');

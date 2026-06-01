@@ -17,8 +17,6 @@ import {
 import { CheckCircleIcon as CheckCircleSolid } from "@heroicons/react/24/solid";
 import api from "../../utils/api";
 import i18n from "../../i18n";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const escapeHtml = (str) =>
@@ -771,6 +769,11 @@ const OrderManagement = () => {
   const downloadOrderSlip = async (order) => {
     setDownloadingSlip(order.id);
     try {
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import("jspdf"),
+        import("html2canvas"),
+      ]);
+
       // Build the slip HTML as a string so it renders independently
       // without needing a visible DOM element — same approach as PaymentSuccess
       const address = typeof order.shipping_address === 'string'

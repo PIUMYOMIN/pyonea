@@ -2,6 +2,7 @@
 // Public seller profile page — fully structured with SEO, tabs, live data.
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Tab } from '@headlessui/react';
 import {
   StarIcon, MapPinIcon, PhoneIcon, EnvelopeIcon, GlobeAltIcon,
@@ -215,6 +216,7 @@ const SellerProfile = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
   const [seller, setSeller] = useState(null);
   const [products, setProducts] = useState([]);
   const [stats, setStats] = useState({});
@@ -281,9 +283,17 @@ const SellerProfile = () => {
       navigate('/login', { state: { from: window.location.pathname } });
       return;
     }
+    if (!seller?.store_slug) {
+      console.error('Follow: no store_slug');
+      return;
+    }
     setFwLoading(true);
+    const previousFollowing = following;
+    const previousFollowers = followers;
+    const optimisticFollowing = !following;
+    setFollowing(optimisticFollowing);
+    setFollowers(count => Math.max(0, count + (optimisticFollowing ? 1 : -1)));
     try {
-      if (!seller?.store_slug) { console.error('Follow: no store_slug'); return; }
       const res = await api.post(`/follow/seller/${seller.store_slug}/toggle`);
       if (res.data.success) {
         const nowFollowing = res.data.data?.is_following ?? !following;
@@ -291,6 +301,8 @@ const SellerProfile = () => {
         setFollowers(res.data.data?.followers_count ?? (nowFollowing ? followers + 1 : followers - 1));
       }
     } catch (err) {
+      setFollowing(previousFollowing);
+      setFollowers(previousFollowers);
       const msg = err.response?.data?.message || 'Failed to update follow status';
       setFollowError(msg);
       setTimeout(() => setFollowError(''), 3500);
@@ -322,9 +334,10 @@ const SellerProfile = () => {
 
   // ── Share ──────────────────────────────────────────────────────────────
   const shareData = useCallback(() => {
-    const profileUrl = `${window.location.origin}/sellers/${slug}`;
+    const lang = i18n.language?.startsWith("my") ? "my" : "en";
+    const profileUrl = `${window.location.origin}/sellers/${slug}?lang=${lang}`;
     const title = seller?.store_name || "Seller on Pyonea";
-    const text = `Check out "${title}" on Pyonea.`;
+    const text = t("seller.share_text", { name: title });
     const enc = encodeURIComponent;
     const website = seller?.website
       ? (seller.website.startsWith("http") ? seller.website : `https://${seller.website}`)
@@ -342,7 +355,7 @@ const SellerProfile = () => {
       telegram: `https://t.me/share/url?url=${enc(profileUrl)}&text=${enc(text)}`,
       twitter: `https://x.com/intent/tweet?text=${enc(text)}&url=${enc(profileUrl)}`,
     };
-  }, [seller?.store_name, seller?.website, sellerShareImage, slug]);
+  }, [i18n.language, seller?.store_name, seller?.website, sellerShareImage, slug, t]);
 
   const handleShare = async () => {
     const d = shareData();
@@ -667,10 +680,9 @@ const SellerProfile = () => {
                       className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors disabled:opacity-50
                         ${following ? 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600' : 'bg-green-600 text-white hover:bg-green-700'}`}>
                       <UserGroupIcon className="h-4 w-4" />
-                      {fwLoading
-                        ? <span className="animate-pulse">{following ? 'Unfollowing…' : 'Following…'}</span>
-                        : <>{!user ? 'Follow' : following ? 'Following' : 'Follow'} · {fmtK(followers)}</>
-                      }
+                      <span className={fwLoading ? 'animate-pulse' : ''}>
+                        {!user ? 'Follow' : following ? 'Following' : 'Follow'} · {fmtK(followers)}
+                      </span>
                     </button>
                     {followError && (
                       <p className="text-xs text-red-500 max-w-[180px] text-right">{followError}</p>

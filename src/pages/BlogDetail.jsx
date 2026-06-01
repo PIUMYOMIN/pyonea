@@ -11,6 +11,7 @@ import {
 import api from "../utils/api";
 import useSEO from "../hooks/useSEO";
 import { IMAGE_BASE_URL, SITE_PUBLIC_URL } from "../config";
+import { SkeletonBlogDetail } from "../components/ui/Skeleton";
 
 const fallbackImage = "/og-image.png";
 
@@ -175,10 +176,7 @@ const BlogDetail = () => {
     return (
       <>
         {SeoComponent}
-        <div className="mx-auto max-w-4xl px-4 py-16">
-          <div className="h-8 w-36 animate-pulse rounded bg-gray-200 dark:bg-slate-800" />
-          <div className="mt-8 h-96 animate-pulse rounded-lg bg-gray-200 dark:bg-slate-800" />
-        </div>
+        <SkeletonBlogDetail />
       </>
     );
   }

@@ -613,6 +613,8 @@
     "profile": "Seller Profile",
     "my_store": "My Store",
     "seller_center": "Seller Center",
+    "share_product": "Share seller",
+    "share_text": "Check out \"{{name}}\" on Pyonea.",
     "view_profile": "View profile",
     "open_sidebar": "Open sidebar",
     "back_to_sellers": "Back to Sellers",

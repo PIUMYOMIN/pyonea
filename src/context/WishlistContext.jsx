@@ -26,13 +26,27 @@ export const WishlistProvider = ({ children }) => {
   };
 
   const addToWishlist = async (productId) => {
-    await api.post('/wishlist', { product_id: productId });
-    await fetchWishlist();
+    const previous = wishlist;
+    setWishlist(prev => prev.some(item => item.id === productId || item.product_id === productId) ? prev : [{ id: productId, product_id: productId }, ...prev]);
+    try {
+      await api.post('/wishlist', { product_id: productId });
+      await fetchWishlist();
+    } catch (error) {
+      setWishlist(previous);
+      throw error;
+    }
   };
 
   const removeFromWishlist = async (productId) => {
-    await api.delete(`/wishlist/${productId}`);
-    await fetchWishlist();
+    const previous = wishlist;
+    setWishlist(prev => prev.filter(item => item.id !== productId && item.product_id !== productId));
+    try {
+      await api.delete(`/wishlist/${productId}`);
+      await fetchWishlist();
+    } catch (error) {
+      setWishlist(previous);
+      throw error;
+    }
   };
 
   return (

@@ -17,15 +17,21 @@ import {
   DocumentTextIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/solid";
-import { Bar, Doughnut } from "react-chartjs-2";
 import {
-  Chart as ChartJS, CategoryScale, LinearScale, BarElement,
-  Title, Tooltip, Legend, ArcElement,
-} from "chart.js";
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip as RechartsTooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import api from "../../utils/api";
 import i18n from "../../i18n";
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const fmtK = (n) => {
@@ -377,26 +383,22 @@ const [feeSubmitting, setFeeSubmitting] = useState(null);
     : "0.0";
 
   // Chart data
-  const orderStatusData = {
-    labels: ["Delivered", "Pending", "Processing", "Shipped", "Cancelled"],
-    datasets: [{
-      data: [metrics.delivered, metrics.pending, metrics.processing, metrics.shipped, metrics.cancelled],
-      backgroundColor: ["rgba(34,197,94,.8)", "rgba(251,191,36,.8)", "rgba(59,130,246,.8)", "rgba(168,85,247,.8)", "rgba(239,68,68,.8)"],
-      borderColor: ["rgb(34,197,94)", "rgb(251,191,36)", "rgb(59,130,246)", "rgb(168,85,247)", "rgb(239,68,68)"],
-      borderWidth: 2,
-    }],
-  };
+  const orderStatusData = [
+    { name: "Delivered", value: metrics.delivered, color: "#22c55e" },
+    { name: "Pending", value: metrics.pending, color: "#fbbf24" },
+    { name: "Processing", value: metrics.processing, color: "#3b82f6" },
+    { name: "Shipped", value: metrics.shipped, color: "#a855f7" },
+    { name: "Cancelled", value: metrics.cancelled, color: "#ef4444" },
+  ];
 
-  const salesTrendData = {
-    labels: (dash?.sales.monthlyTrend || []).map(i => {
+  const salesTrendData = (dash?.sales.monthlyTrend || []).map(i => {
       if (!i?.date) return "";
-      return new Date(i.date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    }),
-    datasets: [
-      { label: "Revenue (MMK)", data: (dash?.sales.monthlyTrend || []).map(i => i?.revenue || 0), backgroundColor: "rgba(5,150,105,.8)", borderColor: "rgb(5,150,105)", borderWidth: 2, borderRadius: 4 },
-      { label: "Orders", data: (dash?.sales.monthlyTrend || []).map(i => i?.orders_count || 0), backgroundColor: "rgba(16,185,129,.6)", borderColor: "rgb(16,185,129)", borderWidth: 2, borderRadius: 4 },
-    ],
-  };
+      return {
+        date: new Date(i.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        revenue: i?.revenue || 0,
+        orders: i?.orders_count || 0,
+      };
+    }).filter(Boolean);
 
   return (
     <div className="space-y-6">
@@ -697,7 +699,22 @@ const [feeSubmitting, setFeeSubmitting] = useState(null);
         <div className="bg-white dark:bg-slate-800 shadow dark:shadow-slate-900/50 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">Sales Trend (Last 7 Days)</h3>
           {(dash?.sales.monthlyTrend.length ?? 0) > 0 ? (
-            <Bar data={salesTrendData} options={{ responsive: true, plugins: { legend: { position: "top" } }, scales: { y: { beginAtZero: true } } }} height={280} />
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={salesTrendData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                  <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                  <YAxis yAxisId="revenue" tick={{ fontSize: 12 }} tickFormatter={fmtK} />
+                  <YAxis yAxisId="orders" orientation="right" tick={{ fontSize: 12 }} allowDecimals={false} />
+                  <RechartsTooltip
+                    formatter={(value, name) => name === "Revenue (MMK)" ? [fmtMMK(value), name] : [value, name]}
+                  />
+                  <Legend verticalAlign="top" height={32} />
+                  <Bar yAxisId="revenue" dataKey="revenue" name="Revenue (MMK)" fill="#059669" radius={[4, 4, 0, 0]} />
+                  <Bar yAxisId="orders" dataKey="orders" name="Orders" fill="#10b981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
             <div className="h-64 flex items-center justify-center text-gray-400 dark:text-slate-500 text-sm">No sales data available</div>
           )}
@@ -706,7 +723,24 @@ const [feeSubmitting, setFeeSubmitting] = useState(null);
           <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">Order Status Distribution</h3>
           <div className="h-64 flex items-center justify-center">
             {(dash?.orders.total ?? 0) > 0 ? (
-              <Doughnut data={orderStatusData} options={{ responsive: true, plugins: { legend: { position: "bottom" } } }} />
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={orderStatusData}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={58}
+                    outerRadius={86}
+                    paddingAngle={2}
+                  >
+                    {orderStatusData.map((entry) => (
+                      <Cell key={entry.name} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip formatter={(value, name) => [value, name]} />
+                  <Legend verticalAlign="bottom" height={36} />
+                </PieChart>
+              </ResponsiveContainer>
             ) : (
               <p className="text-gray-400 dark:text-slate-500 text-sm">No orders yet</p>
             )}

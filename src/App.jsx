@@ -237,7 +237,7 @@ function App() {
                         <Route
                           path="/unsubscribe"
                           element={
-                            <React.Suspense fallback={<div>Loading…</div>}>
+                            <React.Suspense fallback={""}>
                               <Unsubscribe />
                             </React.Suspense>
                           }
