@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useSwipeable } from "react-swipeable";
 import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { getSrcSet, getWebPUrl } from "../../utils/imageHelpers";
+import { DEFAULT_PLACEHOLDER } from "../../config";
 
 const normalizeImages = (images = []) =>
   (Array.isArray(images) ? images : [])
@@ -32,6 +33,7 @@ const ProductImageGallery = ({
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [pauseAutoplay, setPauseAutoplay] = useState(false);
   const [mainLoaded, setMainLoaded] = useState(false);
+  const mainImgRef = useRef(null);
   const thumbRowRef = useRef(null);
 
   useEffect(() => {
@@ -91,6 +93,24 @@ const ProductImageGallery = ({
     setMainLoaded(false);
   }, [mainSrc]);
 
+  useEffect(() => {
+    const img = mainImgRef.current;
+    if (!img) return;
+
+    if (img.complete && img.naturalWidth > 0) {
+      setMainLoaded(true);
+      return;
+    }
+
+    const id = window.requestAnimationFrame(() => {
+      if (img.complete && img.naturalWidth > 0) {
+        setMainLoaded(true);
+      }
+    });
+
+    return () => window.cancelAnimationFrame(id);
+  }, [mainSrc]);
+
   // Autoplay (carousel): advances every `autoplayDelayMs`, pauses on hover/touch and in lightbox
   useEffect(() => {
     if (!autoplay) return;
@@ -113,8 +133,8 @@ const ProductImageGallery = ({
     <div className={className}>
       <style>{`
         @keyframes pdFadeSlideIn {
-          from { opacity: 0; transform: translateX(10px); }
-          to   { opacity: 1; transform: translateX(0); }
+          from { transform: translateX(10px); }
+          to   { transform: translateX(0); }
         }
       `}</style>
       {/* Main image */}
@@ -130,6 +150,7 @@ const ProductImageGallery = ({
       >
         {activeSrc ? (
           <img
+            ref={mainImgRef}
             key={activeSrc}
             src={mainSrc}
             srcSet={mainSrcSet}
@@ -143,6 +164,12 @@ const ProductImageGallery = ({
             decoding="async"
             fetchPriority={priority ? "high" : "low"}
             onLoad={() => setMainLoaded(true)}
+            onError={(event) => {
+              event.currentTarget.onerror = null;
+              event.currentTarget.removeAttribute("srcset");
+              event.currentTarget.src = DEFAULT_PLACEHOLDER;
+              setMainLoaded(true);
+            }}
             onClick={() => setLightboxOpen(true)}
           />
         ) : (

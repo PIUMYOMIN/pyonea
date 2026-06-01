@@ -1,6 +1,6 @@
 // src/pages/SellerProfile.jsx
 // Public seller profile page — fully structured with SEO, tabs, live data.
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Tab } from '@headlessui/react';
@@ -21,7 +21,7 @@ import { SITE_PUBLIC_URL } from '../config';
 import { getImageUrl } from '../utils/imageHelpers';
 import { useAuth } from '../context/AuthContext';
 import ProductCard from '../components/ui/ProductCard';
-import { SkeletonSellerProfile } from '../components/ui/Skeleton';
+import { SkeletonProductCard, SkeletonSellerProfile } from '../components/ui/Skeleton';
 import { DEFAULT_PLACEHOLDER } from '../config';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -219,6 +219,9 @@ const SellerProfile = () => {
   const { t, i18n } = useTranslation();
   const [seller, setSeller] = useState(null);
   const [products, setProducts] = useState([]);
+  const [productPage, setProductPage] = useState(1);
+  const [productsHasMore, setProductsHasMore] = useState(false);
+  const [productsLoading, setProductsLoading] = useState(false);
   const [stats, setStats] = useState({});
   const [reviews, setReviews] = useState({ data: [], meta: {} });
   const [loading, setLoading] = useState(true);
@@ -236,6 +239,8 @@ const SellerProfile = () => {
   const [shareOpen, setShareOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const productSentinelRef = useRef(null);
+  const productsFetchingRef = useRef(false);
   // Delivery zone tab
   const [deliveryAreas, setDeliveryAreas] = useState(null); // null = not yet fetched
   const [deliveryLoading, setDeliveryLoading] = useState(false);
@@ -247,13 +252,22 @@ const SellerProfile = () => {
     setLoading(true);
     setError(null);
     setDescriptionExpanded(false);
+    setProducts([]);
+    setProductPage(1);
+    setProductsHasMore(false);
     (async () => {
       try {
-        const r = await api.get(`/sellers/${slug}`);
+        const r = await api.get(`/sellers/${slug}`, { params: { page: 1, per_page: 24 } });
         if (!r.data.success) throw new Error();
         const d = r.data.data;
+        const productPayload = d.products || {};
+        const productItems = Array.isArray(productPayload.data) ? productPayload.data : [];
+        const currentPage = productPayload.current_page ?? 1;
+        const lastPage = productPayload.last_page ?? currentPage;
         setSeller(d.seller);
-        setProducts(d.products?.data || []);
+        setProducts(productItems);
+        setProductPage(currentPage);
+        setProductsHasMore(currentPage < lastPage);
         setStats(d.stats || {});
         setFollowing(d.is_following || false);
         setFollowers(d.stats?.followers_count || 0);
@@ -262,6 +276,51 @@ const SellerProfile = () => {
       finally { setLoading(false); }
     })();
   }, [slug]);
+
+  const loadMoreProducts = useCallback(async () => {
+    if (!slug || !productsHasMore || productsFetchingRef.current) return;
+
+    productsFetchingRef.current = true;
+    setProductsLoading(true);
+    const nextPage = productPage + 1;
+
+    try {
+      const r = await api.get(`/sellers/${slug}`, { params: { page: nextPage, per_page: 24 } });
+      if (!r.data.success) throw new Error();
+
+      const productPayload = r.data.data?.products || {};
+      const productItems = Array.isArray(productPayload.data) ? productPayload.data : [];
+      const currentPage = productPayload.current_page ?? nextPage;
+      const lastPage = productPayload.last_page ?? currentPage;
+
+      setProducts(prev => {
+        const ids = new Set(prev.map(p => p.id));
+        return [...prev, ...productItems.filter(p => !ids.has(p.id))];
+      });
+      setProductPage(currentPage);
+      setProductsHasMore(currentPage < lastPage);
+    } catch (err) {
+      console.error('Could not load more seller products:', err);
+      setProductsHasMore(false);
+    } finally {
+      productsFetchingRef.current = false;
+      setProductsLoading(false);
+    }
+  }, [productPage, productsHasMore, slug]);
+
+  useEffect(() => {
+    if (activeTab !== 0 || !productSentinelRef.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) loadMoreProducts();
+      },
+      { rootMargin: '300px' }
+    );
+
+    observer.observe(productSentinelRef.current);
+    return () => observer.disconnect();
+  }, [activeTab, loadMoreProducts]);
 
   const loadReviews = useCallback(async (page = 1) => {
     if (!slug) return;
@@ -509,7 +568,7 @@ const SellerProfile = () => {
   const hasPolicies = seller?.return_policy || seller?.shipping_policy || seller?.warranty_policy || seller?.privacy_policy || seller?.terms_of_service;
 
   const tabs = [
-    { label: `Products (${products.length})` },
+    { label: `Products (${stats.active_products ?? stats.total_products ?? products.length})` },
     { label: `Reviews (${reviewCount})` },
     { label: 'About' },
     ...(hasPolicies ? [{ label: 'Policies' }] : []),
@@ -767,9 +826,31 @@ const SellerProfile = () => {
                     <p className="text-sm">No products listed yet.</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 pb-10">
-                    {products.map(p => <ProductCard key={p.id} product={p} />)}
-                  </div>
+                  <>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 pb-6">
+                      {products.map((p, idx) => (
+                        <ProductCard
+                          key={p.id}
+                          product={p}
+                          imagePriority={idx < 6 && productPage === 1}
+                        />
+                      ))}
+                      {productsLoading && [...Array(4)].map((_, i) => (
+                        <SkeletonProductCard key={`seller-more-${i}`} />
+                      ))}
+                    </div>
+                    <div ref={productSentinelRef} className="h-1" />
+                    {productsLoading && products.length > 0 && (
+                      <div className="flex justify-center py-6">
+                        <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-green-500 dark:border-slate-700" />
+                      </div>
+                    )}
+                    {!productsHasMore && products.length > 0 && (
+                      <p className="pb-10 text-center text-xs text-gray-400 dark:text-slate-500">
+                        All products from this seller are loaded.
+                      </p>
+                    )}
+                  </>
                 )}
               </Tab.Panel>
 
