@@ -35,6 +35,21 @@ const PLAN_COLORS = {
 
 const PLAN_ICONS = { basic: '🏪', professional: '🚀', enterprise: '🏢' };
 
+const DEFAULT_SUBSCRIPTION_PAYMENT_METHODS = [];
+
+const paymentMethodLabel = (method, t) => {
+  const fallback = {
+    mmqr: 'MMQR',
+    kbz_pay: 'KBZ Pay',
+    wave_pay: 'Wave Money',
+    cb_pay: 'CB Pay',
+    aya_pay: 'AYA Pay',
+    bank_transfer: 'Bank Transfer',
+  };
+
+  return t(`subscription.payment_methods.${method}`, fallback[method] || method?.replace(/_/g, ' ') || '');
+};
+
 const featureRow = (label, value, ok = true) => (
   <div className="flex items-center gap-2 text-sm">
     {ok
@@ -80,8 +95,9 @@ const UsageBar = ({ used, limit, label, t }) => {
 };
 
 // Payment reference modal for paid plan upgrades
-const UpgradeModal = ({ plan, onConfirm, onCancel, loading }) => {
+const UpgradeModal = ({ plan, paymentMethods, onConfirm, onCancel, loading }) => {
   const [ref, setRef] = useState('');
+  const [method, setMethod] = useState(paymentMethods[0] || '');
   const { t, i18n } = useTranslation();
 
   return (
@@ -98,6 +114,27 @@ const UpgradeModal = ({ plan, onConfirm, onCancel, loading }) => {
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-3 text-sm text-amber-800 dark:text-amber-300 flex gap-2">
           <InformationCircleIcon className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <span><strong>{fmtMMK(plan.price_mmk, t, i18n.language)}</strong> {t('subscription.payment_instruction')}</span>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {t('subscription.payment_method_label')}<span className="text-red-500"> *</span>
+          </label>
+          <select
+            value={method}
+            onChange={e => setMethod(e.target.value)}
+            disabled={paymentMethods.length === 0}
+            className="w-full px-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm"
+          >
+            {paymentMethods.length === 0 ? (
+              <option value="">{t('subscription.no_payment_methods')}</option>
+            ) : (
+              paymentMethods.map(item => (
+                <option key={item} value={item}>{paymentMethodLabel(item, t)}</option>
+              ))
+            )}
+          </select>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{t('subscription.payment_method_hint')}</p>
         </div>
 
         <div>
@@ -123,8 +160,8 @@ const UpgradeModal = ({ plan, onConfirm, onCancel, loading }) => {
             {t('subscription.cancel')}
           </button>
           <button
-            onClick={() => onConfirm(ref)}
-            disabled={loading || !ref.trim()}
+            onClick={() => onConfirm(ref, method)}
+            disabled={loading || !ref.trim() || !method}
             className="flex-1 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors"
           >
             {loading ? t('subscription.alerts.processing') : t('subscription.confirm_upgrade')}
@@ -146,6 +183,7 @@ const SellerSubscription = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [modal, setModal] = useState(null);   // plan object being confirmed
+  const [paymentMethods, setPaymentMethods] = useState(DEFAULT_SUBSCRIPTION_PAYMENT_METHODS);
 
   // ── Data fetch ────────────────────────────────────────────────────────
   const { refetch: refetchSubscription } = useSubscription();
@@ -160,6 +198,11 @@ const SellerSubscription = () => {
       ]);
       setCurrent(subRes.data.data);
       setPlans(plansRes.data.data ?? []);
+      api.get('/payment-methods')
+        .then(res => {
+          setPaymentMethods((res.data.data ?? []).filter(method => method !== 'cash_on_delivery'));
+        })
+        .catch(() => setPaymentMethods([]));
     } catch (e) {
       setError(e.response?.data?.message ?? t('subscription.load_error'));
     } finally {
@@ -171,13 +214,16 @@ const SellerSubscription = () => {
 
   // ── Upgrade handler ───────────────────────────────────────────────────
 
-  const handleUpgrade = async (plan, paymentRef = '') => {
+  const handleUpgrade = async (plan, paymentRef = '', paymentMethod = '') => {
     setUpgrading(true);
     setError('');
     setSuccess('');
     try {
       const payload = { plan_slug: plan.slug };
-      if (plan.price_mmk > 0) payload.payment_reference = paymentRef;
+      if (plan.price_mmk > 0) {
+        payload.payment_reference = paymentRef;
+        payload.payment_method = paymentMethod;
+      }
 
       const res = await api.post('/seller/subscription/upgrade', payload);
       if (res.data.success) {
@@ -250,6 +296,7 @@ const SellerSubscription = () => {
             <p className="font-semibold">{t('subscription.pending_title')}</p>
             <p className="mt-0.5">
               {t('subscription.pending_body', { name: pendingRequest.plan?.name })}
+              {pendingRequest.payment_method ? ` ${t('subscription.payment_method_label')}: ${paymentMethodLabel(pendingRequest.payment_method, t)}.` : ''}
               {pendingRequest.payment_reference ? ` ${t('subscription.reference_label')}: ${pendingRequest.payment_reference}` : ''}
             </p>
           </div>
@@ -443,7 +490,8 @@ const SellerSubscription = () => {
       {modal && (
         <UpgradeModal
           plan={modal}
-          onConfirm={(ref) => handleUpgrade(modal, ref)}
+          paymentMethods={paymentMethods}
+          onConfirm={(ref, method) => handleUpgrade(modal, ref, method)}
           onCancel={() => setModal(null)}
           loading={upgrading}
         />

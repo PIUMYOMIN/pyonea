@@ -23,6 +23,15 @@ import api from '../../utils/api';
 const fmtMMK  = (n) => Number(n) === 0 ? 'Free' : `${Number(n).toLocaleString()} MMK`;
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '—';
 
+const paymentMethodLabel = (method) => ({
+  mmqr: 'MMQR',
+  kbz_pay: 'KBZ Pay',
+  wave_pay: 'Wave Money',
+  cb_pay: 'CB Pay',
+  aya_pay: 'AYA Pay',
+  bank_transfer: 'Bank Transfer',
+}[method] || method?.replace(/_/g, ' ') || '—');
+
 const STATUS_BADGE = {
   active:          'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
   expired:         'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
@@ -420,7 +429,7 @@ const SubscriptionManagement = () => {
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-                    {['Seller', 'Plan', 'Status', 'Started', 'Expires', 'Paid (MMK)', 'Payment Ref', 'Actions'].map(h => (
+                    {['Seller', 'Plan', 'Status', 'Started', 'Expires', 'Paid (MMK)', 'Method', 'Payment Ref', 'Actions'].map(h => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -428,12 +437,12 @@ const SubscriptionManagement = () => {
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                   {loading ? (
                     [...Array(5)].map((_, i) => (
-                      <tr key={i}><td colSpan={8} className="px-4 py-3">
+                      <tr key={i}><td colSpan={9} className="px-4 py-3">
                         <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded animate-pulse" />
                       </td></tr>
                     ))
                   ) : subs.length === 0 ? (
-                    <tr><td colSpan={8} className="px-4 py-10 text-center text-gray-400">No subscriptions found.</td></tr>
+                    <tr><td colSpan={9} className="px-4 py-10 text-center text-gray-400">No subscriptions found.</td></tr>
                   ) : subs.map((s) => (
                     <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                       <td className="px-4 py-3">
@@ -460,6 +469,9 @@ const SubscriptionManagement = () => {
                         ) : <span className="text-gray-400">No expiry</span>}
                       </td>
                       <td className="px-4 py-3 text-gray-700 dark:text-gray-200 font-medium">{fmtMMK(s.amount_paid_mmk)}</td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400 capitalize whitespace-nowrap">
+                        {paymentMethodLabel(s.payment_method)}
+                      </td>
                       <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
                         {s.payment_reference ? (
                           <span className="font-mono text-xs">{s.payment_reference}</span>
