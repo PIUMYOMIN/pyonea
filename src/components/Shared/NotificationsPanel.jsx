@@ -74,7 +74,7 @@ const PER_PAGE = 20;
 const NotificationsPanel = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { unreadCount, version, decrementUnread, resetUnread } = useNotifications();
+  const { unreadCount, version, decrementUnread, resetUnread, refreshCount } = useNotifications();
 
   const [items,        setItems]        = useState([]);
   const [loading,      setLoading]      = useState(true);
@@ -83,6 +83,7 @@ const NotificationsPanel = () => {
   const [page,         setPage]         = useState(1);
   const [hasMore,      setHasMore]      = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [markingIds,   setMarkingIds]   = useState([]);
 
   // ── fetch ─────────────────────────────────────────────────────────────────
 
@@ -117,16 +118,31 @@ const NotificationsPanel = () => {
 
   const markRead = async (id) => {
     const target = items.find(n => n.id === id);
-    if (!target || target.read_at) return; // already read — nothing to do
-    await api.post(`/notifications/${id}/read`).catch(() => {});
-    setItems(prev => prev.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n));
-    decrementUnread(true);
+    if (!target || target.read_at || markingIds.includes(id)) return;
+
+    setMarkingIds(prev => [...prev, id]);
+    try {
+      const res = await api.post(`/notifications/${id}/read`);
+      const readAt = res.data?.data?.read_at || new Date().toISOString();
+      setItems(prev => prev.map(n => n.id === id ? { ...n, read_at: readAt } : n));
+      decrementUnread(true);
+      refreshCount();
+    } catch {
+      refreshCount();
+    } finally {
+      setMarkingIds(prev => prev.filter(itemId => itemId !== id));
+    }
   };
 
   const markAllRead = async () => {
-    await api.post('/notifications/read-all').catch(() => {});
-    setItems(prev => prev.map(n => ({ ...n, read_at: n.read_at ?? new Date().toISOString() })));
-    resetUnread();
+    try {
+      await api.post('/notifications/read-all');
+      setItems(prev => prev.map(n => ({ ...n, read_at: n.read_at ?? new Date().toISOString() })));
+      resetUnread();
+      refreshCount();
+    } catch {
+      refreshCount();
+    }
   };
 
   // BUG FIX: old remove() always called setUnread(u => u - 1), even when the
@@ -321,8 +337,9 @@ const NotificationsPanel = () => {
                     {isUnread && (
                       <button onClick={(event) => { event.stopPropagation(); markRead(n.id); }}
                         title={t('notifications.mark_as_read')}
+                        disabled={markingIds.includes(n.id)}
                         className="p-1.5 text-green-500 hover:text-green-700 dark:hover:text-green-400
-                                   hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors">
+                                   hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors disabled:opacity-50">
                         <CheckCircleIcon className="h-4 w-4" />
                       </button>
                     )}

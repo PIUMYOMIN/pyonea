@@ -4,9 +4,15 @@ import { useTranslation } from "react-i18next";
 import { MagnifyingGlassIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import api from "../utils/api";
 import useSEO from "../hooks/useSEO";
-import { SITE_PUBLIC_URL } from "../config";
+import { IMAGE_BASE_URL, SITE_PUBLIC_URL } from "../config";
 
 const fallbackImage = "/og-image.png";
+
+const resolveImageUrl = (image) => {
+  if (!image) return fallbackImage;
+  if (/^https?:\/\//i.test(image) || image.startsWith("/")) return image;
+  return `${IMAGE_BASE_URL.replace(/\/+$/, "")}/${String(image).replace(/^\/+/, "")}`;
+};
 
 const readingTime = (text = "") => {
   const words = String(text).trim().split(/\s+/).filter(Boolean).length;
@@ -23,7 +29,7 @@ const BlogCard = ({ post, loc, t }) => {
       <Link to={`/blog/${post.slug}`} className="block">
         <div className="aspect-[16/9] overflow-hidden bg-gray-100 dark:bg-slate-800">
           <img
-            src={post.featured_image || fallbackImage}
+            src={resolveImageUrl(post.featured_image)}
             alt={`${title} - Pyonea Myanmar wholesale guide`}
             className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
             loading="lazy"
@@ -69,12 +75,14 @@ const Blog = () => {
 
   const pageTitle = t("blog_page.seo.title");
   const pageDescription = t("blog_page.seo.description");
+  const hasActiveFilters = Boolean(search.trim() || category);
 
   const SeoComponent = useSEO({
     title: pageTitle,
     description: pageDescription,
-    url: `/blog${searchParams.toString() ? `?${searchParams.toString()}` : ""}`,
+    url: "/blog",
     type: "website",
+    noindex: hasActiveFilters,
     schema: {
       "@context": "https://schema.org",
       "@type": "Blog",
@@ -188,7 +196,7 @@ const Blog = () => {
                   <Link to={`/blog/${featured.slug}`} className="grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
                     <div className="aspect-[16/10] bg-gray-100 lg:aspect-auto dark:bg-slate-800">
                       <img
-                        src={featured.featured_image || fallbackImage}
+                        src={resolveImageUrl(featured.featured_image)}
                         alt={`${loc(featured.title_en, featured.title_mm)} - Pyonea business guide`}
                         className="h-full w-full object-cover"
                         onError={(event) => { event.currentTarget.src = fallbackImage; }}

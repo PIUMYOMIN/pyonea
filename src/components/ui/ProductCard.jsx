@@ -10,6 +10,7 @@ import { useWishlist } from "../../context/WishlistContext";
 import { useCart } from "../../context/CartContext";
 import { useCompare } from "../../context/CompareContext";
 import { IMAGE_BASE_URL, DEFAULT_PLACEHOLDER } from "../../config";
+import { getSrcSet, getWebPUrl } from "../../utils/imageHelpers";
 import { useTranslation } from "react-i18next";
 
 // ── Image URL helper ──────────────────────────────────────────────────────────
@@ -90,6 +91,8 @@ const ProductCard = ({ product, className = "", imagePriority = false }) => {
     : product.image
     ? getImageUrl(product.image)
     : DEFAULT_PLACEHOLDER;
+  const optimizedImageUrl = getWebPUrl(imageUrl, { width: 480, quality: 80 });
+  const imageSrcSet = getSrcSet(imageUrl, [240, 360, 480, 640]);
   const isInWishlist = !!wishlist?.some((w) => w.id === productId);
   const compared = isCompared(productId);
 
@@ -229,7 +232,9 @@ const ProductCard = ({ product, className = "", imagePriority = false }) => {
         <Link to={`/products/${slug}`} className="block w-full h-full">
           {!imageError ? (
             <LazyLoadImage
-              src={imageUrl}
+              src={optimizedImageUrl}
+              srcSet={imageSrcSet}
+              sizes="(min-width: 1280px) 25vw, (min-width: 768px) 33vw, 50vw"
               alt={loc(product.name_en, product.name_mm) || "Product"}
               effect="blur"
               wrapperClassName="w-full h-full"

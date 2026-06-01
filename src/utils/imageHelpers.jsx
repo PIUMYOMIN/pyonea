@@ -1,32 +1,59 @@
 // src/utils/imageHelpers.jsx
-import { IMAGE_BASE_URL, DEFAULT_PLACEHOLDER, SITE_PUBLIC_URL } from "../config";
+import { IMAGE_BASE_URL, DEFAULT_PLACEHOLDER, IMAGE_PROXY_URL, SITE_PUBLIC_URL } from "../config";
 
 const toAbsoluteUrl = (url) => {
-  if (!url || url.startsWith('http') || url.startsWith('data:')) return url;
-  const path = url.startsWith('/') ? url : `/${url}`;
+  if (!url || url.startsWith("http") || url.startsWith("data:")) return url;
+  const path = url.startsWith("/") ? url : `/${url}`;
   return `${SITE_PUBLIC_URL}${path}`;
 };
 
+const isPublicHttpUrl = (url) => {
+  try {
+    const parsed = new URL(url);
+    return (
+      /^https?:$/i.test(parsed.protocol) &&
+      !["localhost", "127.0.0.1", "::1"].includes(parsed.hostname)
+    );
+  } catch {
+    return false;
+  }
+};
+
+const isStorageImageUrl = (url) => {
+  try {
+    return new URL(url).pathname.includes("/storage/");
+  } catch {
+    return false;
+  }
+};
+
+const getImageProxyUrl = (url, { width, quality = 80 } = {}) => {
+  if (!IMAGE_PROXY_URL || !isPublicHttpUrl(url) || !isStorageImageUrl(url)) {
+    return url;
+  }
+
+  const params = new URLSearchParams({
+    url: url.replace(/^https?:\/\//i, ""),
+    output: "webp",
+    q: String(quality),
+  });
+
+  if (width) params.set("w", String(width));
+
+  return `${IMAGE_PROXY_URL}/?${params.toString()}`;
+};
+
 /**
- * Returns a WebP-optimised URL for backend images.
- * If the backend (Laravel + Intervention Image or Spatie Media) supports
- * query-param conversions, this will serve WebP automatically.
- * Falls back silently to the original URL for CDN / external images.
- *
- * Usage: getWebPUrl(url, { width: 400, quality: 80 })
+ * Returns a real transformed WebP URL for public backend storage images.
+ * Localhost/dev images are left untouched because public image proxies cannot
+ * fetch private local URLs.
  */
 export const getWebPUrl = (url, { width, quality = 80 } = {}) => {
-  if (!url || url.startsWith('data:')) return url;
-
-  // External URLs (CDN, S3, etc.) — skip transformation
-  if (!url.includes(IMAGE_BASE_URL) && url.startsWith('http')) return url;
+  if (!url || url.startsWith("data:")) return url;
 
   try {
-    const u = new URL(url.startsWith('http') ? url : `${IMAGE_BASE_URL}/${url}`);
-    u.searchParams.set('format', 'webp');
-    u.searchParams.set('quality', String(quality));
-    if (width) u.searchParams.set('w', String(width));
-    return u.toString();
+    const source = toAbsoluteUrl(url.startsWith("http") ? url : `${IMAGE_BASE_URL}/${url}`);
+    return getImageProxyUrl(source, { width, quality });
   } catch {
     return url;
   }
@@ -37,31 +64,31 @@ export const getWebPUrl = (url, { width, quality = 80 } = {}) => {
  * widths: array of pixel widths, e.g. [200, 400, 800]
  */
 export const getSrcSet = (url, widths = [200, 400, 800]) => {
-  if (!url || url.startsWith('data:')) return '';
+  if (!url || url.startsWith("data:")) return "";
   return widths
     .map((w) => `${getWebPUrl(url, { width: w })} ${w}w`)
-    .join(', ');
+    .join(", ");
 };
 
 export const getImageUrl = (image) => {
-  if (image == null) return DEFAULT_PLACEHOLDER;     // FIX: catches both null and undefined
+  if (image == null) return DEFAULT_PLACEHOLDER;
 
-  if (typeof image === 'string') {
-    if (!image) return DEFAULT_PLACEHOLDER;          // empty string guard
-    if (image.startsWith('http')) return image;
-    const cleanPath = image.replace('public/', '');
+  if (typeof image === "string") {
+    if (!image) return DEFAULT_PLACEHOLDER;
+    if (image.startsWith("http")) return image;
+    const cleanPath = image.replace("public/", "");
     return toAbsoluteUrl(`${IMAGE_BASE_URL}/${cleanPath}`);
   }
 
-  if (typeof image === 'object') {
-    if (image.url != null && image.url !== '') {
-      if (image.url.startsWith('http')) return image.url;
-      const cleanPath = image.url.replace('public/', '');
+  if (typeof image === "object") {
+    if (image.url != null && image.url !== "") {
+      if (image.url.startsWith("http")) return image.url;
+      const cleanPath = image.url.replace("public/", "");
       return toAbsoluteUrl(`${IMAGE_BASE_URL}/${cleanPath}`);
     }
-    if (image.path != null && image.path !== '') {
-      if (image.path.startsWith('http')) return image.path;
-      const cleanPath = image.path.replace('public/', '');
+    if (image.path != null && image.path !== "") {
+      if (image.path.startsWith("http")) return image.path;
+      const cleanPath = image.path.replace("public/", "");
       return toAbsoluteUrl(`${IMAGE_BASE_URL}/${cleanPath}`);
     }
   }
