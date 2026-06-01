@@ -16,6 +16,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon as CheckCircleSolid } from "@heroicons/react/24/solid";
 import api from "../../utils/api";
+import { getImageUrl } from "../../utils/imageHelpers";
 import i18n from "../../i18n";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -460,7 +461,7 @@ const OrderDetailsModal = ({
                     <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
                       <div className="w-12 h-12 bg-white dark:bg-slate-700 rounded-lg border border-gray-200 dark:border-slate-600 overflow-hidden flex-shrink-0">
                         <img
-                          src={item.product_data?.images?.[0]?.url || "/placeholder-product.png"}
+                          src={getImageUrl(item.product_data?.images?.[0]) || "/placeholder-product.png"}
                           alt={item.product_name}
                           className="w-full h-full object-cover"
                           onError={(e) => { e.target.src = "/placeholder-product.png"; }}

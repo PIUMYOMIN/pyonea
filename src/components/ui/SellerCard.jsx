@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { StarIcon, CheckBadgeIcon } from "@heroicons/react/24/solid";
 import { motion } from "framer-motion";
+import { getImageUrl } from "../../utils/imageHelpers";
 
 const SellerCard = ({ seller }) => {
   const apiSeller = seller.originalData || seller;
@@ -12,7 +13,7 @@ const SellerCard = ({ seller }) => {
   const reviewsCount = apiSeller.reviews_count || 0;
   const productsCount = apiSeller.products_count || 0;
   const city = apiSeller.city || apiSeller.user?.city || 'Unknown City';
-  const storeLogo = apiSeller.store_logo;
+  const storeLogo = apiSeller.store_logo ? getImageUrl(apiSeller.store_logo) : null;
   const businessType = apiSeller.business_type || "General Merchant";
   const isVerified = apiSeller.status === 'approved' || apiSeller.status === 'active';
   

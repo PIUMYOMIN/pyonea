@@ -254,9 +254,10 @@ const ProductList = () => {
       const path = p.slug_en || p.slug || p.id;
       const name = p.name_en || p.name_mm || "Product";
       let img;
-      if (p.images?.[0]) {
+      const primaryImage = p.images?.[0] || p.image;
+      if (primaryImage) {
         const raw =
-          typeof p.images[0] === "string" ? p.images[0] : p.images[0].url || p.images[0];
+          typeof primaryImage === "string" ? primaryImage : primaryImage.url || primaryImage;
         const resolved = getImageUrl(raw);
         if (resolved && !resolved.includes("placeholder")) {
           img = resolved;
@@ -511,7 +512,7 @@ const ProductList = () => {
             {/* Title row + mobile filter toggle */}
             <div className="flex items-center justify-between mb-4 gap-3">
               <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
-                {getPageTitle}
+                All Products
               </h1>
               <div className="flex items-center gap-2 flex-shrink-0">
                 {products.length > 0 && (

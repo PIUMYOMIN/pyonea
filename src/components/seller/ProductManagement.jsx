@@ -19,6 +19,7 @@ import {
   MagnifyingGlassIcon
 } from "@heroicons/react/24/outline";
 import api from "../../utils/api";
+import { getImageUrl } from "../../utils/imageHelpers";
 import ProductDiscountModal from "./ProductDiscountModal";
 import ProductManagementTable from "../Shared/ProductManagementTable";
 
@@ -237,8 +238,8 @@ const ProductManagement = () => {
 
   const resolveUrl = (img) => {
     if (!img) return "/placeholder-product.jpg";
-    if (typeof img === "string") return img;
-    return img.url || img.full_url || img.path || "/placeholder-product.jpg";
+    if (typeof img === "object" && img.full_url) return getImageUrl(img.full_url);
+    return getImageUrl(img);
   };
 
   const getPrimaryImage = (product) => {
@@ -249,9 +250,9 @@ const ProductManagement = () => {
 
   const getAllImages = (product) => {
     return resolveImages(product).map(img => {
-      if (typeof img === "string") return { url: img, is_primary: false, angle: "default" };
+      if (typeof img === "string") return { url: getImageUrl(img), is_primary: false, angle: "default" };
       return {
-        url: img.url || img.full_url || img.path || "",
+        url: resolveUrl(img),
         is_primary: img.is_primary || false,
         angle: img.angle || "default",
       };

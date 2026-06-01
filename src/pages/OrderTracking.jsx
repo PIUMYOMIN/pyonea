@@ -4,6 +4,7 @@ import useSEO from "../hooks/useSEO";
 import { useSearchParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import api from "../utils/api";
+import { getImageUrl } from "../utils/imageHelpers";
 import { useTheme } from '../context/ThemeContext';
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
@@ -465,7 +466,7 @@ const OrderTracking = () => {
                       {/* Image */}
                       <div className="w-14 h-14 rounded-lg bg-gray-100 dark:bg-gray-700 flex-shrink-0 overflow-hidden border border-gray-200 dark:border-gray-600">
                         {item.image ? (
-                          <img loading="lazy" src={item.image} alt={item.product_name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = "none"; }} />
+                          <img loading="lazy" src={getImageUrl(item.image)} alt={item.product_name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = "none"; }} />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600 text-xl">📦</div>
                         )}
@@ -523,7 +524,7 @@ const OrderTracking = () => {
                     <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">{t("order_tracking.sold_by")}</p>
                     <div className="flex items-center gap-3">
                       {order.seller.store_logo ? (
-                        <img loading="lazy" src={order.seller.store_logo} alt={order.seller.store_name} className="w-10 h-10 rounded-lg object-cover border border-gray-200 dark:border-gray-600" />
+                        <img loading="lazy" src={getImageUrl(order.seller.store_logo)} alt={order.seller.store_name} className="w-10 h-10 rounded-lg object-cover border border-gray-200 dark:border-gray-600" />
                       ) : (
                         <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-700 dark:text-green-400 font-bold text-sm">
                           {order.seller.store_name?.[0]?.toUpperCase() || "S"}

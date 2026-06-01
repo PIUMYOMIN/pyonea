@@ -533,7 +533,7 @@ const SellerProfile = () => {
         {/* ── Banner ──────────────────────────────────────────────────── */}
         <div className="relative h-44 sm:h-60 bg-gradient-to-r from-green-700 to-green-500 overflow-hidden">
           {seller.store_banner && (
-            <img loading="lazy" src={seller.store_banner} alt="Store banner"
+            <img loading="lazy" src={getImageUrl(seller.store_banner)} alt="Store banner"
               className="w-full h-full object-cover" onError={e => e.target.style.display = 'none'} />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
@@ -548,7 +548,7 @@ const SellerProfile = () => {
               <div className="flex items-end gap-4">
                 <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl border-4 border-white shadow-lg bg-white dark:bg-slate-800 overflow-hidden flex-shrink-0">
                   {!logoError && seller.store_logo ? (
-                    <img loading="lazy" src={seller.store_logo} alt={seller.store_name}
+                    <img loading="lazy" src={getImageUrl(seller.store_logo)} alt={seller.store_name}
                       className="w-full h-full object-cover"
                       onError={() => setLogoError(true)} />
                   ) : (

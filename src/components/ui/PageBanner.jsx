@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 import api from '../../utils/api';
+import { getImageUrl } from '../../utils/imageHelpers';
 
 const ASPECT_CLASSES = {
   '16:9': 'aspect-video',
@@ -59,7 +60,7 @@ const PageBanner = () => {
   const imageEl = (
     <div className={`relative w-full ${ratio} bg-gray-200 dark:bg-slate-700 overflow-hidden`}>
       <img
-        src={banner.image}
+        src={getImageUrl(banner.image)}
         alt={banner.title}
         className="absolute inset-0 w-full h-full object-cover object-center"
         loading="eager"

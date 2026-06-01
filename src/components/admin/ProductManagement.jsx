@@ -159,6 +159,33 @@ const ProductManagement = () => {
     }
   };
 
+  const handleProductFeatured = async (productId, isFeatured, productName) => {
+    try {
+      await api.patch(`/admin/products/${productId}/toggle-featured`, { is_featured: isFeatured });
+
+      setProducts(prev => prev.map(product =>
+        product.id === productId
+          ? { ...product, is_featured: isFeatured }
+          : product
+      ));
+
+      addNotification(
+        'success',
+        isFeatured ? 'Product featured' : 'Product unfeatured',
+        isFeatured
+          ? `${productName} is now shown in featured products.`
+          : `${productName} was removed from featured products.`
+      );
+    } catch (error) {
+      console.error("Failed to update featured status:", error);
+      addNotification(
+        'error',
+        'Featured update failed',
+        `Could not update featured status for ${productName}. ${error.response?.data?.message || t('admin.productManagement.errors.unknownError')}`
+      );
+    }
+  };
+
   // Approve product — FIX: was using window.confirm, now uses approveModal state
   const handleApprove = async () => {
     if (!approveModal) return;
@@ -553,6 +580,20 @@ const ProductManagement = () => {
     {
       header: (
         <button
+          onClick={() => handleSort("is_featured")}
+          className="flex items-center hover:text-gray-900 dark:hover:text-slate-100"
+        >
+          Featured
+          {sortField === "is_featured" && (
+            <ArrowsUpDownIcon className="h-4 w-4 ml-1" />
+          )}
+        </button>
+      ),
+      accessor: "featured"
+    },
+    {
+      header: (
+        <button
           onClick={() => handleSort("status")}
           className="flex items-center hover:text-gray-900 dark:hover:text-slate-100"
         >
@@ -667,6 +708,21 @@ const ProductManagement = () => {
         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-slate-300">
           {product.min_order || product.moq || 1}
         </span>
+      ),
+      featured: (
+        <button
+          type="button"
+          onClick={() => handleProductFeatured(product.id, !product.is_featured, product.name_en)}
+          className={`inline-flex min-w-[92px] items-center justify-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
+            product.is_featured
+              ? 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/50'
+              : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'
+          }`}
+          title={product.is_featured ? 'Remove from featured products' : 'Show in featured products'}
+        >
+          <SparklesIcon className="h-3.5 w-3.5" />
+          {product.is_featured ? 'Featured' : 'Feature'}
+        </button>
       ),
       approvalStatus: (
         <div className="flex flex-col gap-1">

@@ -5,6 +5,7 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import api from "../utils/api";
+import { getImageUrl } from "../utils/imageHelpers";
 import { useAuth } from "../context/AuthContext";
 
 import ProductCard from "../components/ui/ProductCard";
@@ -411,7 +412,7 @@ const Home = () => {
                 <a href={activeBanner.banner_link_url} target="_blank" rel="noopener noreferrer"
                    className="block w-full cursor-pointer">
                   <img
-                    src={activeBanner.image}
+                    src={getImageUrl(activeBanner.image)}
                     alt={activeBanner.title}
                     loading="eager"
                     decoding="async"
@@ -427,7 +428,7 @@ const Home = () => {
               ) : (
                 <Link to={activeBanner.banner_link_url} className="block w-full cursor-pointer">
                   <img
-                    src={activeBanner.image}
+                    src={getImageUrl(activeBanner.image)}
                     alt={activeBanner.title}
                     loading="eager"
                     decoding="async"
@@ -443,7 +444,7 @@ const Home = () => {
               )
             ) : (
               <img
-                src={activeBanner.image}
+                src={getImageUrl(activeBanner.image)}
                 alt={activeBanner.title}
                 loading="eager"
                 decoding="async"

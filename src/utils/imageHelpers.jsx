@@ -43,6 +43,14 @@ const getImageProxyUrl = (url, { width, quality = 80 } = {}) => {
   return `${IMAGE_PROXY_URL}/?${params.toString()}`;
 };
 
+const toStorageUrl = (path) => {
+  const cleanPath = String(path || "")
+    .replace("public/", "")
+    .replace(/^\/?storage\//, "");
+
+  return toAbsoluteUrl(`${IMAGE_BASE_URL}/${cleanPath}`);
+};
+
 /**
  * Returns a real transformed WebP URL for public backend storage images.
  * Localhost/dev images are left untouched because public image proxies cannot
@@ -52,7 +60,7 @@ export const getWebPUrl = (url, { width, quality = 80 } = {}) => {
   if (!url || url.startsWith("data:")) return url;
 
   try {
-    const source = toAbsoluteUrl(url.startsWith("http") ? url : `${IMAGE_BASE_URL}/${url}`);
+    const source = url.startsWith("http") ? url : toStorageUrl(url);
     return getImageProxyUrl(source, { width, quality });
   } catch {
     return url;
@@ -76,20 +84,17 @@ export const getImageUrl = (image) => {
   if (typeof image === "string") {
     if (!image) return DEFAULT_PLACEHOLDER;
     if (image.startsWith("http")) return image;
-    const cleanPath = image.replace("public/", "");
-    return toAbsoluteUrl(`${IMAGE_BASE_URL}/${cleanPath}`);
+    return toStorageUrl(image);
   }
 
   if (typeof image === "object") {
     if (image.url != null && image.url !== "") {
       if (image.url.startsWith("http")) return image.url;
-      const cleanPath = image.url.replace("public/", "");
-      return toAbsoluteUrl(`${IMAGE_BASE_URL}/${cleanPath}`);
+      return toStorageUrl(image.url);
     }
     if (image.path != null && image.path !== "") {
       if (image.path.startsWith("http")) return image.path;
-      const cleanPath = image.path.replace("public/", "");
-      return toAbsoluteUrl(`${IMAGE_BASE_URL}/${cleanPath}`);
+      return toStorageUrl(image.path);
     }
   }
 

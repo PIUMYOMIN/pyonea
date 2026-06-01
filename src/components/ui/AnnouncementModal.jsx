@@ -8,6 +8,7 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
+import { getImageUrl } from '../../utils/imageHelpers';
 
 const BADGE_COLORS = {
   green:  'bg-green-500 text-white',
@@ -38,7 +39,7 @@ const PopupBanner = ({ announcement, close }) => {
   const imageEl = (
     <div className={`relative w-full ${ratio} overflow-hidden`}>
       <img
-        src={announcement.image}
+        src={getImageUrl(announcement.image)}
         alt={announcement.title}
         className="absolute inset-0 w-full h-full object-cover"
       />
@@ -91,7 +92,7 @@ const PopupBanner = ({ announcement, close }) => {
 // ── Popup Card (original style with title/content/CTA) ────────────────────────
 const PopupCard = ({ announcement, close }) => {
   const badge     = BADGE_COLORS[announcement.badge_color] ?? BADGE_COLORS.green;
-  const imgSrc    = announcement.image;
+  const imgSrc    = announcement.image ? getImageUrl(announcement.image) : null;
   const isExternal = announcement.cta_url?.startsWith('http');
   const CtaComponent = isExternal ? 'a' : Link;
   const ctaProps     = isExternal

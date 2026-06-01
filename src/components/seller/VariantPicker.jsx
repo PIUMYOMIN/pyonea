@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import { getImageUrl } from "../../utils/imageHelpers";
 
 const findMatchingVariant = (variants, selectedValues) => {
   const selectedIds = Object.values(selectedValues).filter(Boolean);
@@ -96,7 +97,7 @@ const ImageSwatch = ({ value, isSelected, isDisabled, onClick }) => (
     `}
   >
     <img
-      src={value.meta?.image_url}
+      src={getImageUrl(value.meta?.image_url)}
       alt={value.label}
       className="w-full h-full object-cover"
       onError={(e) => { e.target.style.display = "none"; }}

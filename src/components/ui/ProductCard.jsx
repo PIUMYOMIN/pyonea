@@ -9,25 +9,9 @@ import { useAuth } from "../../context/AuthContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { useCart } from "../../context/CartContext";
 import { useCompare } from "../../context/CompareContext";
-import { IMAGE_BASE_URL, DEFAULT_PLACEHOLDER } from "../../config";
-import { getSrcSet, getWebPUrl } from "../../utils/imageHelpers";
+import { DEFAULT_PLACEHOLDER } from "../../config";
+import { getImageUrl, getSrcSet, getWebPUrl } from "../../utils/imageHelpers";
 import { useTranslation } from "react-i18next";
-
-// ── Image URL helper ──────────────────────────────────────────────────────────
-const getImageUrl = (image) => {
-  if (!image) return DEFAULT_PLACEHOLDER;
-  if (typeof image === "string") {
-    if (image.startsWith("http")) return image;
-    return `${IMAGE_BASE_URL}/${image.replace("public/", "")}`;
-  }
-  if (typeof image === "object") {
-    const src = image.url || image.path || "";
-    if (!src) return DEFAULT_PLACEHOLDER;
-    if (src.startsWith("http")) return src;
-    return `${IMAGE_BASE_URL}/${src.replace("public/", "")}`;
-  }
-  return DEFAULT_PLACEHOLDER;
-};
 
 // ── Star rating row ───────────────────────────────────────────────────────────
 const Stars = ({ rating, count }) => {

@@ -21,6 +21,7 @@ import NrcInput from './NrcInput';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import NotificationPreferences from '../Shared/NotificationPreferences';
+import { getImageUrl } from '../../utils/imageHelpers';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
@@ -73,7 +74,7 @@ const ImageUploadBox = ({ label, hint, currentUrl, onUpload, onRemove, uploading
       <p className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">{label}</p>
       {currentUrl ? (
         <div className="relative group rounded-xl overflow-hidden border border-gray-200 dark:border-slate-600" style={{ aspectRatio: aspect }}>
-          <img loading="lazy" src={currentUrl} alt={label} className="w-full h-full object-cover"/>
+          <img loading="lazy" src={getImageUrl(currentUrl)} alt={label} className="w-full h-full object-cover"/>
           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
             <button onClick={() => ref.current?.click()}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 rounded-lg text-xs font-medium hover:bg-gray-100 dark:hover:bg-slate-700">
@@ -153,9 +154,9 @@ const DocumentRow = ({ label, fieldName, value, onUpload, uploading, hint, requi
 
         {/* Thumbnail — only for image files that loaded successfully */}
         {isImage && !thumbErr ? (
-          <a href={value} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+          <a href={getImageUrl(value)} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
             <img loading="lazy"
-              src={value}
+              src={getImageUrl(value)}
               alt={label}
               onError={() => setThumbErr(true)}
               className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700"

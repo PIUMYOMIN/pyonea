@@ -21,6 +21,7 @@ import {
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import api from "../utils/api";
+import { getImageUrl } from "../utils/imageHelpers";
 import PaymentProcessor from "../components/payments/PaymentProcessor";
 import PaymentSuccess from "./PaymentSuccess";
 import getMyanmarStates from "../data/myanmar-locations";
@@ -982,7 +983,7 @@ export default function Checkout() {
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-gray-100 dark:bg-slate-800 rounded-lg flex items-center justify-center flex-shrink-0">
                           <img
-                            src={item.image}
+                            src={getImageUrl(item.image)}
                             alt={item.name}
                             className="w-10 h-10 object-cover rounded"
                             onError={e => { e.target.src = "/placeholder-product.jpg"; }}

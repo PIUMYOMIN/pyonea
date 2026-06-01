@@ -1026,6 +1026,13 @@ const ProductForm = ({ product = null, mode = "seller", onSuccess, onCancel }) =
                   className="h-4 w-4 flex-shrink-0 text-green-600 focus:ring-green-500 border-gray-300 rounded sm:h-5 sm:w-5" />
                 <label htmlFor="is_active" className="min-w-0 text-sm font-medium leading-5 text-gray-900 dark:text-slate-100">{tf("labels.is_active", "Make this product active and visible")}</label>
               </div>
+              {isAdminMode && (
+                <div className="flex items-center gap-3 p-3 sm:p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                  <input id="is_featured" name="is_featured" type="checkbox" checked={!!formData.is_featured} onChange={handleChange}
+                    className="h-4 w-4 flex-shrink-0 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded sm:h-5 sm:w-5" />
+                  <label htmlFor="is_featured" className="min-w-0 text-sm font-medium leading-5 text-gray-900 dark:text-slate-100">{tf("labels.is_featured", "Feature on homepage")}</label>
+                </div>
+              )}
               <div className="flex items-center gap-3 p-3 sm:p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
                 <input id="is_new" name="is_new" type="checkbox" checked={formData.is_new} onChange={handleChange}
                   className="h-4 w-4 flex-shrink-0 text-amber-600 focus:ring-amber-500 border-gray-300 rounded sm:h-5 sm:w-5" />
