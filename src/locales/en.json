@@ -806,13 +806,23 @@
         "all_statuses": "All Status",
         "category": "Category",
         "all_categories": "All Categories",
-        "clear_filters": "Clear Filters"
+        "clear_filters": "Clear Filters",
+        "visible_products": "Visible products",
+        "visible_of_total": "shown of {{count}}"
       },
       "summary": {
         "total_products": "Total Products",
         "active_products": "Active Products",
         "on_sale": "On Sale",
         "out_of_stock": "Out of Stock"
+      },
+      "limit_warning": {
+        "title": "Product limit is almost full",
+        "message": "You have posted {{used}} of {{limit}} products on your {{plan}} plan. Upgrade to continue adding more products.",
+        "reached_title": "Product limit reached",
+        "reached_message": "You have reached {{used}} of {{limit}} products on your {{plan}} plan. Upgrade to add more products.",
+        "reached_blocked": "Your {{plan}} plan product limit ({{limit}} products) is full. Upgrade your plan to add more products.",
+        "upgrade": "Upgrade plan"
       },
       "table": {
         "product": "Product",
@@ -2231,7 +2241,8 @@
       "warranty_period": "Warranty Period",
       "return_policy": "Return Policy",
       "warranty_type": "Warranty Type",
-      "additional_info": "Additional Information"
+      "additional_info": "Additional Information",
+      "current_plan": "current"
     },
     "placeholders": {
       "name_en": "Enter product name in English",
@@ -2292,7 +2303,8 @@
       "save": "Save",
       "delete": "Delete",
       "del": "Del",
-      "refresh": "Refresh"
+      "refresh": "Refresh",
+      "upgrade_plan": "Upgrade plan"
     },
     "messages": {
       "loading_categories": "Loading categories...",
@@ -2313,6 +2325,7 @@
       "select_category": "Please select a category.",
       "missing_created_id": "Product was created but the response did not include an id. Refresh and open the product to add variants.",
       "generic": "Something went wrong.",
+      "product_limit_reached": "Your {{plan}} plan product limit ({{limit}} products) has been reached. Upgrade your plan to keep adding products.",
       "load_product": "Failed to load product details.",
       "load_categories": "Failed to load categories."
     },

@@ -16,6 +16,7 @@ import {
   SparklesIcon // added for discount column
 } from "@heroicons/react/24/solid";
 import {
+  ExclamationTriangleIcon,
   MagnifyingGlassIcon
 } from "@heroicons/react/24/outline";
 import api from "../../utils/api";
@@ -33,6 +34,7 @@ const ProductManagement = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
+  const [productLimitUsage, setProductLimitUsage] = useState(null);
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
@@ -57,6 +59,7 @@ const ProductManagement = () => {
       const response = await api.get("/seller/products");
       if (response.data.success) {
         setProducts(response.data.data || []);
+        setProductLimitUsage(response.data.meta?.subscription_usage || null);
       } else {
         setError(response.data.message || t("seller.product.errors.fetch_failed"));
       }
@@ -307,6 +310,29 @@ const ProductManagement = () => {
 
   const filteredProducts = getFilteredProducts();
   const sortedProducts = getSortedProducts();
+  const productLimit = Number(productLimitUsage?.product_limit ?? -1);
+  const productsUsed = Number(productLimitUsage?.products_used ?? products.length);
+  const hasFiniteProductLimit = productLimit !== -1 && Number.isFinite(productLimit);
+  const isProductLimitReached = hasFiniteProductLimit && productsUsed >= productLimit;
+  const shouldShowLimitWarning = Boolean(
+    productLimitUsage?.is_near_limit ||
+    (
+      hasFiniteProductLimit &&
+      productsUsed >= Math.max(0, productLimit - 1)
+    )
+  );
+
+  const handleCreateProduct = () => {
+    if (isProductLimitReached) {
+      setError(t("seller.product.limit_warning.reached_blocked", {
+        limit: productLimit,
+        plan: productLimitUsage?.plan_name ?? "",
+        defaultValue: "Your {{plan}} plan product limit ({{limit}} products) is full. Upgrade your plan to add more products.",
+      }));
+      return;
+    }
+    navigate("/seller/products/create");
+  };
 
   const getStatusColor = (status) => (status ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300" : "bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-slate-300");
   const getStatusText = (isActive) => (isActive ? "active" : "inactive");
@@ -589,14 +615,55 @@ const ProductManagement = () => {
             {t("seller.product.refresh")}
           </button>
           <button
-            onClick={() => navigate("/seller/products/create")}
-            className="inline-flex h-10 items-center justify-center rounded-md border border-transparent bg-green-600 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+            onClick={handleCreateProduct}
+            disabled={isProductLimitReached}
+            title={isProductLimitReached ? t("seller.product.limit_warning.reached_title", "Product limit reached") : undefined}
+            className="inline-flex h-10 items-center justify-center rounded-md border border-transparent bg-green-600 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400 dark:focus:ring-offset-slate-900"
           >
             <PlusIcon className="mr-2 h-4 w-4" />
             {t("seller.product.add_product")}
           </button>
         </div>
       </div>
+
+      {shouldShowLimitWarning && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex gap-3">
+              <ExclamationTriangleIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+              <div>
+                <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+                  {isProductLimitReached
+                    ? t("seller.product.limit_warning.reached_title", "Product limit reached")
+                    : t("seller.product.limit_warning.title", "Product limit is almost full")}
+                </p>
+                <p className="mt-1 text-sm text-amber-800 dark:text-amber-300">
+                  {isProductLimitReached
+                    ? t("seller.product.limit_warning.reached_message", {
+                      used: productsUsed,
+                      limit: productLimit,
+                      plan: productLimitUsage?.plan_name ?? "",
+                      defaultValue: "You have reached {{used}} of {{limit}} products on your current plan. Upgrade to add more products.",
+                    })
+                    : t("seller.product.limit_warning.message", {
+                      used: productsUsed,
+                      limit: productLimit,
+                      plan: productLimitUsage?.plan_name ?? "",
+                      defaultValue: "You have posted {{used}} of {{limit}} products on your current plan. Upgrade to continue adding more products.",
+                    })}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate("/seller/dashboard?tab=subscription")}
+              className="inline-flex h-9 items-center justify-center rounded-md bg-amber-600 px-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-amber-700"
+            >
+              {t("seller.product.limit_warning.upgrade", "Upgrade plan")}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-4">
@@ -713,7 +780,11 @@ const ProductManagement = () => {
                 : t("seller.product.empty.no_products")}
             </p>
             {!searchTerm && statusFilter === "all" && (
-              <button onClick={() => navigate("/seller/products/create")} className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700">
+              <button
+                onClick={handleCreateProduct}
+                disabled={isProductLimitReached}
+                className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400"
+              >
                 {t("seller.product.empty.add_first")}
               </button>
             )}

@@ -189,6 +189,7 @@ const ProductForm = ({ product = null, mode = "seller", onSuccess, onCancel }) =
   const [catError,           setCatError]           = useState(false);
   const [loading,            setLoading]            = useState(false);
   const [error,              setError]              = useState("");
+  const [limitErrorData,     setLimitErrorData]     = useState(null);
   const [specInput,          setSpecInput]          = useState({ key: "", value: "" });
   const [imagePreviews,      setImagePreviews]      = useState([]);
   const [currentStep,        setCurrentStep]        = useState(1);
@@ -356,6 +357,7 @@ const ProductForm = ({ product = null, mode = "seller", onSuccess, onCancel }) =
     if (loading || isUploadingImages) return;
     setLoading(true);
     setError("");
+    setLimitErrorData(null);
 
     try {
       const priceNum    = parseFloat(formData.price);
@@ -444,6 +446,13 @@ const ProductForm = ({ product = null, mode = "seller", onSuccess, onCancel }) =
     } catch (err) {
       if (err.response?.data?.errors) {
         setError(Object.values(err.response.data.errors).flat().join(", "));
+      } else if (err.response?.data?.error === "product_limit_reached") {
+        const limitData = err.response?.data?.data || {};
+        setLimitErrorData(limitData);
+        setError(tf("errors.product_limit_reached", "Your {{plan}} plan product limit ({{limit}} products) has been reached. Upgrade your plan to keep adding products.", {
+          plan: limitData.plan_name || tf("labels.current_plan", "current"),
+          limit: limitData.plan_limit ?? limitData.current_count ?? "",
+        }));
       } else {
         setError(err.response?.data?.message || err.message || tf("errors.generic", "Something went wrong."));
       }
@@ -1241,9 +1250,20 @@ const ProductForm = ({ product = null, mode = "seller", onSuccess, onCancel }) =
         {/* Form body */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700">
           {error && (
-            <div className="mx-6 mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400 flex items-start">
-              <ExclamationCircleIcon className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
-              <span>{error}</span>
+            <div className="mx-6 mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400">
+              <div className="flex items-start">
+                <ExclamationCircleIcon className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+              {limitErrorData && !isAdminMode && (
+                <button
+                  type="button"
+                  onClick={() => navigate("/seller/dashboard?tab=subscription")}
+                  className="mt-3 inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+                >
+                  {tf("actions.upgrade_plan", "Upgrade plan")}
+                </button>
+              )}
             </div>
           )}
 
