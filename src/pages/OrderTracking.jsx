@@ -317,7 +317,7 @@ const OrderTracking = () => {
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide mb-1">Order Number</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide mb-1">{t("order_tracking.order_number")}</p>
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white font-mono">{order.order_number}</h2>
                   <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{t("order_tracking.placed_on")} {fmtDate(order.created_at)}</p>
                 </div>

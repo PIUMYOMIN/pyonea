@@ -11,6 +11,9 @@ const OrderTrackingPage = () => {
   const { t } = useTranslation();
   const [order, setOrder] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
+  const formattedOrderDate = order?.created_at
+    ? new Date(order.created_at).toLocaleDateString()
+    : "";
 
   React.useEffect(() => {
     fetchOrder();
@@ -60,11 +63,14 @@ const OrderTrackingPage = () => {
             onClick={() => navigate('/buyer')}
             className="inline-flex items-center text-green-600 hover:text-green-700 mb-4"
           >
-            ← {t("order_tracking.back_to_dashboard")}
+            &lt;- {t("order_tracking.back_to_dashboard")}
           </button>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-100">{t("order_tracking.title")}</h1>
           <p className="text-gray-600 dark:text-slate-400 mt-2">
-            Order #{order.order_number} • Placed on {new Date(order.created_at).toLocaleDateString()}
+            {t("order_tracking.order_header_meta", {
+              number: order.order_number,
+              date: formattedOrderDate,
+            })}
           </p>
         </div>
 

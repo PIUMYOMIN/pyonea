@@ -393,6 +393,7 @@
     "twitter": "Twitter",
     "linkedin": "LinkedIn",
     "instagram": "Instagram",
+    "threads": "Threads",
     "copyright": "Myanmar B2B Marketplace. All rights reserved.",
     "rights_reserved": "All rights reserved.",
     "report_issue": "Report an Issue",
@@ -2789,7 +2790,9 @@
     "delivery_in_transit": "In Transit",
     "delivery_delivered": "Delivered",
     "not_found_page": "Order Not Found",
-    "back_to_dashboard": "Back to Dashboard"
+    "back_to_dashboard": "Back to Dashboard",
+    "order_number": "Order Number",
+    "order_header_meta": "Order #{{number}} · Placed on {{date}}"
   },
   "seller_guidelines": {
     "seo": {

@@ -195,10 +195,11 @@ const Footer = () => {
               <h3 className={headingClass}>{t("footer.follow_us")}</h3>
               <ul className="flex flex-wrap gap-x-5 gap-y-2">
                 {[
-                  ["https://facebook.com/pyoneaofficial", t("footer.facebook")],
-                  ["https://twitter.com/pyoneaofficial", t("footer.twitter")],
+                  ["https://facebook.com/PyoneaOfficial", t("footer.facebook")],
+                  ["https://twitter.com/PyoneaOfficial", t("footer.twitter")],
                   ["https://linkedin.com/company/pyoneaofficial", t("footer.linkedin")],
-                  ["https://instagram.com/pyoneaofficial", t("footer.instagram")],
+                  ["https://instagram.com/PyoneaOfficial", t("footer.instagram")],
+                  ["https://www.threads.com/@PyoneaOfficial", t("footer.threads")],
                 ].map(([href, label]) => (
                   <li key={href}>
                     <a
