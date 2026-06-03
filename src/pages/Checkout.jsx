@@ -807,7 +807,7 @@ export default function Checkout() {
                         value={shippingAddress.phone}
                         onChange={e => setShippingAddress(p => ({ ...p, phone: e.target.value }))}
                         className="pl-10 w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500"
-                        placeholder="09XXXXXXXXX"
+                        placeholder={t("checkout.phone_placeholder")}
                       />
                     </div>
                   </div>
@@ -892,7 +892,7 @@ export default function Checkout() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">{t("checkout.country")}</label>
                     <input
-                      type="text" value={shippingAddress.country} disabled
+                      type="text" value={t("checkout.country_myanmar")} disabled
                       className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-slate-500"
                     />
                   </div>
