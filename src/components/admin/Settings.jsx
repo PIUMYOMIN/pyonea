@@ -240,11 +240,172 @@ function PaymentMethodsPanel() {
 }
 
 // ── Main Settings component ────────────────────────────────────────────────
+const inputCls =
+  "w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg " +
+  "focus:ring-2 focus:ring-green-500 focus:outline-none text-sm " +
+  "bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100";
+
+function ProfileSettingsPanel() {
+  const { user, updateUser } = useAuth();
+  const [profileData, setProfileData] = useState({
+    name: user?.name || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
+    address: user?.address || "",
+    city: user?.city || "",
+    state: user?.state || "",
+    country: user?.country || "",
+    postal_code: user?.postal_code || "",
+    date_of_birth: user?.date_of_birth ? user.date_of_birth.split("T")[0] : "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState(null);
+
+  useEffect(() => {
+    setProfileData({
+      name: user?.name || "",
+      email: user?.email || "",
+      phone: user?.phone || "",
+      address: user?.address || "",
+      city: user?.city || "",
+      state: user?.state || "",
+      country: user?.country || "",
+      postal_code: user?.postal_code || "",
+      date_of_birth: user?.date_of_birth ? user.date_of_birth.split("T")[0] : "",
+    });
+  }, [user]);
+
+  const msgClass = message?.type === "success"
+    ? "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800"
+    : "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800";
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setMessage(null);
+
+    try {
+      const res = await api.put("/users/profile", profileData);
+      if (res.data.success) {
+        updateUser(res.data.data);
+        setMessage({ type: "success", text: "Profile updated successfully." });
+      }
+    } catch (err) {
+      setMessage({
+        type: "error",
+        text: err.response?.data?.message || "Profile update failed.",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
+      <div className="flex items-center gap-3 mb-4">
+        <ShieldCheckIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
+          Personal Information
+        </h3>
+      </div>
+
+      {message && (
+        <div className={`mb-4 rounded-lg px-4 py-3 text-sm ${msgClass}`}>
+          {message.text}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[
+            ["Full Name *", "name", "text"],
+            ["Phone *", "phone", "tel"],
+            ["Email", "email", "email"],
+            ["Date of Birth", "date_of_birth", "date"],
+          ].map(([label, name, type]) => (
+            <div key={name}>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+                {label}
+              </label>
+              <input
+                type={type}
+                name={name}
+                value={profileData[name]}
+                onChange={(e) =>
+                  setProfileData((prev) => ({
+                    ...prev,
+                    [e.target.name]: e.target.value,
+                  }))
+                }
+                className={inputCls}
+              />
+            </div>
+          ))}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+            Address
+          </label>
+          <input
+            type="text"
+            name="address"
+            value={profileData.address}
+            onChange={(e) =>
+              setProfileData((prev) => ({ ...prev, address: e.target.value }))
+            }
+            className={inputCls}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {[
+            ["City", "city"],
+            ["State", "state"],
+            ["Country", "country"],
+            ["Postal Code", "postal_code"],
+          ].map(([label, name]) => (
+            <div key={name}>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+                {label}
+              </label>
+              <input
+                type="text"
+                name={name}
+                value={profileData[name]}
+                onChange={(e) =>
+                  setProfileData((prev) => ({
+                    ...prev,
+                    [e.target.name]: e.target.value,
+                  }))
+                }
+                className={inputCls}
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={saving}
+            className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 transition-colors"
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 const Settings = () => {
   const { user } = useAuth();
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-3xl">
+      {/* Personal Information */}
+      <ProfileSettingsPanel />
 
       {/* Account info */}
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
@@ -254,16 +415,10 @@ const Settings = () => {
         </div>
         <div className="space-y-2 text-sm text-gray-600 dark:text-slate-400">
           <div className="flex justify-between">
-            <span className="font-medium text-gray-700 dark:text-slate-300">Name</span>
-            <span className="text-gray-900 dark:text-slate-100">{user?.name}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="font-medium text-gray-700 dark:text-slate-300">Email</span>
-            <span className="text-gray-900 dark:text-slate-100">{user?.email}</span>
-          </div>
-          <div className="flex justify-between">
             <span className="font-medium text-gray-700 dark:text-slate-300">Role</span>
-            <span className="capitalize text-gray-900 dark:text-slate-100">{user?.type}</span>
+            <span className="capitalize text-gray-900 dark:text-slate-100">
+              {user?.type || user?.role || "Admin"}
+            </span>
           </div>
         </div>
       </div>

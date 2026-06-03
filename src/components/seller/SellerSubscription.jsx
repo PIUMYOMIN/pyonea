@@ -19,6 +19,7 @@ import {
   QrCodeIcon,
   DevicePhoneMobileIcon,
 } from '@heroicons/react/24/outline';
+import { QRCodeSVG } from 'qrcode.react';
 import api from '../../utils/api';
 import { useSubscription } from '../../context/SubscriptionContext';
 
@@ -226,13 +227,24 @@ const UpgradeModal = ({ plan, paymentMethods, onConfirm, onCancel, loading }) =>
               </span>
             </div>
 
-            {session.qr_image_url && (
+            {(session.qr_image_url || session.qr_string) && (
               <div className="flex flex-col items-center gap-2">
-                <img
-                  src={session.qr_image_url}
-                  alt={t('subscription.payment_qr_alt', 'Subscription payment QR code')}
-                  className="w-48 h-48 rounded-2xl border-4 border-white dark:border-gray-700 shadow-sm bg-white"
-                />
+                <div className="w-48 h-48 rounded-2xl border-4 border-white dark:border-gray-700 shadow-sm bg-white p-2 flex items-center justify-center">
+                  {session.qr_image_url ? (
+                    <img
+                      src={session.qr_image_url}
+                      alt={t('subscription.payment_qr_alt', 'Subscription payment QR code')}
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <QRCodeSVG
+                      value={session.qr_string}
+                      size={176}
+                      level="M"
+                      includeMargin={false}
+                    />
+                  )}
+                </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
                   {t('subscription.scan_qr_instruction', 'Scan this QR code with your payment app, enter your PIN there, then return here.')}
                 </p>

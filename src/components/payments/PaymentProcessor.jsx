@@ -25,6 +25,7 @@ import {
   ClockIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
+import { QRCodeSVG } from 'qrcode.react';
 import api from '../../utils/api';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -142,6 +143,15 @@ function QRPanel({ session, onExpired }) {
             alt="Payment QR Code"
             className={`${qrSizeClass} object-contain transition-all duration-200`}
           />
+        ) : session.qr_string ? (
+          <div className={`${qrSizeClass} flex items-center justify-center transition-all duration-200`}>
+            <QRCodeSVG
+              value={session.qr_string}
+              size={enlarged ? 288 : 208}
+              level="M"
+              includeMargin={false}
+            />
+          </div>
         ) : (
           <div className={`${qrSizeClass} bg-gray-100 dark:bg-slate-700 rounded-2xl animate-pulse flex items-center justify-center transition-all duration-200`}>
             <QrCodeIcon className="h-12 w-12 text-gray-300 dark:text-slate-500" />
