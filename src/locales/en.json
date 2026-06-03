@@ -136,7 +136,8 @@
     "no_matching_categories": "No categories match \"{query}\". Try a different search term.",
     "clear_search": "Clear search",
     "fetch_error": "Failed to load categories. Please try again later.",
-    "try_again": "Try Again"
+    "try_again": "Try Again",
+    "discount_badge": "Up to {{percent}}% off"
   },
   "filter": {
     "price_range": "Price Range",
@@ -236,8 +237,11 @@
     "place_order": "Place Order",
     "order_summary": "Order Summary",
     "subtotal": "Subtotal",
+    "subtotal_items": "Subtotal ({{count}} items)",
     "subtotal_items_one": "Subtotal ({{count}} item)",
     "subtotal_items_other": "Subtotal ({{count}} items)",
+    "cart_quantity_issue": "Please return to your cart and update unavailable items or MOQ quantities.",
+    "tier_price": "Tier",
     "shipping": "Shipping",
     "shipping_handling": "Shipping & handling",
     "shipping_handling_note": "Includes delivery to your address and order handling.",
@@ -582,8 +586,14 @@
     "no_products_found": "No products found",
     "try_adjusting_search": "Try adjusting your search or filters",
     "fetch_error": "Failed to load products. Please try again.",
+    "added_to_cart": "Product added to cart.",
+    "add_to_cart_failed": "Could not add product to cart.",
     "categories": "Categories",
     "category_id": "Category {{id}}",
+    "seo_search_category": "Browse {{count}} wholesale products matching \"{{query}}\" in {{category}} from verified sellers on Pyonea.",
+    "seo_search": "Browse {{count}} wholesale products matching \"{{query}}\" from verified sellers on Pyonea.",
+    "seo_category": "Browse {{category}} wholesale products on Pyonea with MOQ, bulk pricing, and verified seller details.",
+    "seo_default": "Browse wholesale products from verified Myanmar sellers on Pyonea.",
     "sort_by": "Sort by",
     "sort": {
       "newest": "Newest",
@@ -1294,6 +1304,7 @@
     "in_stock": "{{stock}} available",
     "in_stock_count": "In stock ({{count}})",
     "out_of_stock": "Out of stock",
+    "out_of_stock_hint": "You can still browse details or contact the seller.",
     "select_options_for_stock": "Select options for stock",
     "available": "Available",
     "adding": "Adding...",
@@ -1313,6 +1324,7 @@
     "discount_off": "-{{percent}}% OFF",
     "you_save": "You save {{amount}} MMK",
     "volume_pricing": "Volume Pricing",
+    "volume_price_active": "Volume price active",
     "min_qty": "Min. Qty",
     "price_per_unit": "Price / {{unit}}",
     "add_more_for_tier": "Add {{count}} more {{unit}} to unlock {{discount}} volume pricing",
@@ -3433,6 +3445,18 @@
   "rfq": {
     "title": "Request for Quotation (RFQ)",
     "description": "Send requests for quotes to multiple sellers and compare offers to get the best deal for your business needs.",
+    "dashboard": {
+      "title": "Request for quote",
+      "subtitle_admin": "Review buyer RFQs and seller inbox from one place.",
+      "subtitle_seller": "Quotes buyers sent to your store - respond or open the full RFQ center.",
+      "open_center": "Open RFQ center",
+      "awaiting_decision": "awaiting your decision",
+      "need_response": "need a response",
+      "open_requests": "open requests need your quote",
+      "recent_inbox": "Recent inbox",
+      "recent_sent": "Recent sent (as admin)",
+      "empty_admin": "No RFQs yet. Open the RFQ center to create or review requests."
+    },
     "tabs": {
       "sent": "My RFQs",
       "received": "Received",
