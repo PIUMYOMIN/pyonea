@@ -31,6 +31,7 @@ import api from '../../utils/api';
 const POLL_INTERVAL_MS = 3000;   // poll every 3s
 const QR_EXPIRY_S      = 900;    // 15 minutes
 const MAX_POLLS        = 300;    // 15min / 3s
+const MMQR_LOGO_SRC    = '/MMQR_Logo.png';
 
 const METHOD_META = {
   mmqr: {
@@ -103,6 +104,7 @@ function Countdown({ expiresAt, onExpired }) {
 
 function QRPanel({ session, onExpired }) {
   const [enlarged, setEnlarged] = useState(false);
+  const qrSizeClass = enlarged ? 'w-72 h-72' : 'w-52 h-52';
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -115,29 +117,41 @@ function QRPanel({ session, onExpired }) {
         )}
       </div>
 
+      <div className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2">
+        <img
+          src={MMQR_LOGO_SRC}
+          alt="MMQR"
+          className="h-8 w-auto object-contain"
+          loading="eager"
+          decoding="async"
+        />
+        <span className="text-xs font-semibold tracking-wide text-gray-600 dark:text-slate-300">
+          Official MMQR payment
+        </span>
+      </div>
+
       {/* QR image */}
       <button
         onClick={() => setEnlarged(e => !e)}
-        className="relative group"
+        className="rounded-2xl border-4 border-green-500 bg-white p-2 shadow-lg transition-all duration-200"
         title="Click to enlarge"
       >
         {session.qr_image_url ? (
           <img
             src={session.qr_image_url}
             alt="Payment QR Code"
-            className={`border-4 border-green-500 rounded-2xl shadow-lg transition-all duration-200 ${
-              enlarged ? 'w-72 h-72' : 'w-52 h-52'
-            }`}
+            className={`${qrSizeClass} object-contain transition-all duration-200`}
           />
         ) : (
-          <div className="w-52 h-52 bg-gray-100 dark:bg-slate-700 rounded-2xl animate-pulse flex items-center justify-center">
+          <div className={`${qrSizeClass} bg-gray-100 dark:bg-slate-700 rounded-2xl animate-pulse flex items-center justify-center transition-all duration-200`}>
             <QrCodeIcon className="h-12 w-12 text-gray-300 dark:text-slate-500" />
           </div>
         )}
-        <span className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-          {enlarged ? 'Shrink' : 'Enlarge'}
-        </span>
       </button>
+
+      <p className="text-center text-[11px] font-extrabold tracking-[0.16em] text-gray-700 dark:text-slate-200">
+        PAYMENT POWERED BY MYANMYANPAY
+      </p>
 
       {/* QR string (copy) */}
       {session.qr_string && (

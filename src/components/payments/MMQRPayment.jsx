@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
+const MMQR_LOGO_SRC = "/MMQR_Logo.png";
+
 const MMQRPayment = () => {
   const { t } = useTranslation();
   const [qrCode, setQrCode] = useState(null);
@@ -41,15 +43,32 @@ const MMQRPayment = () => {
       </p>
 
       <div className="mt-6 flex flex-col items-center">
+        <div className="mb-4 flex items-center justify-center gap-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2">
+          <img
+            src={MMQR_LOGO_SRC}
+            alt="MMQR"
+            className="h-8 w-auto object-contain"
+            loading="eager"
+            decoding="async"
+          />
+          <span className="text-xs font-semibold tracking-wide text-gray-600 dark:text-slate-300">
+            Official MMQR payment
+          </span>
+        </div>
+
         {qrCode
-          ? <div className="animate-fadeIn">
+          ? <div className="animate-fadeIn rounded-xl border-4 border-green-500 bg-white p-2 shadow-lg">
               <img
                 src={qrCode}
                 alt="MMQR Payment Code"
-                className="w-48 h-48 border-4 border-green-500 rounded-lg"
+                className="w-48 h-48 object-contain"
               />
             </div>
           : <div className="bg-gray-200 dark:bg-slate-700 border-2 border-dashed rounded-xl w-48 h-48 animate-pulse" />}
+
+        <p className="mt-3 text-center text-[11px] font-extrabold tracking-[0.16em] text-gray-700 dark:text-slate-200">
+          PAYMENT POWERED BY MYANMYANPAY
+        </p>
 
         <div className="mt-4 flex items-center">
           <div className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 px-3 py-1 rounded-full text-sm font-medium flex items-center">

@@ -586,8 +586,8 @@ const AdminDashboard = () => {
               <div className="flex items-center">
                 <div className="bg-gray-200 border-2 border-dashed rounded-full w-9 h-9" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-700 dark:text-slate-300">{t("admin.user")}</p>
-                  <p className="text-xs font-medium text-gray-500 dark:text-slate-500">{t("admin.role")}</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-slate-300">{user?.name || "Admin User"}</p>
+                  <p className="text-xs font-medium text-gray-500 dark:text-slate-500">{user?.role || user?.email || "Admin"}</p>
                 </div>
               </div>
             </div>
