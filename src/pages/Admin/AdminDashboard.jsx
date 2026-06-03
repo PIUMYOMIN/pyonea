@@ -563,7 +563,7 @@ const AdminDashboard = () => {
             <div className="h-0 flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
               <div className="flex items-center flex-shrink-0 px-4">
                 <div className="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10" />
-                <span className="ml-2 text-lg font-bold text-green-600">{t("app_name")}</span>
+                <span className="ml-2 text-lg font-bold text-green-600">Pyonea</span>
               </div>
               <nav className="mt-5 flex-1 px-2 space-y-1">
                 {navigation.map((item, idx) => (
