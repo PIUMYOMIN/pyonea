@@ -249,7 +249,7 @@
     "agree_seller_policies": "{{seller}} ၏ ပြန်အမ်းနှင့် ပို့ဆောင်ရေးမူဝါဒများကို ဖတ်ရှုပြီး သဘောတူပါသည်",
     "policy_agree_error": "အောက်ပါရောင်းချသူများ၏ မူဝါဒများကို သဘောတူရန် လိုအပ်ပါသည်: {{sellers}}",
     "processing_order": "အော်ဒါကို ဆောင်ရွက်နေသည်...",
-    "confirm_cash_order_amount": "ငွေသားအော်ဒါ အတည်ပြုရန် - {{amount}}",
+    "confirm_cash_order_amount": "အော်ဒါ အတည်ပြုရန် - {{amount}}",
     "proceed_payment_amount": "ငွေပေးချေမှု ဆက်လုပ်ရန် - {{amount}}",
     "order_placed": "အော်ဒါတင်ပြီးပါပြီ!",
     "order_placed_message": "သင့်အော်ဒါကို အောင်မြင်စွာ တင်ပြီးပါပြီ။ အတည်ပြုချက်ကို မကြာမီ ရရှိပါမည်။",
