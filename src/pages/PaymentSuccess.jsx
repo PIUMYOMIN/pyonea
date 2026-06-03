@@ -12,6 +12,7 @@ import {
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import api from '../utils/api';
+import GoogleCustomerReviewsOptIn from '../components/GoogleCustomerReviewsOptIn';
 
 const PaymentSuccess = ({ order: orderProp, paymentData: paymentDataProp, onClose }) => {
   const navigate    = useNavigate();
@@ -362,6 +363,7 @@ const PaymentSuccess = ({ order: orderProp, paymentData: paymentDataProp, onClos
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8 px-4 sm:px-6 lg:px-8">
+      <GoogleCustomerReviewsOptIn order={orderDetails || order} />
       <div className="max-w-4xl mx-auto">
         {/* Success Header */}
         <div className="text-center mb-8">
