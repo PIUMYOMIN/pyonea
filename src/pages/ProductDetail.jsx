@@ -849,9 +849,9 @@ const ProductDetail = () => {
     <>
       {SeoComponent}
 
-      {/* ── Non-blocking toast (bottom-right, not a full overlay) ─────────── */}
+      {/* ── Non-blocking toast ─────────────────────────────────────────────── */}
       {successMessage && (
-        <div className="fixed bottom-6 right-6 z-50 max-w-sm">
+        <div className="fixed left-1/2 top-4 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2">
           <div className={`px-4 py-3 rounded-xl shadow-lg flex items-center justify-between gap-4 border
             ${successMessage?.type === "error"
               ? "bg-red-50 dark:bg-red-900/40 border-red-300 dark:border-red-700 text-red-700 dark:text-red-300"
