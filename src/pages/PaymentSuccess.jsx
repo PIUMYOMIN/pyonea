@@ -15,6 +15,8 @@ import {
 import api from '../utils/api';
 import GoogleCustomerReviewsOptIn from '../components/GoogleCustomerReviewsOptIn';
 
+const PAYMENT_SLIP_LOGO = '/Logo_on_payslip.png';
+
 const PaymentSuccess = ({ order: orderProp, paymentData: paymentDataProp, onClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -148,7 +150,9 @@ const PaymentSuccess = ({ order: orderProp, paymentData: paymentDataProp, onClos
             .receipt-container { max-width: 760px; margin: 0 auto; }
             .print-content { border: 1px solid #d1d5db; border-radius: 12px; overflow: hidden; background: #fff; }
             .receipt-header { display: flex; justify-content: space-between; gap: 24px; padding: 24px 26px; border-bottom: 3px solid #16a34a; }
-            .brand-name { margin: 0; color: #111827; font-size: 24px; font-weight: 800; }
+            .receipt-brand { display: flex; align-items: flex-start; gap: 12px; }
+            .brand-logo { width: 44px; height: 44px; border-radius: 999px; object-fit: contain; flex: 0 0 auto; }
+            .brand-name { margin: 0; color: #14532d; font-family: Torus, Arial, sans-serif; font-size: 24px; font-weight: 700; line-height: 1.1; }
             .brand-subtitle { margin: 3px 0 0; color: #4b5563; font-size: 12px; font-weight: 700; }
             .brand-address { margin: 4px 0 0; color: #6b7280; font-size: 10px; max-width: 430px; }
             .receipt-title-box { text-align: right; min-width: 190px; }
@@ -218,6 +222,7 @@ const PaymentSuccess = ({ order: orderProp, paymentData: paymentDataProp, onClos
       pdfMount.style.background = '#ffffff';
       pdfMount.style.zIndex = '-1';
 
+      const isMyanmarReceipt = i18n.language?.startsWith('my');
       const style = document.createElement('style');
       style.textContent = `
         #printable-content-pdf {
@@ -226,9 +231,9 @@ const PaymentSuccess = ({ order: orderProp, paymentData: paymentDataProp, onClos
           border-radius: 12px !important;
           background: #ffffff !important;
           color: #111827 !important;
-          font-family: Arial, "Noto Sans Myanmar", sans-serif !important;
-          font-size: 12px !important;
-          line-height: 1.42 !important;
+          font-family: "Myanmar Text", "Noto Sans Myanmar", Arial, sans-serif !important;
+          font-size: ${isMyanmarReceipt ? '11px' : '12px'} !important;
+          line-height: ${isMyanmarReceipt ? '1.55' : '1.42'} !important;
         }
         #printable-content-pdf .receipt-header {
           display: flex !important;
@@ -238,9 +243,12 @@ const PaymentSuccess = ({ order: orderProp, paymentData: paymentDataProp, onClos
           gap: 24px !important;
           padding: 22px 26px !important;
         }
-        #printable-content-pdf .brand-name { font-size: 22px !important; line-height: 1.1 !important; }
+        #printable-content-pdf .receipt-brand { display: flex !important; align-items: flex-start !important; gap: 12px !important; }
+        #printable-content-pdf .brand-logo { width: 44px !important; height: 44px !important; border-radius: 999px !important; object-fit: contain !important; flex: 0 0 auto !important; }
+        #printable-content-pdf .brand-name { color: #14532d !important; font-family: "Torus", Arial, sans-serif !important; font-size: 22px !important; font-weight: 700 !important; line-height: 1.1 !important; }
+        #printable-content-pdf .brand-address { font-size: ${isMyanmarReceipt ? '10px' : '11px'} !important; line-height: 1.5 !important; }
         #printable-content-pdf .receipt-title-box { min-width: 190px !important; text-align: right !important; }
-        #printable-content-pdf .receipt-title { font-size: 16px !important; line-height: 1.25 !important; }
+        #printable-content-pdf .receipt-title { font-size: ${isMyanmarReceipt ? '14px' : '16px'} !important; line-height: ${isMyanmarReceipt ? '1.45' : '1.25'} !important; }
         #printable-content-pdf .receipt-body { padding: 22px 26px 20px !important; }
         #printable-content-pdf .meta-grid {
           display: grid !important;
@@ -248,23 +256,24 @@ const PaymentSuccess = ({ order: orderProp, paymentData: paymentDataProp, onClos
           gap: 12px !important;
           margin-bottom: 20px !important;
         }
-        #printable-content-pdf .meta-label { font-size: 9px !important; letter-spacing: 0 !important; }
-        #printable-content-pdf .meta-value { font-size: 11px !important; line-height: 1.35 !important; }
+        #printable-content-pdf .meta-label { font-size: ${isMyanmarReceipt ? '8px' : '9px'} !important; letter-spacing: 0 !important; line-height: 1.35 !important; }
+        #printable-content-pdf .meta-value { font-size: ${isMyanmarReceipt ? '10px' : '11px'} !important; line-height: ${isMyanmarReceipt ? '1.5' : '1.35'} !important; }
         #printable-content-pdf .section-grid {
           display: grid !important;
           grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
           gap: 22px !important;
           margin-bottom: 20px !important;
         }
-        #printable-content-pdf .detail-list { font-size: 12px !important; line-height: 1.45 !important; }
+        #printable-content-pdf .section-title { font-size: ${isMyanmarReceipt ? '10px' : '11px'} !important; line-height: 1.4 !important; letter-spacing: 0 !important; }
+        #printable-content-pdf .detail-list { font-size: ${isMyanmarReceipt ? '11px' : '12px'} !important; line-height: ${isMyanmarReceipt ? '1.58' : '1.45'} !important; }
         #printable-content-pdf .receipt-table {
           width: 100% !important;
           min-width: 0 !important;
           table-layout: fixed !important;
-          font-size: 11px !important;
+          font-size: ${isMyanmarReceipt ? '10px' : '11px'} !important;
         }
         #printable-content-pdf .receipt-table th,
-        #printable-content-pdf .receipt-table td { padding: 8px 8px !important; }
+        #printable-content-pdf .receipt-table td { padding: ${isMyanmarReceipt ? '7px 7px' : '8px 8px'} !important; line-height: ${isMyanmarReceipt ? '1.5' : '1.35'} !important; }
         #printable-content-pdf .receipt-table th:first-child,
         #printable-content-pdf .receipt-table td:first-child { width: 48% !important; }
         #printable-content-pdf .summary-wrap {
@@ -272,15 +281,17 @@ const PaymentSuccess = ({ order: orderProp, paymentData: paymentDataProp, onClos
           break-inside: avoid !important;
           page-break-inside: avoid !important;
         }
-        #printable-content-pdf .summary-box { max-width: 285px !important; }
+        #printable-content-pdf .summary-box { max-width: 285px !important; font-size: ${isMyanmarReceipt ? '11px' : '12px'} !important; }
+        #printable-content-pdf .summary-total { font-size: ${isMyanmarReceipt ? '15px' : '17px'} !important; line-height: 1.45 !important; }
         #printable-content-pdf .receipt-footer {
+          font-size: ${isMyanmarReceipt ? '9px' : '10px'} !important;
+          line-height: 1.55 !important;
           margin-top: 18px !important;
           padding-top: 12px !important;
           break-inside: avoid !important;
           page-break-inside: avoid !important;
         }
       `;
-
       const clone = element.cloneNode(true);
       clone.id = 'printable-content-pdf';
 
@@ -291,6 +302,16 @@ const PaymentSuccess = ({ order: orderProp, paymentData: paymentDataProp, onClos
       if (document.fonts?.ready) {
         await document.fonts.ready;
       }
+
+      await Promise.all(
+        Array.from(clone.querySelectorAll('img')).map((img) => {
+          if (img.complete) return Promise.resolve();
+          return new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve;
+          });
+        })
+      );
 
       const canvas = await html2canvas(clone, {
         scale: 2,
@@ -468,10 +489,13 @@ const PaymentSuccess = ({ order: orderProp, paymentData: paymentDataProp, onClos
               <div className="bg-white p-3 sm:p-6">
                 <div id="printable-content" className="print-content overflow-hidden rounded-xl border border-gray-200 bg-white text-[13px] leading-relaxed text-gray-900 sm:text-sm">
                   <div className="receipt-header flex flex-col gap-5 border-b-[3px] border-green-600 px-5 py-5 sm:flex-row sm:items-start sm:justify-between sm:px-7 sm:py-6">
-                    <div>
-                      <p className="brand-name text-2xl font-extrabold text-gray-900">Pyonea</p>
-                      <p className="brand-subtitle mt-1 text-sm font-semibold text-gray-700">{t('payment_success.platform_name')}</p>
-                      <p className="brand-address mt-1 max-w-xl text-xs text-gray-500">{t('payment_success.platform_address')}</p>
+                    <div className="receipt-brand flex items-start gap-3">
+                      <img src={PAYMENT_SLIP_LOGO} alt="Pyonea" className="brand-logo h-11 w-11 flex-shrink-0 rounded-full object-contain" />
+                      <div>
+                        <p className="brand-name font-torus text-2xl font-semibold leading-none text-green-800">Pyonea</p>
+                        <p className="brand-subtitle mt-1 text-sm font-semibold text-gray-700">{t('payment_success.platform_name')}</p>
+                        <p className="brand-address mt-1 max-w-xl text-xs text-gray-500">{t('payment_success.platform_address')}</p>
+                      </div>
                     </div>
                     <div className="receipt-title-box text-left sm:min-w-48 sm:text-right">
                       <h1 className="receipt-title text-lg font-extrabold uppercase tracking-wide text-gray-900">
