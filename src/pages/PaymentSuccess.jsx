@@ -197,6 +197,8 @@ const PaymentSuccess = ({ order: orderProp, paymentData: paymentDataProp, onClos
 
   const handleDownloadPDF = async () => {
     setDownloading(true);
+    let pdfMount = null;
+
     try {
       const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
         import('jspdf'),
@@ -208,41 +210,133 @@ const PaymentSuccess = ({ order: orderProp, paymentData: paymentDataProp, onClos
         throw new Error(t('payment_success.print_missing'));
       }
 
-      const canvas = await html2canvas(element, {
+      pdfMount = document.createElement('div');
+      pdfMount.style.position = 'fixed';
+      pdfMount.style.left = '-10000px';
+      pdfMount.style.top = '0';
+      pdfMount.style.width = '760px';
+      pdfMount.style.background = '#ffffff';
+      pdfMount.style.zIndex = '-1';
+
+      const style = document.createElement('style');
+      style.textContent = `
+        #printable-content-pdf {
+          width: 760px !important;
+          max-width: 760px !important;
+          border-radius: 12px !important;
+          background: #ffffff !important;
+          color: #111827 !important;
+          font-family: Arial, "Noto Sans Myanmar", sans-serif !important;
+          font-size: 12px !important;
+          line-height: 1.42 !important;
+        }
+        #printable-content-pdf .receipt-header {
+          display: flex !important;
+          flex-direction: row !important;
+          align-items: flex-start !important;
+          justify-content: space-between !important;
+          gap: 24px !important;
+          padding: 22px 26px !important;
+        }
+        #printable-content-pdf .brand-name { font-size: 22px !important; line-height: 1.1 !important; }
+        #printable-content-pdf .receipt-title-box { min-width: 190px !important; text-align: right !important; }
+        #printable-content-pdf .receipt-title { font-size: 16px !important; line-height: 1.25 !important; }
+        #printable-content-pdf .receipt-body { padding: 22px 26px 20px !important; }
+        #printable-content-pdf .meta-grid {
+          display: grid !important;
+          grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+          gap: 12px !important;
+          margin-bottom: 20px !important;
+        }
+        #printable-content-pdf .meta-label { font-size: 9px !important; letter-spacing: 0 !important; }
+        #printable-content-pdf .meta-value { font-size: 11px !important; line-height: 1.35 !important; }
+        #printable-content-pdf .section-grid {
+          display: grid !important;
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          gap: 22px !important;
+          margin-bottom: 20px !important;
+        }
+        #printable-content-pdf .detail-list { font-size: 12px !important; line-height: 1.45 !important; }
+        #printable-content-pdf .receipt-table {
+          width: 100% !important;
+          min-width: 0 !important;
+          table-layout: fixed !important;
+          font-size: 11px !important;
+        }
+        #printable-content-pdf .receipt-table th,
+        #printable-content-pdf .receipt-table td { padding: 8px 8px !important; }
+        #printable-content-pdf .receipt-table th:first-child,
+        #printable-content-pdf .receipt-table td:first-child { width: 48% !important; }
+        #printable-content-pdf .summary-wrap {
+          margin-top: 16px !important;
+          break-inside: avoid !important;
+          page-break-inside: avoid !important;
+        }
+        #printable-content-pdf .summary-box { max-width: 285px !important; }
+        #printable-content-pdf .receipt-footer {
+          margin-top: 18px !important;
+          padding-top: 12px !important;
+          break-inside: avoid !important;
+          page-break-inside: avoid !important;
+        }
+      `;
+
+      const clone = element.cloneNode(true);
+      clone.id = 'printable-content-pdf';
+
+      pdfMount.appendChild(style);
+      pdfMount.appendChild(clone);
+      document.body.appendChild(pdfMount);
+
+      if (document.fonts?.ready) {
+        await document.fonts.ready;
+      }
+
+      const canvas = await html2canvas(clone, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
-        width: element.scrollWidth,
-        height: element.scrollHeight
+        windowWidth: 900,
+        width: clone.scrollWidth,
+        height: clone.scrollHeight,
       });
 
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 190;
-      const pageHeight = 277;
+      const margin = 10;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const usableWidth = pageWidth - margin * 2;
+      const usableHeight = pageHeight - margin * 2;
+      const imgWidth = usableWidth;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 10;
 
-      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      if (imgHeight <= usableHeight) {
+        pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
+      } else {
+        let heightLeft = imgHeight;
+        let position = margin;
 
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight + 10;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+        heightLeft -= usableHeight;
+
+        while (heightLeft > 0) {
+          position = margin - (imgHeight - heightLeft);
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+          heightLeft -= usableHeight;
+        }
       }
 
       pdf.save(`Payment_Slip_${getOrderNumber()}.pdf`);
     } catch (error) {
       alert(t('payment_success.pdf_failed'));
     } finally {
+      pdfMount?.remove();
       setDownloading(false);
     }
   };
-
   const handleShare = async () => {
     const url = window.location.href;
     const orderNumber = getOrderNumber();
