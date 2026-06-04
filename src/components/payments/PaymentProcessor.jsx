@@ -162,25 +162,6 @@ function QRPanel({ session, onExpired }) {
       <p className="text-center text-[11px] font-extrabold tracking-[0.16em] text-gray-700 dark:text-slate-200">
         PAYMENT POWERED BY MYANMYANPAY
       </p>
-
-      {/* QR string (copy) */}
-      {session.qr_string && (
-        <div className="w-full">
-          <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">QR data (if manual entry needed):</p>
-          <div className="flex gap-2">
-            <code className="flex-1 text-xs bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg px-3 py-2 truncate font-mono">
-              {session.qr_string}
-            </code>
-            <button
-              onClick={() => navigator.clipboard?.writeText(session.qr_string)}
-              className="shrink-0 text-xs px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-400"
-            >
-              Copy
-            </button>
-          </div>
-        </div>
-      )}
-
       {session.sandbox && (
         <div className="w-full text-center text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-lg py-2 px-3">
           ⚠ Sandbox / Development mode — no real payment will be processed

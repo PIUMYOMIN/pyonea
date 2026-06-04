@@ -1,7 +1,6 @@
 // components/admin/VerifiedSellerList.jsx
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import * as XLSX from "xlsx";
-import JSZip from "jszip";
 import {
   MagnifyingGlassIcon,
   ShieldCheckIcon,
@@ -243,6 +242,7 @@ const sellerExportBasenames = (seller) => {
 };
 
 async function downloadSellerProfileZip(seller) {
+  const JSZip = (await import("jszip")).default;
   const { xlsx: xlsxName, zip: zipName } = sellerExportBasenames(seller);
   const zip = new JSZip();
   const docsFolder = zip.folder("documents");
