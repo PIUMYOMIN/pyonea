@@ -47,24 +47,36 @@ const emptyValue = () => ({
 // ── helper ────────────────────────────────────────────────────────────────────
 
 const slugify = (str) =>
-  str.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+  String(str || "").toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "").replace(/-+/g, "-").replace(/^-|-$/g, "");
+
+const isValidSlug = (value) => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
 
 // ── sub-components ────────────────────────────────────────────────────────────
 
 const ValueRow = ({ optType, val, onChange, onRemove, t }) => (
   <div className="flex flex-col gap-2 py-1.5 group sm:flex-row sm:items-center">
-    <div className="min-w-0 flex-1 grid grid-cols-1 gap-2 sm:grid-cols-2">
+    <div className="min-w-0 flex-1 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
       {/* Label */}
       <input
         type="text"
         placeholder={t("product_form.options.value_label_placeholder")}
         value={val.label}
         onChange={(e) => {
-          onChange({ ...val, label: e.target.value, value: slugify(e.target.value) });
+          const label = e.target.value;
+          onChange({ ...val, label, value: val.value ? val.value : slugify(label) });
         }}
         className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
                    bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100
                    focus:ring-2 focus:ring-green-500 focus:border-transparent"
+      />
+      <input
+        type="text"
+        placeholder="English slug (e.g. red)"
+        value={val.value ?? ""}
+        onChange={(e) => onChange({ ...val, value: slugify(e.target.value) })}
+        className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                   bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100
+                   focus:ring-2 focus:ring-green-500"
       />
       {/* Hex colour / image URL */}
       {optType === "color" && (
@@ -98,22 +110,11 @@ const ValueRow = ({ optType, val, onChange, onRemove, t }) => (
                      focus:ring-2 focus:ring-green-500"
         />
       )}
-      {optType !== "color" && optType !== "image" && (
-        <input
-          type="text"
-          placeholder={t("product_form.options.slug_placeholder")}
-          value={val.value}
-          onChange={(e) => onChange({ ...val, value: slugify(e.target.value) })}
-          className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
-                     bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-400
-                     focus:ring-2 focus:ring-green-500"
-        />
-      )}
     </div>
     <button
       type="button"
       onClick={onRemove}
-      className="self-end p-1.5 text-gray-400 hover:text-red-500 rounded transition-opacity sm:self-auto sm:opacity-0 sm:group-hover:opacity-100"
+      className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center self-end rounded-lg text-gray-400 transition-opacity hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 sm:self-auto sm:opacity-0 sm:group-hover:opacity-100"
     >
       <TrashIcon className="h-4 w-4" />
     </button>
@@ -181,7 +182,7 @@ const OptionBlock = ({ option, onChange, onRemove, t }) => {
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onRemove(); }}
-          className="p-1.5 text-gray-400 hover:text-red-500 rounded"
+          className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20"
         >
           <TrashIcon className="h-4 w-4" />
         </button>
@@ -222,8 +223,7 @@ const OptionBlock = ({ option, onChange, onRemove, t }) => {
               <button
                 type="button"
                 onClick={addValue}
-                className="mt-2 flex items-center gap-1 text-sm text-green-600 dark:text-green-400
-                           hover:text-green-700 font-medium"
+                className="mt-2 inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-green-600 hover:bg-green-50 hover:text-green-700 dark:text-green-400 dark:hover:bg-green-900/20"
               >
                 <PlusIcon className="h-4 w-4" /> {t("product_form.options.add_value")}
               </button>
@@ -298,6 +298,16 @@ const ProductOptionsEditor = ({ productId, onSaved }) => {
           setError(t("product_form.options.error_value_label", { name: opt.name }));
           return;
         }
+
+        const valueSlug = slugify(v.value || v.label);
+        if (!valueSlug || !isValidSlug(valueSlug)) {
+          setError(t("product_form.options.error_value_slug", {
+            name: opt.name,
+            label: v.label,
+            defaultValue: 'Value "{{label}}" in option "{{name}}" needs an English slug using a-z, 0-9, or hyphen.',
+          }));
+          return;
+        }
       }
     }
 
@@ -311,7 +321,7 @@ const ProductOptionsEditor = ({ productId, onSaved }) => {
           is_required: opt.is_required,
           values: (opt.values ?? []).map((v, vi) => ({
             label:    v.label,
-            value:    v.value || slugify(v.label),
+            value:    slugify(v.value || v.label),
             meta:     Object.keys(v.meta ?? {}).length > 0 ? v.meta : null,
             position: vi + 1,
           })),
@@ -343,8 +353,7 @@ const ProductOptionsEditor = ({ productId, onSaved }) => {
         <button
           type="button"
           onClick={addOption}
-          className="flex items-center gap-1.5 px-3 py-2 bg-green-600 text-white
-                     rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+          className="inline-flex h-9 items-center justify-center gap-1.5 self-start rounded-lg bg-green-600 px-3 text-sm font-medium text-white transition-colors hover:bg-green-700 sm:self-auto"
         >
           <PlusIcon className="h-4 w-4" /> {t("product_form.options.add_option")}
         </button>
@@ -392,8 +401,7 @@ const ProductOptionsEditor = ({ productId, onSaved }) => {
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="w-full py-2.5 bg-green-600 text-white rounded-lg font-medium text-sm
-                     hover:bg-green-700 disabled:opacity-50 transition-colors"
+          className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-medium text-white transition-colors hover:bg-green-700 disabled:opacity-50"
         >
           {saving ? t("product_form.actions.saving") : t("product_form.options.save_options")}
         </button>

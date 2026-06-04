@@ -3667,7 +3667,7 @@
       "value_label_placeholder": "Label (ဥပမာ Red)",
       "slug_placeholder": "Slug (အလိုအလျောက်ဖြည့်မည်)",
       "pick_colour": "အရောင်ရွေးပါ",
-      "required": "မဖြစ်မနေ",
+      "required": "မဖြစ်မနေရွေးချယ်ရမည်",
       "label": "Label",
       "hex_colour": "Hex အရောင်",
       "image_url": "ပုံ URL",

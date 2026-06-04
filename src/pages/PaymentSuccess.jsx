@@ -1,4 +1,4 @@
-﻿// pages/PaymentSuccess.jsx
+// pages/PaymentSuccess.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -143,39 +143,40 @@ const PaymentSuccess = ({ order: orderProp, paymentData: paymentDataProp, onClos
         <head>
           <title>${t('payment_success.receipt_title_with_order', { orderNumber })}</title>
           <style>
-            @page { size: A4; margin: 16mm; }
+            @page { size: A4; margin: 14mm; }
             body { margin: 0; background: #fff; color: #111827; font-family: Arial, sans-serif; font-size: 12px; line-height: 1.45; }
-            .receipt-container { max-width: 760px; margin: 0 auto; padding: 0; }
-            .print-content { border: 1px solid #d1d5db; border-radius: 10px; overflow: hidden; }
-            .slip-header { display: flex; justify-content: space-between; gap: 24px; padding: 24px; border-bottom: 1px solid #d1d5db; background: #f9fafb; }
-            .slip-title { margin: 0 0 6px; color: #111827; font-size: 22px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
-            .slip-platform { margin: 0; color: #374151; font-size: 13px; font-weight: 700; }
-            .slip-address { margin: 4px 0 0; color: #6b7280; font-size: 11px; }
-            .slip-status { min-width: 170px; text-align: right; }
-            .paid-badge { display: inline-block; padding: 6px 12px; border-radius: 999px; background: #dcfce7; color: #166534; font-size: 11px; font-weight: 800; text-transform: uppercase; }
-            .slip-order-number { margin: 10px 0 0; color: #374151; font-size: 12px; font-weight: 700; }
-            .slip-body { padding: 24px; }
-            .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 22px; }
-            .info-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; }
-            .section-title { margin: 0 0 10px; color: #4b5563; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
-            .detail-list { display: grid; gap: 5px; }
-            .detail-row { margin: 0; color: #374151; }
-            .detail-label { color: #111827; font-weight: 700; }
-            .success-text { color: #16a34a; font-weight: 800; }
-            .items-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 11px; }
-            .items-table th { padding: 9px 10px; border-bottom: 1px solid #d1d5db; background: #f9fafb; color: #374151; font-weight: 800; }
-            .items-table td { padding: 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
-            .text-right { text-align: right; }
-            .text-center { text-align: center; }
+            .receipt-container { max-width: 760px; margin: 0 auto; }
+            .print-content { border: 1px solid #d1d5db; border-radius: 12px; overflow: hidden; background: #fff; }
+            .receipt-header { display: flex; justify-content: space-between; gap: 24px; padding: 24px 26px; border-bottom: 3px solid #16a34a; }
+            .brand-name { margin: 0; color: #111827; font-size: 24px; font-weight: 800; }
+            .brand-subtitle { margin: 3px 0 0; color: #4b5563; font-size: 12px; font-weight: 700; }
+            .brand-address { margin: 4px 0 0; color: #6b7280; font-size: 10px; max-width: 430px; }
+            .receipt-title-box { text-align: right; min-width: 190px; }
+            .receipt-title { margin: 0; color: #111827; font-size: 18px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+            .paid-badge { display: inline-block; margin-top: 8px; padding: 5px 11px; border-radius: 999px; background: #dcfce7; color: #166534; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+            .receipt-body { padding: 24px 26px 22px; }
+            .meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 22px; }
+            .meta-item { border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
+            .meta-label { margin: 0 0 3px; color: #6b7280; font-size: 9px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+            .meta-value { margin: 0; color: #111827; font-size: 11px; font-weight: 700; overflow-wrap: anywhere; }
+            .section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 22px; }
+            .section-title { margin: 0 0 8px; color: #111827; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+            .detail-list { display: grid; gap: 4px; color: #374151; font-size: 11px; }
+            .detail-list p { margin: 0; }
+            .receipt-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 11px; }
+            .receipt-table th { padding: 9px 8px; border-bottom: 1px solid #d1d5db; background: #f3f4f6; color: #374151; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+            .receipt-table td { padding: 10px 8px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
             .item-name { margin: 0; color: #111827; font-weight: 700; }
             .item-sku { margin: 3px 0 0; color: #6b7280; font-size: 10px; }
-            .summary-wrap { display: flex; justify-content: flex-end; margin-top: 18px; padding-top: 16px; border-top: 1px solid #d1d5db; }
-            .summary-box { width: 260px; }
-            .summary-row { display: flex; justify-content: space-between; gap: 16px; padding: 5px 0; color: #4b5563; }
-            .summary-total { margin-top: 6px; padding-top: 10px; border-top: 1px solid #d1d5db; color: #111827; font-size: 15px; font-weight: 800; }
+            .text-right { text-align: right; }
+            .text-center { text-align: center; }
+            .summary-wrap { display: flex; justify-content: flex-end; margin-top: 18px; }
+            .summary-box { width: 270px; border-top: 2px solid #111827; padding-top: 8px; }
+            .summary-row { display: flex; justify-content: space-between; gap: 18px; padding: 4px 0; color: #4b5563; }
+            .summary-total { margin-top: 6px; padding-top: 9px; border-top: 1px solid #d1d5db; color: #111827; font-size: 15px; font-weight: 800; }
             .summary-total span:last-child { color: #16a34a; }
-            .slip-footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center; color: #6b7280; font-size: 10px; }
-            .slip-footer p { margin: 4px 0; }
+            .receipt-footer { margin-top: 24px; padding-top: 14px; border-top: 1px solid #e5e7eb; text-align: center; color: #6b7280; font-size: 10px; }
+            .receipt-footer p { margin: 3px 0; }
             @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
           </style>
         </head>
@@ -372,137 +373,127 @@ const PaymentSuccess = ({ order: orderProp, paymentData: paymentDataProp, onClos
 
               <div className="bg-white p-3 sm:p-6">
                 <div id="printable-content" className="print-content overflow-hidden rounded-xl border border-gray-200 bg-white text-[13px] leading-relaxed text-gray-900 sm:text-sm">
-                  <div className="slip-header flex flex-col gap-4 border-b border-gray-200 bg-gray-50 p-5 sm:flex-row sm:items-start sm:justify-between sm:p-6">
+                  <div className="receipt-header flex flex-col gap-5 border-b-[3px] border-green-600 px-5 py-5 sm:flex-row sm:items-start sm:justify-between sm:px-7 sm:py-6">
                     <div>
-                      <h1 className="slip-title mb-1 text-xl font-extrabold uppercase tracking-wide text-gray-900 sm:text-2xl">
+                      <p className="brand-name text-2xl font-extrabold text-gray-900">Pyonea</p>
+                      <p className="brand-subtitle mt-1 text-sm font-semibold text-gray-700">{t('payment_success.platform_name')}</p>
+                      <p className="brand-address mt-1 max-w-xl text-xs text-gray-500">{t('payment_success.platform_address')}</p>
+                    </div>
+                    <div className="receipt-title-box text-left sm:min-w-48 sm:text-right">
+                      <h1 className="receipt-title text-lg font-extrabold uppercase tracking-wide text-gray-900">
                         {t('payment_success.receipt_heading')}
                       </h1>
-                      <p className="slip-platform text-sm font-semibold text-gray-700">{t('payment_success.platform_name')}</p>
-                      <p className="slip-address mt-1 max-w-xl text-xs text-gray-500">{t('payment_success.platform_address')}</p>
-                    </div>
-                    <div className="slip-status text-left sm:text-right">
-                      <span className="paid-badge inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-bold uppercase text-green-700">
+                      <span className="paid-badge mt-2 inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-bold uppercase text-green-700">
                         {t('payment_success.paid')}
                       </span>
-                      <p className="slip-order-number mt-2 text-xs font-semibold text-gray-700">
-                        {t('payment_success.order_number')}: {orderNumber}
-                      </p>
                     </div>
                   </div>
 
-                  <div className="slip-body p-5 sm:p-6">
-                    <div className="info-grid mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="info-card rounded-lg border border-gray-200 p-4">
-                      <h3 className="section-title mb-3 text-xs font-bold uppercase tracking-wide text-gray-500">
-                        {t('payment_success.order_information')}
+                  <div className="receipt-body p-5 sm:p-7">
+                    <div className="meta-grid mb-6 grid grid-cols-1 gap-3 sm:grid-cols-4">
+                      <div className="meta-item border-b border-gray-200 pb-2">
+                        <p className="meta-label mb-1 text-[10px] font-extrabold uppercase tracking-wide text-gray-500">{t('payment_success.order_number')}</p>
+                        <p className="meta-value break-words text-xs font-bold text-gray-900">{orderNumber}</p>
+                      </div>
+                      <div className="meta-item border-b border-gray-200 pb-2">
+                        <p className="meta-label mb-1 text-[10px] font-extrabold uppercase tracking-wide text-gray-500">{t('payment_success.order_date')}</p>
+                        <p className="meta-value text-xs font-bold text-gray-900">{formatDate(orderDetails?.created_at || order?.created_at)}</p>
+                      </div>
+                      <div className="meta-item border-b border-gray-200 pb-2">
+                        <p className="meta-label mb-1 text-[10px] font-extrabold uppercase tracking-wide text-gray-500">{t('payment_success.payment_method')}</p>
+                        <p className="meta-value text-xs font-bold text-gray-900">{formatPaymentMethod(orderDetails?.payment_method || order?.payment_method)}</p>
+                      </div>
+                      <div className="meta-item border-b border-gray-200 pb-2">
+                        <p className="meta-label mb-1 text-[10px] font-extrabold uppercase tracking-wide text-gray-500">{t('payment_success.reference_id')}</p>
+                        <p className="meta-value break-words text-xs font-bold text-gray-900">{getReferenceId()}</p>
+                      </div>
+                    </div>
+
+                    <div className="section-grid mb-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
+                      <section>
+                        <h3 className="section-title mb-2 text-xs font-extrabold uppercase tracking-wide text-gray-900">
+                          {t('payment_success.customer_information')}
+                        </h3>
+                        <div className="detail-list space-y-1 text-sm text-gray-700">
+                          <p className="font-semibold text-gray-900">{shippingAddress.full_name || emptyValue}</p>
+                          <p>{shippingAddress.phone || emptyValue}</p>
+                          <p className="text-xs text-gray-500">{shippingAddress.email || emptyValue}</p>
+                        </div>
+                      </section>
+
+                      <section>
+                        <h3 className="section-title mb-2 text-xs font-extrabold uppercase tracking-wide text-gray-900">
+                          {t('payment_success.shipping_address')}
+                        </h3>
+                        <div className="detail-list space-y-1 text-sm text-gray-700">
+                          <p>{shippingAddress.address || emptyValue}</p>
+                          <p>{[shippingAddress.township, shippingAddress.city, shippingAddress.state].filter(Boolean).join(', ') || emptyValue}</p>
+                          <p>{[shippingAddress.postal_code, shippingAddress.country].filter(Boolean).join(', ') || emptyValue}</p>
+                        </div>
+                      </section>
+                    </div>
+
+                    <section>
+                      <h3 className="section-title mb-3 text-xs font-extrabold uppercase tracking-wide text-gray-900">
+                        {t('payment_success.order_items')}
                       </h3>
-                      <div className="detail-list space-y-1.5">
-                        <p className="detail-row"><span className="detail-label font-semibold">{t('payment_success.order_number')}:</span> {orderNumber}</p>
-                        <p className="detail-row"><span className="detail-label font-semibold">{t('payment_success.order_date')}:</span> {formatDate(orderDetails?.created_at || order?.created_at)}</p>
-                        <p className="detail-row"><span className="detail-label font-semibold">{t('payment_success.status')}:</span> <span className="success-text font-semibold text-green-600">{t('payment_success.confirmed')}</span></p>
+                      {orderItems.length > 0 ? (
+                        <div className="overflow-x-auto">
+                          <table className="receipt-table w-full min-w-[560px] border-collapse text-xs sm:min-w-0 sm:text-[13px]">
+                            <thead>
+                              <tr className="border-b border-gray-300 bg-gray-100">
+                                <th className="px-3 py-2 text-left font-bold uppercase text-gray-700">{t('payment_success.item')}</th>
+                                <th className="px-3 py-2 text-center font-bold uppercase text-gray-700">{t('payment_success.qty')}</th>
+                                <th className="px-3 py-2 text-right font-bold uppercase text-gray-700">{t('payment_success.price')}</th>
+                                <th className="px-3 py-2 text-right font-bold uppercase text-gray-700">{t('payment_success.total')}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {orderItems.map((item, index) => (
+                                <tr key={index} className="border-b border-gray-100">
+                                  <td className="px-3 py-3">
+                                    <p className="item-name font-semibold text-gray-900">{item.product_name || t('payment_success.unknown_product')}</p>
+                                    <p className="item-sku mt-1 text-[11px] text-gray-500">{t('payment_success.sku')}: {item.product_sku || emptyValue}</p>
+                                  </td>
+                                  <td className="px-3 py-3 text-center">{item.quantity || 0}</td>
+                                  <td className="px-3 py-3 text-right">{formatMMK(item.price || 0)}</td>
+                                  <td className="px-3 py-3 text-right font-semibold">{formatMMK(item.subtotal || 0)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <p className="py-4 text-center text-gray-500">{t('payment_success.no_items')}</p>
+                      )}
+                    </section>
+
+                    <div className="summary-wrap mt-5 flex justify-end">
+                      <div className="summary-box w-full border-t-2 border-gray-900 pt-2 sm:max-w-xs">
+                        <div className="summary-row flex justify-between gap-4 py-1.5">
+                          <span className="text-gray-600">{t('payment_success.subtotal')}:</span>
+                          <span className="font-semibold">{formatMMK(totals.subtotal)}</span>
+                        </div>
+                        <div className="summary-row flex justify-between gap-4 py-1.5">
+                          <span className="text-gray-600">{t('payment_success.shipping')}:</span>
+                          <span className="font-semibold">{formatMMK(totals.shipping)}</span>
+                        </div>
+                        <div className="summary-row flex justify-between gap-4 py-1.5">
+                          <span className="text-gray-600">{t('payment_success.tax_with_rate', { rate: Number(totals.taxRate) * 100 })}:</span>
+                          <span className="font-semibold">{formatMMK(totals.tax)}</span>
+                        </div>
+                        <div className="summary-row summary-total mt-2 flex justify-between gap-4 border-t border-gray-300 pt-3 text-base font-extrabold sm:text-lg">
+                          <span>{t('payment_success.total_paid')}:</span>
+                          <span className="text-green-600">{formatMMK(totals.total)}</span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="info-card rounded-lg border border-gray-200 p-4">
-                      <h3 className="section-title mb-3 text-xs font-bold uppercase tracking-wide text-gray-500">
-                        {t('payment_success.payment_information')}
-                      </h3>
-                      <div className="detail-list space-y-1.5">
-                        <p className="detail-row"><span className="detail-label font-semibold">{t('payment_success.payment_method')}:</span> {formatPaymentMethod(orderDetails?.payment_method || order?.payment_method)}</p>
-                        <p className="detail-row"><span className="detail-label font-semibold">{t('payment_success.payment_date')}:</span> {formatDate(getPaymentDate())}</p>
-                        <p className="detail-row"><span className="detail-label font-semibold">{t('payment_success.reference_id')}:</span> {getReferenceId()}</p>
-                        <p className="detail-row"><span className="detail-label font-semibold">{t('payment_success.status')}:</span> <span className="success-text font-semibold text-green-600">{t('payment_success.paid')}</span></p>
-                      </div>
+                    <div className="receipt-footer mt-6 border-t border-gray-200 pt-4 text-center text-[11px] text-gray-500">
+                      <p className="mb-1 font-medium">{t('payment_success.footer_thanks')}</p>
+                      <p className="text-gray-400">{t('payment_success.generated_receipt')}</p>
+                      <p className="mt-1 text-gray-400">{t('payment_success.support_line')}</p>
                     </div>
-                  </div>
-
-                  <div className="info-grid mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="info-card rounded-lg border border-gray-200 p-4">
-                      <h3 className="section-title mb-3 text-xs font-bold uppercase tracking-wide text-gray-500">
-                        {t('payment_success.customer_information')}
-                      </h3>
-                      <div className="detail-list space-y-1.5">
-                        <p className="detail-row font-semibold">{shippingAddress.full_name || emptyValue}</p>
-                        <p className="detail-row">{shippingAddress.phone || emptyValue}</p>
-                        <p className="detail-row text-xs text-gray-600">{shippingAddress.email || emptyValue}</p>
-                      </div>
-                    </div>
-
-                    <div className="info-card rounded-lg border border-gray-200 p-4">
-                      <h3 className="section-title mb-3 text-xs font-bold uppercase tracking-wide text-gray-500">
-                        {t('payment_success.shipping_address')}
-                      </h3>
-                      <div className="detail-list space-y-1.5">
-                        <p className="detail-row">{shippingAddress.address || emptyValue}</p>
-                        <p className="detail-row">{[shippingAddress.city, shippingAddress.state].filter(Boolean).join(', ') || emptyValue}</p>
-                        <p className="detail-row">{[shippingAddress.postal_code, shippingAddress.country].filter(Boolean).join(', ') || emptyValue}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-6">
-                    <h3 className="section-title mb-3 text-xs font-bold uppercase tracking-wide text-gray-500">
-                      {t('payment_success.order_items')}
-                    </h3>
-                    {orderItems.length > 0 ? (
-                      <div className="overflow-x-auto">
-                      <table className="items-table w-full min-w-[560px] border-collapse text-xs sm:min-w-0 sm:text-[13px]">
-                        <thead>
-                          <tr className="border-b border-gray-300 bg-gray-50">
-                            <th className="px-3 py-2 text-left font-bold text-gray-700">{t('payment_success.item')}</th>
-                            <th className="px-3 py-2 text-center font-bold text-gray-700">{t('payment_success.qty')}</th>
-                            <th className="px-3 py-2 text-right font-bold text-gray-700">{t('payment_success.price')}</th>
-                            <th className="px-3 py-2 text-right font-bold text-gray-700">{t('payment_success.total')}</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {orderItems.map((item, index) => (
-                            <tr key={index} className="border-b border-gray-100">
-                              <td className="px-3 py-3">
-                                <div>
-                                  <p className="item-name font-semibold">{item.product_name || t('payment_success.unknown_product')}</p>
-                                  <p className="item-sku mt-1 text-[11px] text-gray-500">{t('payment_success.sku')}: {item.product_sku || emptyValue}</p>
-                                </div>
-                              </td>
-                              <td className="px-3 py-3 text-center">{item.quantity || 0}</td>
-                              <td className="px-3 py-3 text-right">{formatMMK(item.price || 0)}</td>
-                              <td className="px-3 py-3 text-right font-semibold">{formatMMK(item.subtotal || 0)}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                      </div>
-                    ) : (
-                      <p className="py-4 text-center text-gray-500">{t('payment_success.no_items')}</p>
-                    )}
-                    </div>
-
-                  <div className="summary-wrap flex justify-end border-t border-gray-200 pt-4">
-                    <div className="summary-box w-full sm:max-w-xs">
-                      <div className="summary-row flex justify-between gap-4 py-1.5">
-                        <span className="text-gray-600">{t('payment_success.subtotal')}:</span>
-                        <span className="font-semibold">{formatMMK(totals.subtotal)}</span>
-                      </div>
-                      <div className="summary-row flex justify-between gap-4 py-1.5">
-                        <span className="text-gray-600">{t('payment_success.shipping')}:</span>
-                        <span className="font-semibold">{formatMMK(totals.shipping)}</span>
-                      </div>
-                      <div className="summary-row flex justify-between gap-4 py-1.5">
-                        <span className="text-gray-600">{t('payment_success.tax_with_rate', { rate: Number(totals.taxRate) * 100 })}:</span>
-                        <span className="font-semibold">{formatMMK(totals.tax)}</span>
-                      </div>
-                      <div className="summary-row summary-total mt-2 flex justify-between gap-4 border-t border-gray-200 pt-3 text-base font-extrabold sm:text-lg">
-                        <span>{t('payment_success.total_paid')}:</span>
-                        <span className="text-green-600">{formatMMK(totals.total)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="slip-footer mt-6 border-t border-gray-200 pt-4 text-center text-[11px] text-gray-500">
-                    <p className="mb-1 font-medium">{t('payment_success.footer_thanks')}</p>
-                    <p className="text-gray-400">{t('payment_success.generated_receipt')}</p>
-                    <p className="mt-1 text-gray-400">{t('payment_success.support_line')}</p>
-                  </div>
                   </div>
                 </div>
               </div>

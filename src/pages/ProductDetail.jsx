@@ -109,7 +109,7 @@ const getMaxValidQuantity = (availableStock, moq, step, isPhysical) => {
   if (!Number.isFinite(stock) || stock <= 0) return 0;
 
   const safeMoq = toPositiveInt(moq, 1);
-  if (stock < safeMoq) return safeMoq;
+  if (stock < safeMoq) return 0;
 
   const safeStep = toPositiveInt(step, safeMoq);
   if (safeStep <= 1) return stock;
@@ -375,14 +375,17 @@ const ProductDetail = () => {
     product?.seller?.status === "approved" ||
     product?.seller?.status === "active";
 
+  const stockBelowMoq = product?.product_type === "physical" && variantReady && availableStock > 0 && availableStock < effectiveMoq;
   const stockText = product?.product_type === "physical"
     ? (variantReady
-        ? (availableStock > 0
-            ? t("productDetail.in_stock_count", { count: availableStock })
-            : t("productDetail.out_of_stock"))
+        ? (stockBelowMoq
+            ? t("productDetail.stock_limit_error", { stock: availableStock, unit: product?.quantity_unit ?? t("productDetail.units") })
+            : availableStock > 0
+              ? t("productDetail.in_stock_count", { count: availableStock })
+              : t("productDetail.out_of_stock"))
         : t("productDetail.select_options_for_stock"))
     : t("productDetail.available");
-  const stockIsOut = product?.product_type === "physical" && variantReady && availableStock === 0;
+  const stockIsOut = product?.product_type === "physical" && variantReady && availableStock < effectiveMoq;
 
   const primaryCtaLabel =
     addingToCart        ? t("productDetail.adding")

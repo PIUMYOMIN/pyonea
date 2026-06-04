@@ -274,7 +274,8 @@ const OrderCard = ({ order, onViewDetails, onCancel, onPaySlip }) => {
   const firstItem  = order.items?.[0] || {};
   const images     = firstItem.product_data?.images || [];
   const thumb      = getImageUrl(images.find((i) => i.is_primary) || images[0]);
-  const canCancel  = ["pending", "confirmed"].includes(order.status);
+  const isCancelableStatus = ["pending", "confirmed"].includes(order.status);
+  const canCancel  = isCancelableStatus && order.payment_status !== "paid";
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 hover:shadow-md transition p-4">
@@ -310,9 +311,16 @@ const OrderCard = ({ order, onViewDetails, onCancel, onPaySlip }) => {
               <PrinterIcon className="h-3.5 w-3.5" />{t("buyer_dashboard.pay_slip")}
             </button>
           )}
-          {canCancel && (
-            <button onClick={() => onCancel(order)}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50">
+          {isCancelableStatus && (
+            <button
+              onClick={() => canCancel && onCancel(order)}
+              disabled={!canCancel}
+              className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium border rounded-lg ${
+                canCancel
+                  ? "text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700 hover:bg-red-100 dark:hover:bg-red-900/50"
+                  : "cursor-not-allowed text-gray-400 dark:text-slate-500 bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700 opacity-60"
+              }`}
+            >
               <XCircleIcon className="h-3.5 w-3.5" />{t("buyer_dashboard.cancel")}
             </button>
           )}
@@ -1588,7 +1596,11 @@ const BuyerDashboard = () => {
   };
 
   const handleViewDetails = (order) => { setSelectedOrder(order); setIsModalOpen(true); };
-  const handleCancel      = (order) => { setCancelModal(order); setCancelError(null); };
+  const handleCancel = (order) => {
+    if (order.payment_status === "paid") return;
+    setCancelModal(order);
+    setCancelError(null);
+  };
 
   const renderTab = () => {
     const key = TABS[activeTab]?.id;

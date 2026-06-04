@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import api from "../utils/api";
 import { getImageUrl } from "../utils/imageHelpers";
 import { useTheme } from '../context/ThemeContext';
+import { CheckCircleIcon } from '@heroicons/react/24/solid';
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
 const ORDER_STEPS = [
@@ -96,60 +97,78 @@ const StepBar = ({ steps, current, t }) => {
   const activeIdx = cancelled ? -1 : steps.findIndex((s) => s.key === current);
 
   return (
-    <div className="flex items-start gap-0 w-full">
-      {steps.map((step, i) => {
-        const done    = !cancelled && i < activeIdx;
-        const active  = !cancelled && i === activeIdx;
-        const future  = cancelled || i > activeIdx;
+    <div className="w-full">
+      {/* Mobile */}
+      <div className="sm:hidden">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-semibold text-gray-800 dark:text-slate-200">
+            {activeIdx >= 0 ? t(steps[activeIdx].labelKey, steps[activeIdx].key) : t("order_tracking.status_unavailable", "Status unavailable")}
+          </span>
+          <span className="text-xs font-bold text-green-700 dark:text-green-400">
+            {activeIdx >= 0 ? t("order_tracking.step_count", "Step {{current}} of {{total}}", { current: activeIdx + 1, total: steps.length }) : t("order_tracking.not_active", "Not active")}
+          </span>
+        </div>
+        <div className="flex gap-1.5">
+          {steps.map((step, index) => {
+            const done = !cancelled && activeIdx >= 0 && index < activeIdx;
+            const active = !cancelled && index === activeIdx;
 
-        return (
-          <div key={step.key} className="flex-1 flex flex-col items-center relative">
-            {/* connector left */}
-            {i > 0 && (
+            return (
               <div
-                className={`absolute left-0 top-5 h-0.5 w-1/2 transition-colors duration-500 ${
-                  done ? "bg-green-500" : "bg-gray-200"
+                key={step.key}
+                className={`flex-1 h-2 rounded-full transition-all ${
+                  active ? "bg-green-500" : done ? "bg-green-400" : "bg-gray-200 dark:bg-slate-600"
                 }`}
+                aria-label={t(step.labelKey, step.key)}
               />
-            )}
-            {/* connector right */}
-            {i < steps.length - 1 && (
-              <div
-                className={`absolute right-0 top-5 h-0.5 w-1/2 transition-colors duration-500 ${
-                  done || active ? "bg-green-500" : "bg-gray-200"
-                }`}
-              />
-            )}
+            );
+          })}
+        </div>
+      </div>
 
-            {/* circle */}
-            <div
-              className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center text-lg border-2 transition-all duration-300 ${
-                cancelled
-                  ? "bg-red-50 border-red-200 opacity-40"
-                  : done
-                  ? "bg-green-500 border-green-500"
-                  : active
-                  ? "bg-white border-green-500 scale-110"
-                  : "bg-gray-50 border-gray-200 opacity-50"
-              }`}
-            >
-              {done ? "✓" : step.icon}
-            </div>
+      {/* Desktop */}
+      <div className="hidden sm:flex items-start">
+        {steps.map((step, index) => {
+          const done = !cancelled && activeIdx >= 0 && index < activeIdx;
+          const active = !cancelled && index === activeIdx;
+          const last = index === steps.length - 1;
 
-            <p
-              className={`mt-2 text-center text-[11px] sm:text-xs font-medium leading-tight px-1 ${
-                active ? "text-green-700" : done ? "text-gray-700" : "text-gray-400"
-              }`}
-            >
-              {t(step.labelKey, step.key)}
-            </p>
-          </div>
-        );
-      })}
+          return (
+            <React.Fragment key={step.key}>
+              <div className="flex flex-col items-center flex-shrink-0">
+                <div className={`w-9 h-9 rounded-full border-2 flex items-center justify-center font-semibold text-sm transition-all ${
+                  active
+                    ? "border-green-500 bg-green-500 text-white shadow shadow-green-200 dark:shadow-green-900/30"
+                    : done
+                      ? "border-green-400 bg-green-400 text-white"
+                      : "border-gray-300 dark:border-slate-600 text-gray-400 dark:text-slate-500 bg-white dark:bg-slate-800"
+                }`}>
+                  {done ? <CheckCircleIcon className="h-5 w-5" /> : index + 1}
+                </div>
+                <span className={`mt-1.5 text-[11px] font-medium text-center leading-tight w-20 break-words ${
+                  active
+                    ? "text-green-700 dark:text-green-400"
+                    : done
+                      ? "text-gray-600 dark:text-slate-400"
+                      : "text-gray-400 dark:text-slate-500"
+                }`}>
+                  {t(step.labelKey, step.key)}
+                </span>
+              </div>
+              {!last && (
+                <div className="flex-1 mt-4 mx-2">
+                  <div className={`h-0.5 rounded-full transition-colors ${
+                    done ? "bg-green-400" : "bg-gray-200 dark:bg-slate-700"
+                  }`} />
+                </div>
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>
     </div>
   );
 };
-
 // ─── Main Component ───────────────────────────────────────────────────────────
 const OrderTracking = () => {
   const { t } = useTranslation();
