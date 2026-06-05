@@ -46,6 +46,8 @@
     "recaptcha_not_ready": "Security check is still loading. Please wait a moment and try again."
   },
   "common": {
+    "cancel": "Cancel",
+    "close": "Close",
     "currency": {
       "mmk": "MMK"
     }
@@ -2734,6 +2736,12 @@
     "remove_wishlist_confirm": "Remove this item from your wishlist?",
     "full_name": "Full Name",
     "email": "Email",
+    "verify_email_title": "Confirm your email address",
+    "verify_email_desc": "You can keep shopping now, but verifying your email helps protect your account and order updates.",
+    "resend_verification_email": "Resend email",
+    "email_verification_sent": "Verification email sent. Please check your inbox.",
+    "email_verification_failed": "Could not send verification email. Please try again later.",
+    "sending": "Sending...",
     "phone": "Phone",
     "address": "Address",
     "current_password": "Current Password",

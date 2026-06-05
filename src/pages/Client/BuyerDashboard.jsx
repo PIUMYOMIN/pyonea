@@ -283,36 +283,36 @@ const OrderCard = ({ order, onViewDetails, onCancel, onPaySlip, onConfirmDeliver
     && (order.status === "shipped" || ["out_for_delivery", "delivered"].includes(deliveryStatus));
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 hover:shadow-md transition p-4">
-      <div className="flex items-start gap-3">
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 hover:shadow-md transition p-3 sm:p-4 min-w-0">
+      <div className="flex items-start gap-3 min-w-0">
         <img loading="lazy" src={thumb} alt={firstItem.product_name || t("buyer_dashboard.product")}
           className="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-lg flex-shrink-0"
           onError={(e) => { e.target.src = "/placeholder-product.jpg"; }} />
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <h3 className="font-medium text-gray-900 dark:text-slate-100 text-sm">{t("buyer_dashboard.order_number")}{order.order_number}</h3>
+          <div className="flex flex-col min-[420px]:flex-row min-[420px]:items-start min-[420px]:justify-between gap-2 min-w-0">
+            <div className="min-w-0">
+              <h3 className="font-medium text-gray-900 dark:text-slate-100 text-sm break-words">{t("buyer_dashboard.order_number")}{order.order_number}</h3>
               <p className="text-xs text-gray-500 dark:text-slate-500 mt-0.5">
                 {t("buyer_dashboard.item_count", { count: order.items?.length || 0 })} · {formatDate(order.created_at)}
               </p>
               {(order.store_name || order.seller?.store_name) && (
-                <p className="text-xs text-gray-500 dark:text-slate-500 flex items-center gap-1 mt-0.5">
-                  <BuildingStorefrontIcon className="h-3 w-3" />
+                <p className="text-xs text-gray-500 dark:text-slate-500 flex items-center gap-1 mt-0.5 min-w-0 break-words">
+                  <BuildingStorefrontIcon className="h-3 w-3 flex-shrink-0" />
                   {order.store_name || order.seller?.store_name}
                 </p>
               )}
             </div>
-            <StatusBadge status={order.status} />
+            <div className="self-start min-[420px]:self-auto flex-shrink-0"><StatusBadge status={order.status} /></div>
           </div>
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+      <div className="mt-3 flex flex-col min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between gap-2">
         <span className="text-sm font-bold text-green-600">{formatMMK(order.total_amount)}</span>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="grid grid-cols-2 min-[420px]:flex min-[420px]:flex-wrap gap-1.5 w-full min-[420px]:w-auto">
           {onPaySlip && (
             <button onClick={() => onPaySlip(order)}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50">
+              className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 text-xs font-medium text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50">
               <PrinterIcon className="h-3.5 w-3.5" />{t("buyer_dashboard.pay_slip")}
             </button>
           )}
@@ -320,7 +320,7 @@ const OrderCard = ({ order, onViewDetails, onCancel, onPaySlip, onConfirmDeliver
             <button
               onClick={() => onConfirmDelivery(order)}
               disabled={confirmingDelivery === order.id}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 disabled:opacity-60"
             >
               {confirmingDelivery === order.id
                 ? <ArrowPathIcon className="h-3.5 w-3.5 animate-spin" />
@@ -332,7 +332,7 @@ const OrderCard = ({ order, onViewDetails, onCancel, onPaySlip, onConfirmDeliver
             <button
               onClick={() => canCancel && onCancel(order)}
               disabled={!canCancel}
-              className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium border rounded-lg ${
+              className={`inline-flex items-center justify-center gap-1 px-2.5 py-1.5 text-xs font-medium border rounded-lg ${
                 canCancel
                   ? "text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700 hover:bg-red-100 dark:hover:bg-red-900/50"
                   : "cursor-not-allowed text-gray-400 dark:text-slate-500 bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700 opacity-60"
@@ -342,7 +342,7 @@ const OrderCard = ({ order, onViewDetails, onCancel, onPaySlip, onConfirmDeliver
             </button>
           )}
           <button onClick={() => onViewDetails(order)}
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/50">
+            className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 text-xs font-medium text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/50">
             <EyeIcon className="h-3.5 w-3.5" />{t("buyer_dashboard.details")}
           </button>
         </div>
@@ -918,10 +918,10 @@ const WishlistTab = ({ navigate }) => {
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm dark:shadow-slate-900/50 p-5 sm:p-6">
       {removeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl p-6 max-w-xs w-full mx-4">
             <p className="text-sm font-medium text-gray-900 dark:text-slate-100 mb-4">{t("buyer_dashboard.remove_wishlist_confirm")}</p>
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
               <button onClick={() => setRemoveModal(null)} className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm">{t("common.cancel", "Cancel")}</button>
               <button onClick={confirmRemove} disabled={removing}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm disabled:opacity-50">
@@ -1428,10 +1428,10 @@ const SettingsTab = ({ user, onUpdate }) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-1 border-b border-gray-100 dark:border-slate-800">
+      <div className="flex gap-1 border-b border-gray-100 dark:border-slate-800 overflow-x-auto overflow-y-hidden pb-px no-scrollbar">
         {subTabs.map(t => (
           <button key={t.id} onClick={() => setSection(t.id)}
-            className={`px-4 py-2.5 text-sm font-medium rounded-t-xl transition-colors
+            className={`flex-shrink-0 px-3 sm:px-4 py-2.5 text-sm font-medium rounded-t-xl transition-colors whitespace-nowrap
               ${section === t.id 
                 ? "bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-green-700 dark:text-green-400" 
                 : "text-gray-500 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300"}`}>
@@ -1676,23 +1676,23 @@ const BuyerDashboard = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-slate-900 dark:to-slate-900">
+    <div className="flex h-dvh min-h-screen overflow-hidden bg-gradient-to-br from-green-50 to-blue-50 dark:from-slate-900 dark:to-slate-900">
 
       {/* ── Cancel Confirm Modal ── */}
       {cancelModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-5 sm:p-6 max-w-sm w-full">
             <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100 mb-2">{t("buyer_dashboard.cancel_order")}</h3>
             <p className="text-sm text-gray-600 dark:text-slate-400 mb-1">
               {t("buyer_dashboard.cancel_order_question", { order: cancelModal.order_number })}
             </p>
             <p className="text-xs text-gray-500 dark:text-slate-500 mb-4">{t("buyer_dashboard.cancel_order_warning")}</p>
             {cancelError && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{cancelError}</div>}
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
               <button onClick={() => { setCancelModal(null); setCancelError(null); }} disabled={cancelling}
-                className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-slate-300 disabled:opacity-50">{t("buyer_dashboard.keep_order")}</button>
+                className="w-full sm:w-auto px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-slate-300 disabled:opacity-50">{t("buyer_dashboard.keep_order")}</button>
               <button onClick={handleCancelOrder} disabled={cancelling}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50">
+                className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50">
                 {cancelling ? t("buyer_dashboard.cancelling") : t("buyer_dashboard.cancel_order")}
               </button>
             </div>
@@ -1703,7 +1703,7 @@ const BuyerDashboard = () => {
       {/* ── Mobile sidebar overlay ── */}
       {sidebarOpen && (
         <div className="md:hidden fixed inset-0 z-30 bg-black/50" onClick={() => setSidebarOpen(false)}>
-          <div className="fixed inset-y-0 left-0 w-72 bg-white dark:bg-slate-800 shadow-xl overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-y-0 left-0 w-[min(18rem,calc(100vw-2rem))] bg-white dark:bg-slate-800 shadow-xl overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="pt-6 pb-4 px-4">
               <div className="flex items-center justify-between mb-6 px-2">
                 <div className="flex items-center gap-3">
@@ -1801,16 +1801,16 @@ const BuyerDashboard = () => {
       </div>
 
       {/* ── Main content ── */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
 
         {/* Top bar */}
-        <div className="flex-shrink-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-gray-200/60 dark:border-slate-700/60 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+        <div className="flex-shrink-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-gray-200/60 dark:border-slate-700/60 px-4 py-3 pl-16 sm:px-6 sm:py-4 md:pl-6">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="truncate text-lg sm:text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
                 {t("buyer_dashboard.title")}
               </h1>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-500 mt-0.5">{t("buyer_dashboard.title_subtitle")}</p>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-500 mt-0.5 line-clamp-2 sm:line-clamp-1">{t("buyer_dashboard.title_subtitle")}</p>
             </div>
             <NotificationBell onClick={() => {
               const idx = TABS.findIndex((item) => item.id === "notifications");
@@ -1820,11 +1820,11 @@ const BuyerDashboard = () => {
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <div className="p-4 sm:p-6">
+          <div className="p-3 sm:p-6 max-w-full overflow-x-hidden">
 
             {/* Mobile scrollable tab bar */}
             <div className="md:hidden mb-5">
-              <div className="flex gap-1.5 rounded-2xl bg-white/80 dark:bg-slate-800/90 backdrop-blur-lg p-1.5 shadow-lg overflow-x-auto no-scrollbar">
+              <div className="flex gap-1.5 rounded-2xl bg-white/80 dark:bg-slate-800/90 backdrop-blur-lg p-1.5 shadow-lg overflow-x-auto overscroll-x-contain no-scrollbar">
                 {TABS.map((tab, idx) => (
                   <button key={tab.id} onClick={() => { setActiveTab(idx); }}
                     className={classNames("flex-shrink-0 rounded-xl py-2.5 px-3 text-xs font-medium transition-all focus:outline-none",
