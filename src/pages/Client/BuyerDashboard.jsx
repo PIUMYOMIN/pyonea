@@ -276,6 +276,11 @@ const OrderCard = ({ order, onViewDetails, onCancel, onPaySlip, onConfirmDeliver
   const thumb      = getImageUrl(images.find((i) => i.is_primary) || images[0]);
   const isCancelableStatus = ["pending", "confirmed"].includes(order.status);
   const canCancel  = isCancelableStatus && order.payment_status !== "paid";
+  const deliveryStatus = order.delivery?.status;
+  const canConfirmDelivery = onConfirmDelivery
+    && order.status !== "delivered"
+    && order.status !== "cancelled"
+    && (order.status === "shipped" || ["out_for_delivery", "delivered"].includes(deliveryStatus));
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 hover:shadow-md transition p-4">
