@@ -54,10 +54,10 @@ const SalesReports = ({ refreshData }) => {
     setExporting(true);
     try {
       const rows = [
-        ["Date", "Revenue (MMK)", "Orders"],
+        [t("seller.sales.export.date"), t("seller.sales.export.revenue_mmk"), t("seller.sales.export.orders")],
         ...data.map(d => [d.month, mmkCell(d.sales), d.orders]),
       ];
-      await exportToExcel(rows, "Sales Trend", `pyonea-sales-trend-${todayStr()}.xlsx`);
+      await exportToExcel(rows, t("seller.sales.export.sales_trend_sheet"), `pyonea-sales-trend-${todayStr()}.xlsx`);
     } catch (e) { alert(e.message); } finally { setExporting(false); }
   };
 
@@ -65,10 +65,10 @@ const SalesReports = ({ refreshData }) => {
     setExporting(true);
     try {
       const rows = [
-        ["Product Name", "Units Sold", "Revenue (MMK)"],
+        [t("seller.sales.export.product_name"), t("seller.sales.export.units_sold"), t("seller.sales.export.revenue_mmk")],
         ...salesData.topProducts.map(p => [p.name, p.sales, mmkCell(p.revenue)]),
       ];
-      await exportToExcel(rows, "Top Products", `pyonea-top-products-${todayStr()}.xlsx`);
+      await exportToExcel(rows, t("seller.sales.export.top_products_sheet"), `pyonea-top-products-${todayStr()}.xlsx`);
     } catch (e) { alert(e.message); } finally { setExporting(false); }
   };
 
@@ -76,22 +76,22 @@ const SalesReports = ({ refreshData }) => {
     setExporting(true);
     try {
       const summary = [
-        ["Pyonea Seller Revenue Report", `Exported: ${new Date().toLocaleString()}`],
+        [t("seller.sales.export.report_title"), `${t("seller.sales.export.exported")}: ${new Date().toLocaleString()}`],
         [],
-        ["SUMMARY"],
-        ["Total Sales (MMK)", mmkCell(salesData.summary.totalSales)],
-        ["Total Orders", salesData.summary.totalOrders],
-        ["New Customers", salesData.summary.newCustomers],
+        [t("seller.sales.export.summary")],
+        [t("seller.sales.export.total_sales_mmk"), mmkCell(salesData.summary.totalSales)],
+        [t("seller.sales.total_orders"), salesData.summary.totalOrders],
+        [t("seller.sales.new_customers"), salesData.summary.newCustomers],
         [],
-        ["SALES TREND"],
-        ["Date", "Revenue (MMK)", "Orders"],
+        [t("seller.sales.export.sales_trend")],
+        [t("seller.sales.export.date"), t("seller.sales.export.revenue_mmk"), t("seller.sales.export.orders")],
         ...data.map(d => [d.month, mmkCell(d.sales), d.orders]),
         [],
-        ["TOP PRODUCTS"],
-        ["Product Name", "Units Sold", "Revenue (MMK)"],
+        [t("seller.sales.export.top_products")],
+        [t("seller.sales.export.product_name"), t("seller.sales.export.units_sold"), t("seller.sales.export.revenue_mmk")],
         ...salesData.topProducts.map(p => [p.name, p.sales, mmkCell(p.revenue)]),
       ];
-      await exportToExcel(summary, "Full Report", `pyonea-full-report-${todayStr()}.xlsx`);
+      await exportToExcel(summary, t("seller.sales.export.full_report_sheet"), `pyonea-full-report-${todayStr()}.xlsx`);
     } catch (e) { alert(e.message); } finally { setExporting(false); }
   };
 
@@ -136,13 +136,13 @@ const SalesReports = ({ refreshData }) => {
             }
           });
         } else {
-          throw new Error(summaryResponse.data.message || "Failed to fetch sales summary");
+          throw new Error(summaryResponse.data.message || t("seller.sales.errors.summary_failed"));
         }
 
         if (topProductsResponse.data.success) {
           const topProducts = topProductsResponse.data.data.map(product => ({
             id: product.id,
-            name: product.name || "Unnamed Product",
+            name: product.name || t("seller.sales.unnamed_product"),
             sales: product.total_sold || 0,
             revenue: parseFloat(product.total_revenue) || 0
           }));
@@ -152,12 +152,12 @@ const SalesReports = ({ refreshData }) => {
             topProducts
           }));
         } else {
-          throw new Error(topProductsResponse.data.message || "Failed to fetch top products");
+          throw new Error(topProductsResponse.data.message || t("seller.sales.errors.top_products_failed"));
         }
 
       } catch (error) {
         console.error("Failed to fetch sales data:", error);
-        setError(error.message || "Failed to load sales data");
+        setError(error.message || t("seller.sales.errors.load_failed"));
         setSalesData({
           monthlyData: [],
           weeklyData: [],
@@ -197,13 +197,13 @@ const SalesReports = ({ refreshData }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2">Error Loading Data</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2">{t("seller.sales.error_loading_data")}</h3>
           <p className="text-gray-600 dark:text-slate-400 mb-4">{error}</p>
           <button
             onClick={() => refreshData?.()}
             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
           >
-            Retry
+            {t("seller.sales.retry")}
           </button>
         </div>
       </div>
@@ -246,20 +246,20 @@ const SalesReports = ({ refreshData }) => {
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
-              {exporting ? "Exporting…" : "Export"}
+              {exporting ? t("seller.sales.exporting") : t("seller.sales.export_label")}
               <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
             </button>
             <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-slate-700 rounded-lg shadow-lg border border-gray-100 dark:border-slate-600 z-10 hidden group-hover:block">
               <button onClick={handleExportFull} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-600 rounded-t-lg">
-                Full Report (.xlsx)
+                {t("seller.sales.full_report_xlsx")}
               </button>
               <button onClick={handleExportSalesTrend} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-600">
-                Sales Trend only
+                {t("seller.sales.sales_trend_only")}
               </button>
               <button onClick={handleExportTopProducts} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-600 rounded-b-lg">
-                Top Products only
+                {t("seller.sales.top_products_only")}
               </button>
             </div>
           </div>
@@ -367,21 +367,21 @@ const SalesReports = ({ refreshData }) => {
                     stroke="#10B981"
                     strokeWidth={2}
                     activeDot={{ r: 6 }}
-                    name={t("seller.sales_amount")}
+                    name={t("seller.sales.sales_amount")}
                   />
                   <Line
                     type="monotone"
                     dataKey="orders"
                     stroke="#3B82F6"
                     strokeWidth={2}
-                    name={t("seller.order_count")}
+                    name={t("seller.sales.order_count")}
                   />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-gray-500 dark:text-slate-400">
                 <ChartBarIcon className="h-12 w-12 mb-3" />
-                <p>No sales data available</p>
+                <p>{t("seller.sales.no_sales_data")}</p>
               </div>
             )}
           </div>
@@ -426,7 +426,7 @@ const SalesReports = ({ refreshData }) => {
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-gray-500 dark:text-slate-400">
                 <ChartBarIcon className="h-12 w-12 mb-3" />
-                <p>No product data available</p>
+                <p>{t("seller.sales.no_product_data")}</p>
               </div>
             )}
           </div>
@@ -479,7 +479,7 @@ const SalesReports = ({ refreshData }) => {
                             {product.name}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-slate-400">
-                            ID: {product.id}
+                            {t("seller.sales.product_id", { id: product.id })}
                           </div>
                         </div>
                       </div>
@@ -489,7 +489,7 @@ const SalesReports = ({ refreshData }) => {
                         {product.sales}
                       </div>
                       <div className="text-sm text-gray-500 dark:text-slate-400">
-                        units
+                        {t("seller.sales.units")}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -497,7 +497,7 @@ const SalesReports = ({ refreshData }) => {
                         {product.revenue.toLocaleString()} {t("common.currency.mmk", "MMK")}
                       </div>
                       <div className="text-sm text-gray-500 dark:text-slate-400">
-                        revenue
+                        {t("seller.sales.revenue_label")}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -507,7 +507,7 @@ const SalesReports = ({ refreshData }) => {
                             ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
                             : 'bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-slate-300'
                         }`}>
-                        {product.sales > 80 ? 'High' : product.sales > 50 ? 'Medium' : 'Low'}
+                        {product.sales > 80 ? t("seller.sales.performance_high") : product.sales > 50 ? t("seller.sales.performance_medium") : t("seller.sales.performance_low")}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
