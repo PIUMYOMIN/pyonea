@@ -378,6 +378,10 @@ const AdminDashboard = () => {
     () => navigation.findIndex((item) => item.name === "Subscriptions"),
     [navigation]
   );
+  const platformLogisticsTabIndex = React.useMemo(
+    () => navigation.findIndex((item) => item.name === "Platform Logistics"),
+    [navigation]
+  );
 
   useEffect(() => {
     const tab = new URLSearchParams(location.search).get("tab");
@@ -397,7 +401,10 @@ const AdminDashboard = () => {
     if (key === "subscriptions" && subscriptionsTabIndex !== -1) {
       setActiveTab(subscriptionsTabIndex);
     }
-  }, [location.search, notificationsTabIndex, rfqTabIndex, sellersTabIndex, categoriesTabIndex, subscriptionsTabIndex]);
+    if ((key === "platform-logistics" || key === "logistics") && platformLogisticsTabIndex !== -1) {
+      setActiveTab(platformLogisticsTabIndex);
+    }
+  }, [location.search, notificationsTabIndex, rfqTabIndex, sellersTabIndex, categoriesTabIndex, subscriptionsTabIndex, platformLogisticsTabIndex]);
 
   return (
     <>

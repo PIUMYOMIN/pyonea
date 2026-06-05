@@ -16,10 +16,20 @@ import {
   UserCircleIcon
 } from "@heroicons/react/24/outline";
 
+const SETTINGS_TABS = [
+  { key: "personal", label: "Personal", description: "Login identity and contact profile", icon: UserCircleIcon },
+  { key: "general", label: "General", description: "Store display and business hours", icon: CogIcon },
+  { key: "payment", label: "Payment", description: "Payout preferences and thresholds", icon: CreditCardIcon },
+  { key: "notifications", label: "Notifications", description: "Email and dashboard alerts", icon: BellIcon },
+  { key: "security", label: "Security", description: "Password and login protection", icon: KeyIcon },
+  { key: "account", label: "Account", description: "Store status and account actions", icon: ShieldCheckIcon },
+];
+
 const StoreSettings = ({ storeData, setStoreData, refreshData }) => {
   const { t } = useTranslation();
   const location = useLocation();
   const { user, updateUser } = useAuth();
+  const [activeSettingsTab, setActiveSettingsTab] = useState("personal");
   const [profileData, setProfileData] = useState({
     name: user?.name || '', email: user?.email || '', phone: user?.phone || '',
     address: user?.address || '', city: user?.city || '', state: user?.state || '',
@@ -55,9 +65,10 @@ const StoreSettings = ({ storeData, setStoreData, refreshData }) => {
 
   useEffect(() => {
     const sp = new URLSearchParams(location.search);
-    if (sp.get('section') !== 'personal') return;
-    const el = document.getElementById('personal');
-    if (el) requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    const section = sp.get('section');
+    if (SETTINGS_TABS.some((tab) => tab.key === section)) {
+      setActiveSettingsTab(section);
+    }
   }, [location.search]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -289,6 +300,8 @@ const StoreSettings = ({ storeData, setStoreData, refreshData }) => {
     }
   };
 
+  const activeSettings = SETTINGS_TABS.find((tab) => tab.key === activeSettingsTab) || SETTINGS_TABS[0];
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
@@ -349,22 +362,36 @@ const StoreSettings = ({ storeData, setStoreData, refreshData }) => {
       {/* Settings Tabs */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg overflow-hidden">
         <div className="border-b border-gray-200 dark:border-slate-700">
-          <nav className="flex -mb-px">
-            {['Personal', 'General', 'Payment', 'Notifications', 'Security', 'Account'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => document.getElementById(tab.toLowerCase())?.scrollIntoView({ behavior: 'smooth' })}
-                className="px-6 py-3 text-sm font-medium text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 hover:border-gray-300 dark:hover:border-slate-500 whitespace-nowrap border-b-2 border-transparent"
-              >
-                {tab}
-              </button>
-            ))}
+          <nav className="flex gap-1 overflow-x-auto p-2">
+            {SETTINGS_TABS.map(({ key, label, icon: Icon }) => {
+              const active = activeSettingsTab === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setActiveSettingsTab(key)}
+                  className={`inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl whitespace-nowrap transition-colors
+                    ${active
+                      ? "bg-green-600 text-white shadow-sm"
+                      : "text-gray-500 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-100 hover:bg-gray-100 dark:hover:bg-slate-700"}`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {label}
+                </button>
+              );
+            })}
           </nav>
         </div>
 
         <div className="p-6">
+          <div className="mb-6 border-b border-gray-100 dark:border-slate-700 pb-5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-green-600 dark:text-green-400">{activeSettings.label}</p>
+            <h2 className="mt-1 text-xl font-bold text-gray-900 dark:text-white">{activeSettings.label} Settings</h2>
+            <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{activeSettings.description}</p>
+          </div>
+
           {/* Personal account (merged from former “My Profile” tab) */}
-          <section id="personal" className="mb-10 scroll-mt-4">
+          <section id="personal" className={`${activeSettingsTab === "personal" ? "block" : "hidden"} scroll-mt-4`}>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
               <UserCircleIcon className="h-5 w-5 mr-2 text-green-600" />
               Personal account
@@ -441,7 +468,7 @@ const StoreSettings = ({ storeData, setStoreData, refreshData }) => {
           </section>
 
           {/* General Settings */}
-          <section id="general" className="mb-10">
+          <section id="general" className={`${activeSettingsTab === "general" ? "block" : "hidden"}`}>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <CogIcon className="h-5 w-5 mr-2 text-green-600" />
               General Settings
@@ -506,7 +533,7 @@ const StoreSettings = ({ storeData, setStoreData, refreshData }) => {
           </section>
 
           {/* Payment Settings */}
-          <section id="payment" className="mb-10">
+          <section id="payment" className={`${activeSettingsTab === "payment" ? "block" : "hidden"}`}>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <CreditCardIcon className="h-5 w-5 mr-2 text-green-600" />
               Payment Settings
@@ -593,7 +620,7 @@ const StoreSettings = ({ storeData, setStoreData, refreshData }) => {
           </section>
 
           {/* Notification Settings */}
-          <section id="notifications" className="mb-10">
+          <section id="notifications" className={`${activeSettingsTab === "notifications" ? "block" : "hidden"}`}>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <BellIcon className="h-5 w-5 mr-2 text-green-600" />
               Notification Settings
@@ -666,7 +693,7 @@ const StoreSettings = ({ storeData, setStoreData, refreshData }) => {
           </section>
 
           {/* Security Settings */}
-          <section id="security" className="mb-10">
+          <section id="security" className={`${activeSettingsTab === "security" ? "block" : "hidden"}`}>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <KeyIcon className="h-5 w-5 mr-2 text-green-600" />
               Security Settings
@@ -773,7 +800,7 @@ const StoreSettings = ({ storeData, setStoreData, refreshData }) => {
           </section>
 
           {/* Account Settings */}
-          <section id="account" className="mb-10">
+          <section id="account" className={`${activeSettingsTab === "account" ? "block" : "hidden"}`}>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <UserCircleIcon className="h-5 w-5 mr-2 text-green-600" />
               Account Settings
@@ -892,23 +919,26 @@ const StoreSettings = ({ storeData, setStoreData, refreshData }) => {
             </div>
           </section>
 
-          {/* Save Button */}
-          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-slate-700">
-            <button
-              type="button"
-              onClick={() => window.history.back()}
-              className="px-8 py-3 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-200 font-medium"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={saving}
-              className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {saving ? "Saving..." : "Save All Settings"}
-            </button>
-          </div>
+          {/* Tab Save Button */}
+          {activeSettingsTab !== "personal" && (
+            <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-gray-200 dark:border-slate-700">
+              <button
+                type="button"
+                onClick={() => setActiveSettingsTab("personal")}
+                className="px-6 py-2.5 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-200 font-medium"
+              >
+                Back to Personal
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={saving}
+                className="px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? "Saving..." : "Save " + activeSettings.label + " Settings"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

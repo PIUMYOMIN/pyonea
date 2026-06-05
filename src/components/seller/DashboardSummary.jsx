@@ -56,7 +56,7 @@ const TIER_CONFIG = {
 const TierCard = ({ storeData }) => {
   const tier = storeData?.seller_tier || "bronze";
   const cfg = TIER_CONFIG[tier] || TIER_CONFIG.bronze;
-  const completed = storeData?.completed_orders_count || 0;
+  const completed = Number(storeData?.delivered_orders_count ?? storeData?.completed_orders_count ?? 0);
   const promoted = storeData?.tier_promoted_at
     ? new Date(storeData.tier_promoted_at).toLocaleDateString("en-GB", { month: "short", year: "numeric" })
     : null;
@@ -72,6 +72,7 @@ const TierCard = ({ storeData }) => {
             <span className={`text-xl font-bold ${cfg.text}`}>{cfg.label}</span>
           </div>
           {promoted && <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Since {promoted}</p>}
+          <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Delivered orders: <span className="font-semibold text-gray-700 dark:text-slate-200">{completed}</span></p>
         </div>
         <div className="text-right flex-shrink-0">
           <p className="text-xs font-medium text-gray-500 dark:text-slate-400">Commission Rate</p>
@@ -82,7 +83,7 @@ const TierCard = ({ storeData }) => {
       {cfg.threshold ? (
         <div className="mt-4">
           <div className="flex justify-between text-xs text-gray-500 dark:text-slate-400 mb-1.5">
-            <span>{completed} completed orders</span>
+            <span>{completed} delivered orders</span>
             <span>{cfg.threshold} for {cfg.next}</span>
           </div>
           <div className="w-full bg-white dark:bg-slate-700 rounded-full h-2 border border-gray-200 dark:border-slate-600">
@@ -91,7 +92,7 @@ const TierCard = ({ storeData }) => {
           </div>
           <p className="text-xs text-gray-400 dark:text-slate-500 mt-1.5">
             {cfg.threshold - completed > 0
-              ? `${cfg.threshold - completed} more orders to reach ${cfg.next}`
+              ? `${cfg.threshold - completed} more delivered orders to reach ${cfg.next}`
               : `Ready to be promoted to ${cfg.next}!`}
           </p>
         </div>

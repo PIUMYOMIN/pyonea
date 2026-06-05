@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
@@ -120,9 +120,16 @@ const getMaxValidQuantity = (availableStock, moq, step, isPhysical) => {
 
 const ProductDetail = () => {
   const { t, i18n } = useTranslation();
+  const location = useLocation();
   const currencyLabel = t("common.currency.mmk", "MMK");
+  const urlLang = new URLSearchParams(location.search).get("lang");
+  const activeLang = urlLang?.startsWith("my")
+    ? "my"
+    : i18n.language?.startsWith("my")
+      ? "my"
+      : "en";
 
-  const loc = (en, mm) => i18n.language === "my" ? (mm || en) : (en || mm);
+  const loc = (en, mm) => activeLang === "my" ? (mm || en) : (en || mm);
   const { slug } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
@@ -611,8 +618,7 @@ const ProductDetail = () => {
   // ── Share ────────────────────────────────────────────────────────────────────
   const shareData = useMemo(() => {
     if (!product) return null;
-    const lang  = i18n.language?.startsWith("my") ? "my" : "en";
-    const url   = `${SITE_PUBLIC_URL}/products/${product.slug_en || product.slug || slug}?lang=${lang}`;
+    const url   = `${SITE_PUBLIC_URL}/products/${product.slug_en || product.slug || slug}?lang=${activeLang}`;
     const title = loc(product.name_en, product.name_mm) || t("productDetail.product");
     const text  = t("productDetail.share_text", { title });
     const description = t("productDetail.share_description", { url });
@@ -632,7 +638,7 @@ const ProductDetail = () => {
       telegram:  `https://t.me/share/url?url=${enc(url)}&text=${enc(text)}`,
       twitter:   `https://x.com/intent/tweet?text=${enc(text)}&url=${enc(url)}`,
     };
-  }, [product, slug, i18n.language, t, primaryProductImageUrl]);
+  }, [product, slug, activeLang, t, primaryProductImageUrl]);
 
   const handleShare = async () => {
     if (!shareData) return;
@@ -723,7 +729,6 @@ const ProductDetail = () => {
   const pageDescription = product
     ? t("productDetail.seo_description", { title: productDisplayName, moq: effectiveMoq || 1 }).slice(0, 160)
     : fallbackDescription;
-  const activeLang = i18n.language?.startsWith("my") ? "my" : "en";
   const pagePath = product ? `/products/${product.slug_en || product.slug || slug}` : `/products/${slug}`;
   const pageUrl = `${pagePath}?lang=${activeLang}`;
   const absolutePageUrl = `${SITE_PUBLIC_URL}${pageUrl}`;
@@ -758,7 +763,7 @@ const ProductDetail = () => {
         },
       }),
     };
-  }, [product, displayPrice, availableStock, i18n.language, absolutePageUrl]);
+  }, [product, displayPrice, availableStock, activeLang, absolutePageUrl]);
 
   const pageSchema = useMemo(() => {
     if (!product) return null;
@@ -796,7 +801,7 @@ const ProductDetail = () => {
         productSchema,
       ].filter(Boolean),
     };
-  }, [product, productSchema, slug, i18n.language, t, absolutePageUrl]);
+  }, [product, productSchema, slug, activeLang, t, absolutePageUrl]);
 
   const SeoComponent = useSEO({
     title:       pageTitle,
@@ -806,6 +811,7 @@ const ProductDetail = () => {
     url:         pageUrl,
     type:        "product",
     schema:      pageSchema,
+    locale:      activeLang === "my" ? "my_MM" : "en_US",
   });
 
   // ── Render ───────────────────────────────────────────────────────────────────

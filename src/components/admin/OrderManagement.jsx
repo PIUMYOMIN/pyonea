@@ -24,6 +24,20 @@ const STATUS_COLORS = {
   cancelled: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
 };
 
+const PAYMENT_STATUS_COLORS = {
+  paid: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+  pending: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
+  failed: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+  refunded: "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300",
+};
+
+const ESCROW_STATUS_COLORS = {
+  held: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
+  released: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  not_applicable: "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300",
+  cancelled: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+};
+
 const STATUS_RANK = {
   pending: 0,
   confirmed: 1,
@@ -192,6 +206,61 @@ const Badge = ({ status }) => (
     {status || "pending"}
   </span>
 );
+const formatMmk = (n, currency = "MMK") => {
+  const num = Number(n) || 0;
+  const formattedNumber = new Intl.NumberFormat("en-MM", { minimumFractionDigits: 0 }).format(num);
+  return formattedNumber + " " + currency;
+};
+
+const sellerPayoutAmount = (order) => {
+  const subtotal = Number(order?.subtotal_amount) || 0;
+  const commission = Number(order?.commission_amount) || 0;
+  return Math.max(0, subtotal - commission);
+};
+
+const PaymentBadge = ({ status }) => (
+  <span
+    className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold capitalize
+    ${PAYMENT_STATUS_COLORS[status] || "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"}`}
+  >
+    {status || "pending"}
+  </span>
+);
+
+const EscrowBadge = ({ status }) => (
+  <span
+    className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold capitalize
+    ${ESCROW_STATUS_COLORS[status] || "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"}`}
+  >
+    {(status || "not_applicable").replaceAll("_", " ")}
+  </span>
+);
+
+const AdminPaymentCell = ({ order }) => (
+  <div className="space-y-1.5 min-w-[128px]">
+    <PaymentBadge status={order.payment_status} />
+    <div className="text-[11px] text-gray-500 dark:text-gray-400 uppercase">
+      {order.payment_method || "-"}
+    </div>
+    {(order.transaction_id || order.payment_reference) && (
+      <div
+        className="max-w-[132px] truncate font-mono text-[10px] text-gray-400 dark:text-gray-500"
+        title={order.transaction_id || order.payment_reference}
+      >
+        {order.transaction_id || order.payment_reference}
+      </div>
+    )}
+  </div>
+);
+
+const AdminFundCell = ({ order }) => (
+  <div className="space-y-1 min-w-[148px] text-xs">
+    <div className="font-semibold text-gray-900 dark:text-white">{formatMmk(order.total_amount)}</div>
+    <div className="text-gray-500 dark:text-gray-400">Seller: {formatMmk(sellerPayoutAmount(order))}</div>
+    <div className="text-gray-500 dark:text-gray-400">Commission: {formatMmk(order.commission_amount)}</div>
+    <EscrowBadge status={order.escrow_status} />
+  </div>
+);
 
 const OrderDetailModal = ({ order, onClose }) => {
   const [displayOrder, setDisplayOrder] = useState(order);
@@ -207,6 +276,8 @@ const OrderDetailModal = ({ order, onClose }) => {
   const phone = shipAddr?.phone;
   const addrLine = [shipAddr?.address, shipAddr?.city, shipAddr?.state].filter(Boolean).join(", ");
   const delivery = displayOrder.delivery;
+  const fmt = (n) => formatMmk(n);
+  const sellerPayout = sellerPayoutAmount(displayOrder);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
@@ -239,9 +310,17 @@ const OrderDetailModal = ({ order, onClose }) => {
             </div>
             <div>
               <p className="text-gray-400 dark:text-gray-500 text-xs">Payment</p>
-              <p className="font-medium text-gray-900 dark:text-white capitalize">
-                {displayOrder.payment_method || "—"} · {displayOrder.payment_status || "—"}
-              </p>
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                <PaymentBadge status={displayOrder.payment_status} />
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
+                  {displayOrder.payment_method || "-"}
+                </span>
+              </div>
+              {(displayOrder.transaction_id || displayOrder.payment_reference) && (
+                <p className="mt-1 font-mono text-[11px] text-gray-500 dark:text-gray-400 break-all">
+                  {displayOrder.transaction_id || displayOrder.payment_reference}
+                </p>
+              )}
             </div>
           </div>
 
@@ -277,8 +356,20 @@ const OrderDetailModal = ({ order, onClose }) => {
               </div>
             )}
             <div className="flex justify-between font-bold border-t border-gray-200 dark:border-gray-600 pt-2">
-              <span className="text-gray-900 dark:text-white">Total</span>
+              <span className="text-gray-900 dark:text-white">Collected by admin</span>
               <span className="text-green-700 dark:text-green-400">{fmt(displayOrder.total_amount)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500 dark:text-gray-400">Seller payout</span>
+              <span className="text-gray-900 dark:text-white">{fmt(sellerPayout)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500 dark:text-gray-400">Commission</span>
+              <span className="text-gray-900 dark:text-white">{fmt(displayOrder.commission_amount)}</span>
+            </div>
+            <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-600 pt-2">
+              <span className="text-gray-500 dark:text-gray-400">Escrow</span>
+              <EscrowBadge status={displayOrder.escrow_status} />
             </div>
           </div>
 
@@ -345,11 +436,7 @@ const OrderManagement = () => {
   const { t } = useTranslation();
   const [orders, setOrders] = useState([]);
 
-  const fmt = (n) => {
-    const num = Number(n) || 0;
-    const formattedNumber = new Intl.NumberFormat("en-MM", { minimumFractionDigits: 0 }).format(num);
-    return `${formattedNumber} ${t('common.currency.mmk', 'MMK')}`;
-  };
+  const fmt = (n) => formatMmk(n, t('common.currency.mmk', 'MMK'));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [toast, setToast] = useState(null);
@@ -532,7 +619,7 @@ const OrderManagement = () => {
             <table className="min-w-full text-sm divide-y divide-gray-100 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  {["Order #", "Date", "Buyer", "Amount", "Status", "Delivery", "Actions"].map((h) => (
+                  {["Order #", "Date", "Buyer", "Fund", "Payment", "Status", "Delivery", "Actions"].map((h) => (
                     <th
                       key={h}
                       className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide"
@@ -552,7 +639,12 @@ const OrderManagement = () => {
                       {order.created_at ? new Date(order.created_at).toLocaleDateString() : "—"}
                     </td>
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{order.buyer?.name || "—"}</td>
-                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{fmt(order.total_amount)}</td>
+                    <td className="px-4 py-3 align-top">
+                      <AdminFundCell order={order} />
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      <AdminPaymentCell order={order} />
+                    </td>
                     <td className="px-4 py-3">
                       <select
                         value={order.status || "pending"}

@@ -31,6 +31,7 @@ const typeIcon = (type) => {
     case 'order_status_changed':
     case 'new_order':       return <ShoppingBagIcon           className={`${cls} text-blue-500`} />;
     case 'delivery_status_changed':
+    case 'platform_logistics_requested':
     case 'order_delivered_thank_you': return <TruckIcon       className={`${cls} text-orange-500`} />;
     case 'product_review':  return <StarIcon                  className={`${cls} text-yellow-500`} />;
     case 'seller_approved': return <BuildingStorefrontIcon    className={`${cls} text-green-500`} />;
@@ -166,6 +167,7 @@ const NotificationsPanel = () => {
     if (data.url) return data.url;
     if (data.type === 'new_order') return '/seller/dashboard?tab=orders';
     if (data.type === 'subscription_request') return '/admin/dashboard?tab=subscriptions';
+    if (data.type === 'platform_logistics_requested') return '/admin/dashboard?tab=platform-logistics';
     if (data.type?.startsWith('subscription_')) return '/seller/dashboard?tab=subscription';
     if (data.type?.startsWith('rfq_')) return '/rfq';
     if (data.order_number && data.type?.includes('delivery')) {
