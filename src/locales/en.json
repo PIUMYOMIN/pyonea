@@ -2792,7 +2792,8 @@
       "aya_pay": "AYA Pay",
       "mmqr": "MMQR",
       "cash_on_delivery": "Cash on Delivery"
-    }
+    },
+    "confirm_delivery_failed": "Could not confirm delivery. Please try again."
   },
   "payment_success": {
     "title": "Payment Successful!",

@@ -269,7 +269,7 @@ const downloadPaySlip = (order, delivery = null) => {
 };
 
 // ─── Order Card ───────────────────────────────────────────────────────────────
-const OrderCard = ({ order, onViewDetails, onCancel, onPaySlip }) => {
+const OrderCard = ({ order, onViewDetails, onCancel, onPaySlip, onConfirmDelivery, confirmingDelivery }) => {
   const { t } = useTranslation();
   const firstItem  = order.items?.[0] || {};
   const images     = firstItem.product_data?.images || [];
@@ -309,6 +309,18 @@ const OrderCard = ({ order, onViewDetails, onCancel, onPaySlip }) => {
             <button onClick={() => onPaySlip(order)}
               className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50">
               <PrinterIcon className="h-3.5 w-3.5" />{t("buyer_dashboard.pay_slip")}
+            </button>
+          )}
+          {canConfirmDelivery && (
+            <button
+              onClick={() => onConfirmDelivery(order)}
+              disabled={confirmingDelivery === order.id}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 disabled:opacity-60"
+            >
+              {confirmingDelivery === order.id
+                ? <ArrowPathIcon className="h-3.5 w-3.5 animate-spin" />
+                : <CheckCircleIcon className="h-3.5 w-3.5" />}
+              {t("buyer_dashboard.confirm_delivery", "Confirm Delivery")}
             </button>
           )}
           {isCancelableStatus && (
@@ -550,7 +562,7 @@ const OrderDetailsModal = ({ order, isOpen, onClose }) => {
 };
 
 // ─── Dashboard Tab ────────────────────────────────────────────────────────────
-const DashboardTab = ({ user, orders, onViewDetails, onCancel, navigate }) => {
+const DashboardTab = ({ user, orders, onViewDetails, onCancel, onConfirmDelivery, confirmingDelivery, navigate }) => {
   const { t } = useTranslation();
   const [resendingVerification, setResendingVerification] = useState(false);
   const [verificationMessage, setVerificationMessage] = useState("");
@@ -677,7 +689,7 @@ const DashboardTab = ({ user, orders, onViewDetails, onCancel, navigate }) => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {recentOrders.map((o) => (
-              <OrderCard key={o.id} order={o} onViewDetails={onViewDetails} onCancel={onCancel} onPaySlip={downloadPaySlip} />
+              <OrderCard key={o.id} order={o} onViewDetails={onViewDetails} onCancel={onCancel} onConfirmDelivery={onConfirmDelivery} confirmingDelivery={confirmingDelivery} onPaySlip={downloadPaySlip} />
             ))}
           </div>
         )}
@@ -687,7 +699,7 @@ const DashboardTab = ({ user, orders, onViewDetails, onCancel, navigate }) => {
 };
 
 // ─── Orders Tab ───────────────────────────────────────────────────────────────
-const OrdersTab = ({ orders, onViewDetails, onCancel }) => {
+const OrdersTab = ({ orders, onViewDetails, onCancel, onConfirmDelivery, confirmingDelivery }) => {
   const { t } = useTranslation();
   const [filter, setFilter] = useState("all");
   const filtered = filter === "all" ? orders : orders.filter((o) => o.status === filter);
@@ -713,7 +725,7 @@ const OrdersTab = ({ orders, onViewDetails, onCancel }) => {
       ) : (
         <div className="grid gap-4">
           {filtered.map((o) => (
-            <OrderCard key={o.id} order={o} onViewDetails={onViewDetails} onCancel={onCancel} onPaySlip={downloadPaySlip} />
+            <OrderCard key={o.id} order={o} onViewDetails={onViewDetails} onCancel={onCancel} onConfirmDelivery={onConfirmDelivery} confirmingDelivery={confirmingDelivery} onPaySlip={downloadPaySlip} />
           ))}
         </div>
       )}
@@ -1523,6 +1535,7 @@ const BuyerDashboard = () => {
   const [sidebarOpen, setSidebarOpen]   = useState(false);
   const [cancelModal, setCancelModal]   = useState(null);
   const [cancelling, setCancelling]     = useState(false);
+  const [confirmingDelivery, setConfirmingDelivery] = useState(null);
   const [cancelError, setCancelError]   = useState(null);
   const [rfqBadgeCount, setRfqBadgeCount] = useState(0);
   const navigate = useNavigate();
@@ -1596,6 +1609,18 @@ const BuyerDashboard = () => {
   };
 
   const handleViewDetails = (order) => { setSelectedOrder(order); setIsModalOpen(true); };
+  const handleConfirmDelivery = async (order) => {
+    setConfirmingDelivery(order.id);
+    try {
+      await api.post(`/orders/${order.id}/confirm-delivery`);
+      await fetchOrders();
+      setSelectedOrder((prev) => prev?.id === order.id ? { ...prev, status: "delivered", delivered_at: new Date().toISOString() } : prev);
+    } catch (e) {
+      alert(e.response?.data?.message || t("buyer_dashboard.confirm_delivery_failed", "Could not confirm delivery. Please try again."));
+    } finally {
+      setConfirmingDelivery(null);
+    }
+  };
   const handleCancel = (order) => {
     if (order.payment_status === "paid") return;
     setCancelModal(order);
@@ -1605,8 +1630,8 @@ const BuyerDashboard = () => {
   const renderTab = () => {
     const key = TABS[activeTab]?.id;
     switch (key) {
-      case "dashboard": return <DashboardTab user={user} orders={orders} onViewDetails={handleViewDetails} onCancel={handleCancel} navigate={navigate} />;
-      case "orders":    return <OrdersTab orders={orders} onViewDetails={handleViewDetails} onCancel={handleCancel} />;
+      case "dashboard": return <DashboardTab user={user} orders={orders} onViewDetails={handleViewDetails} onCancel={handleCancel} onConfirmDelivery={handleConfirmDelivery} confirmingDelivery={confirmingDelivery} navigate={navigate} />;
+      case "orders":    return <OrdersTab orders={orders} onViewDetails={handleViewDetails} onCancel={handleCancel} onConfirmDelivery={handleConfirmDelivery} confirmingDelivery={confirmingDelivery} />;
       case "history":   return <PurchaseHistoryTab orders={orders} />;
       case "cart":      return <CartTab navigate={navigate} />;
       case "wishlist":  return <WishlistTab navigate={navigate} />;
