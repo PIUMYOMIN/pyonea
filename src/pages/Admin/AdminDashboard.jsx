@@ -253,6 +253,11 @@ const AdminDashboard = () => {
       component: <CodInvoiceManagement />
     },
     {
+      name: "Delivery Fee Review",
+      icon: CurrencyDollarIcon,
+      component: <DeliveryFeeReview />
+    },
+    {
       name: t("users"),
       icon: UserGroupIcon,
       component: <UserManagement />
@@ -261,11 +266,6 @@ const AdminDashboard = () => {
       name: "Sellers",
       icon: BuildingStorefrontIcon,
       component: <AdminSellerCenter />
-    },
-    {
-      name: "Delivery Fee Review",
-      icon: CurrencyDollarIcon,
-      component: <DeliveryFeeReview />
     },
     {
       name: "Commission Rules",
