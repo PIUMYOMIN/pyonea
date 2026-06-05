@@ -220,46 +220,16 @@ const AdminDashboard = () => {
       component: <NotificationsPanel />
     },
     {
-      name: "RFQ",
-      icon: DocumentTextIcon,
-      component: <DashboardRFQSection role="admin" />,
-    },
-    {
-      name: "Financial Reports",
-      icon: ChartBarIcon,
-      component: <FinancialReports />
-    },
-    {
-      name: "Contact Messages",
-      icon: EnvelopeIcon,
-      component: <ContactMessagesManagement />
-    },
-    {
-      name: t("users"),
-      icon: UserGroupIcon,
-      component: <UserManagement />
-    },
-    {
-      name: "Sellers",
-      icon: BuildingStorefrontIcon,
-      component: <AdminSellerCenter />
-    },
-    {
-      name: t("seller.product.title"),
-      icon: CubeIcon,
-      component: <ProductManagement />
-    },
-    {
-      name: t("Seller Reviews"),
-      icon: StarIcon,
-      component: <ReviewManagement />
-    },
-    {
       name: t("orders"),
       icon: ShoppingBagIcon,
       component: (
         <OrderManagement />
       )
+    },
+    {
+      name: "Financial Reports",
+      icon: ChartBarIcon,
+      component: <FinancialReports />
     },
     {
       name: "Platform Logistics",
@@ -278,9 +248,39 @@ const AdminDashboard = () => {
       component: <CodInvoiceManagement />
     },
     {
+      name: t("users"),
+      icon: UserGroupIcon,
+      component: <UserManagement />
+    },
+    {
+      name: "Sellers",
+      icon: BuildingStorefrontIcon,
+      component: <AdminSellerCenter />
+    },
+    {
+      name: t("seller.product.title"),
+      icon: CubeIcon,
+      component: <ProductManagement />
+    },
+    {
       name: "Delivery Fee Review",
       icon: CurrencyDollarIcon,
       component: <DeliveryFeeReview />
+    },
+    {
+      name: "Commission Rules",
+      icon: CurrencyDollarIcon,
+      component: <CommissionRulesManagement />,
+    },
+    {
+      name: 'Subscriptions',
+      icon: SparklesIcon,
+      component: <SubscriptionManagement />,
+    },
+    {
+      name: t("analytics"),
+      icon: CurrencyDollarIcon,
+      component: <AnalyticsManagement products={[]} />
     },
     {
       name: "Categories",
@@ -308,19 +308,19 @@ const AdminDashboard = () => {
       component: <BlogManagement />,
     },
     {
-      name: "Commission Rules",
-      icon: CurrencyDollarIcon,
-      component: <CommissionRulesManagement />,
+      name: t("Seller Reviews"),
+      icon: StarIcon,
+      component: <ReviewManagement />
     },
     {
-      name: 'Subscriptions',
-      icon: SparklesIcon,
-      component: <SubscriptionManagement />,
+      name: "RFQ",
+      icon: DocumentTextIcon,
+      component: <DashboardRFQSection role="admin" />,
     },
     {
-      name: t("analytics"),
-      icon: CurrencyDollarIcon,
-      component: <AnalyticsManagement products={[]} />
+      name: "Contact Messages",
+      icon: EnvelopeIcon,
+      component: <ContactMessagesManagement />
     },
     {
       name: "Reports",

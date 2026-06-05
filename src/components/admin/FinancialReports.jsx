@@ -150,14 +150,22 @@ const FinancialReports = () => {
   const handleFetch = () => fetch(period, groupBy);
 
   // ── Filtered orders for table ───────────────────────────────────────────────
-  const filteredOrders = (data?.orders ?? []).filter(o => {
-    const matchSearch = !search ||
-      o.order_number?.toLowerCase().includes(search.toLowerCase()) ||
-      o.buyer_name?.toLowerCase().includes(search.toLowerCase()) ||
-      o.seller_name?.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === "all" || o.order_status === statusFilter;
-    return matchSearch && matchStatus;
-  });
+  const filteredOrders = (data?.orders ?? [])
+    .filter(o => {
+      const q = search.toLowerCase();
+      const matchSearch = !search ||
+        o.order_number?.toLowerCase().includes(q) ||
+        o.buyer_name?.toLowerCase().includes(q) ||
+        o.seller_name?.toLowerCase().includes(q);
+      const matchStatus = statusFilter === "all" || o.order_status === statusFilter;
+      return matchSearch && matchStatus;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.order_date || a.created_at || 0).getTime() || 0;
+      const dateB = new Date(b.order_date || b.created_at || 0).getTime() || 0;
+      if (dateA !== dateB) return dateB - dateA;
+      return Number(b.order_id || 0) - Number(a.order_id || 0);
+    });
 
   // ── Excel Export ────────────────────────────────────────────────────────────
   const handleExport = async () => {

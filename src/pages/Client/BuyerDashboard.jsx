@@ -11,7 +11,7 @@ import {
   ClockIcon, XCircleIcon, HeartIcon, CogIcon, ChartBarIcon, HomeIcon,
   DocumentTextIcon, BuildingStorefrontIcon, PencilSquareIcon,
   ArrowPathIcon, ExclamationTriangleIcon, TrashIcon, DocumentArrowDownIcon,
-  ReceiptRefundIcon, PrinterIcon, Bars3Icon, XMarkIcon, BellIcon, GiftIcon,
+  ReceiptRefundIcon, PrinterIcon, Bars3Icon, XMarkIcon, BellIcon,
   SunIcon, MoonIcon
 } from "@heroicons/react/24/outline";
 import api from "../../utils/api";
@@ -1390,13 +1390,20 @@ const ProfileTab = ({ user, onUpdate }) => {
 };
 
 // ─── Settings Tab ─────────────────────────────────────────────────────────────
-const SettingsTab = ({ user }) => {
+const SettingsTab = ({ user, onUpdate }) => {
   const { t } = useTranslation();
+  const location = useLocation();
   const { theme, isDark, setLight, setDark } = useTheme();
   const [pwd, setPwd]     = useState({ current_password: "", new_password: "", confirm_password: "" });
   const [loading, setL]   = useState(false);
   const [msg, setMsg]     = useState(null);
-  const [section, setSection] = useState("notifications");
+  const initialSection = new URLSearchParams(location.search).get("tab") === "referrals" ? "referrals" : "profile";
+  const [section, setSection] = useState(initialSection);
+
+  useEffect(() => {
+    const tab = new URLSearchParams(location.search).get("tab");
+    if (tab === "profile" || tab === "referrals") setSection(tab);
+  }, [location.search]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1411,6 +1418,8 @@ const SettingsTab = ({ user }) => {
   };
 
   const subTabs = [
+    { id: "profile", label: t("buyer_dashboard.profile") },
+    { id: "referrals", label: t("buyer_dashboard.referrals") },
     { id:"notifications", label:t("buyer_dashboard.notifications") },
     { id:"appearance",    label:t("buyer_dashboard.appearance") },
     { id:"password",      label:t("buyer_dashboard.password") },
@@ -1430,6 +1439,14 @@ const SettingsTab = ({ user }) => {
           </button>
         ))}
       </div>
+
+      {section === "profile" && (
+        <ProfileTab user={user} onUpdate={onUpdate} />
+      )}
+
+      {section === "referrals" && (
+        <ReferralPanel />
+      )}
 
       {section === "notifications" && (
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm dark:shadow-slate-900/50 p-5 sm:p-6">
@@ -1554,10 +1571,9 @@ const BuyerDashboard = () => {
     { id: "cart",       label: t("buyer_dashboard.my_cart"),       Icon: ShoppingCartIcon  },
     { id: "wishlist",   label: t("buyer_dashboard.wishlist"),      Icon: HeartIcon         },
     { id: "rfq",        label: t("buyer_dashboard.rfq"),             Icon: DocumentTextIcon  },
-    { id: "profile",    label: t("buyer_dashboard.profile"),       Icon: UserIcon          },
+
     { id: "settings",   label: t("buyer_dashboard.settings"),      Icon: CogIcon           },
     { id: "notifications", label: t("buyer_dashboard.notifications"), Icon: BellIcon          },
-    { id: "referrals",     label: t("buyer_dashboard.referrals"),     Icon: GiftIcon          },
   ], [t]);
 
   const fetchOrders = useCallback(async () => {
@@ -1590,7 +1606,8 @@ const BuyerDashboard = () => {
   useEffect(() => {
     const tab = new URLSearchParams(location.search).get("tab");
     if (!tab) return;
-    const idx = TABS.findIndex((item) => item.id === tab);
+    const normalizedTab = (tab === "profile" || tab === "referrals") ? "settings" : tab;
+    const idx = TABS.findIndex((item) => item.id === normalizedTab);
     if (idx !== -1) setActiveTab(idx);
   }, [location.search, TABS]);
 
@@ -1641,10 +1658,9 @@ const BuyerDashboard = () => {
       case "cart":      return <CartTab navigate={navigate} />;
       case "wishlist":  return <WishlistTab navigate={navigate} />;
       case "rfq":       return <DashboardRFQSection role="buyer" />;
-      case "profile":   return <ProfileTab user={user} onUpdate={(u) => { setUser(u); updateUser(u); }} />;
-      case "settings":      return <SettingsTab user={user} />;
+
+      case "settings": return <SettingsTab user={user} onUpdate={(u) => { setUser(u); updateUser(u); }} />;
       case "notifications": return <NotificationsPanel />;
-      case "referrals":     return <ReferralPanel />;
       default:              return null;
     }
   };
