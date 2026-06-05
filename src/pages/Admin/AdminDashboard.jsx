@@ -227,6 +227,11 @@ const AdminDashboard = () => {
       )
     },
     {
+      name: t("seller.product.title"),
+      icon: CubeIcon,
+      component: <ProductManagement />
+    },
+    {
       name: "Financial Reports",
       icon: ChartBarIcon,
       component: <FinancialReports />
@@ -256,11 +261,6 @@ const AdminDashboard = () => {
       name: "Sellers",
       icon: BuildingStorefrontIcon,
       component: <AdminSellerCenter />
-    },
-    {
-      name: t("seller.product.title"),
-      icon: CubeIcon,
-      component: <ProductManagement />
     },
     {
       name: "Delivery Fee Review",

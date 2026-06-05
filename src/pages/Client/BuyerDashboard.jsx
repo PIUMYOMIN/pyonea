@@ -1565,15 +1565,14 @@ const BuyerDashboard = () => {
   const { updateUser } = useAuth();
 
   const TABS = useMemo(() => [
-    { id: "dashboard",  label: t("sidebar.dashboard"),             Icon: HomeIcon          },
-    { id: "orders",     label: t("buyer_dashboard.my_orders"),     Icon: ShoppingBagIcon   },
-    { id: "history",    label: t("buyer_dashboard.purchase_history"), Icon: ReceiptRefundIcon },
-    { id: "cart",       label: t("buyer_dashboard.my_cart"),       Icon: ShoppingCartIcon  },
-    { id: "wishlist",   label: t("buyer_dashboard.wishlist"),      Icon: HeartIcon         },
-    { id: "rfq",        label: t("buyer_dashboard.rfq"),             Icon: DocumentTextIcon  },
-
-    { id: "settings",   label: t("buyer_dashboard.settings"),      Icon: CogIcon           },
-    { id: "notifications", label: t("buyer_dashboard.notifications"), Icon: BellIcon          },
+    { id: "dashboard", label: t("sidebar.dashboard"), Icon: HomeIcon },
+    { id: "notifications", label: t("buyer_dashboard.notifications"), Icon: BellIcon },
+    { id: "orders", label: t("buyer_dashboard.my_orders"), Icon: ShoppingBagIcon },
+    { id: "history", label: t("buyer_dashboard.purchase_history"), Icon: ReceiptRefundIcon },
+    { id: "cart", label: t("buyer_dashboard.my_cart"), Icon: ShoppingCartIcon },
+    { id: "wishlist", label: t("buyer_dashboard.wishlist"), Icon: HeartIcon },
+    { id: "rfq", label: t("buyer_dashboard.rfq"), Icon: DocumentTextIcon },
+    { id: "settings", label: t("buyer_dashboard.settings"), Icon: CogIcon },
   ], [t]);
 
   const fetchOrders = useCallback(async () => {
